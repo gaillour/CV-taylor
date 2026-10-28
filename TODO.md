@@ -77,11 +77,12 @@
 
 - [ ] **Slice 9: Persistencia Cloud — Supabase + Retorno al Perfil**
   - [ ] Integración de Supabase Auth, Postgres y Storage para perfil y snapshots inmutables.
+  - [ ] Soft delete de snapshots en base de datos (`deleted_at: timestamptz | null`) con preservación de inmutabilidad en almacenamiento y filtro en la Galería (`WHERE deleted_at IS NULL`).
   - [ ] Botón por viñeta en Editor "Guardar en Perfil" (crea/actualiza fact aprobado). Ediciones del editor son locales al CV por defecto.
 
 ---
 
-## Deuda Técnica / Optimizaciones
+## Deuda Técnica / Optimizaciones Concluidas
 - [x] **Soporte real de Idioma (`es` / `en`) y Traducción de Contenido:**
   - Fallback determinista bilingüe en categorías y niveles de habilidades (`DEFAULT_CATEGORY_TRANSLATIONS` / `DEFAULT_LEVEL_TRANSLATIONS`).
   - `_adapt_bullets_with_llm` fuerza redacción y vocabulario en el idioma de destino (`target_lang`).
@@ -91,6 +92,10 @@
   - Primitivos reutilizables `BufferedInput` y `BufferedTextarea` con estado local en `useState`, debounce de 250ms y flush en `onBlur`.
   - Desacople completo de `CvEditor`, `BulletList`, `ExperienceSection`, `ProjectsSection`, `EducationSection`, `SummarySection`, `HeaderSection` y `SkillsSection`.
   - Fix en `useCvStore.ts`: `fetchPreview` ya no pisa `renderModel` en cliente cuando recibe un modelo explícito.
+- [x] **Descarte de borrador al recargar (F5) y botón "Descartar" en Editor:**
+  - Acción `revertDraft` en `useCvStore`: revierte al snapshot base guardado si existía o descarta el borrador nuevo.
+  - Botón reactivo "Descartar" en `ExportActions` visible cuando hay cambios sin guardar (`dirty=true`).
+  - Detección en `beforeunload` + `sessionStorage`: recargar la página ignorando el aviso descarta las modificaciones no guardadas.
 
 ---
 
