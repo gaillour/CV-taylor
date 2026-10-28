@@ -1,17 +1,59 @@
 import { create } from "zustand";
-import { ContactInfo, Entry, EntryTitle, Fact, Profile, Skill } from "@/types/cv";
+import {
+  ContactInfo,
+  EnhanceProfileResponse,
+  EnhanceStats,
+  Entry,
+  EntryTitle,
+  Fact,
+  Profile,
+  Skill,
+} from "@/types/cv";
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+
+export function isProfileEmpty(profile: Profile | null): boolean {
+  if (!profile) return true;
+  return (
+    !profile.full_name?.trim() &&
+    profile.entries.length === 0 &&
+    profile.skills.length === 0
+  );
+}
+
+export function countPendingSuggestions(profile: Profile | null): number {
+  if (!profile) return 0;
+  let count = 0;
+  for (const s of profile.skills) {
+    if (s.approved === false) count++;
+  }
+  for (const e of profile.entries) {
+    for (const t of e.titles) {
+      if (t.approved === false) count++;
+    }
+    for (const f of e.facts) {
+      if (f.approved === false || Boolean(f.proposed_text)) count++;
+    }
+  }
+  return count;
+}
 
 interface ProfileState {
   profile: Profile | null;
   loading: boolean;
   saving: boolean;
+  importing: boolean;
+  enhancing: boolean;
+  canEnhanceAfterImport: boolean;
+  lastEnhanceStats: EnhanceStats | null;
   dirty: boolean;
   error: string | null;
 
   fetchProfile: () => Promise<void>;
   saveProfile: () => Promise<boolean>;
+  importProfile: (file: File) => Promise<boolean>;
+  enhanceProfile: () => Promise<boolean>;
+  dismissImportPrompt: () => void;
   setProfile: (updater: (prev: Profile) => Profile) => void;
 
   updateContact: (contact: Partial<ContactInfo>) => void;
@@ -33,12 +75,25 @@ interface ProfileState {
   addFact: (entryId: string, fact: Fact) => void;
   updateFact: (entryId: string, factId: string, fact: Partial<Fact>) => void;
   removeFact: (entryId: string, factId: string) => void;
+
+  approveSkill: (skillId: string) => void;
+  rejectSkill: (skillId: string) => void;
+  approveTitle: (entryId: string, titleId: string) => void;
+  rejectTitle: (entryId: string, titleId: string) => void;
+  approveFact: (entryId: string, factId: string) => void;
+  rejectFact: (entryId: string, factId: string) => void;
+  approveAllSuggestions: () => void;
+  rejectAllSuggestions: () => void;
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
   profile: null,
   loading: false,
   saving: false,
+  importing: false,
+  enhancing: false,
+  canEnhanceAfterImport: false,
+  lastEnhanceStats: null,
   dirty: false,
   error: null,
 
@@ -57,6 +112,91 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         error: err instanceof Error ? err.message : "Error al cargar perfil",
       });
     }
+  },
+
+  importProfile: async (file: File) => {
+    set({ importing: true, error: null });
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const currentProfile = get().profile;
+      if (currentProfile && !isProfileEmpty(currentProfile)) {
+        formData.append("base_profile", JSON.stringify(currentProfile));
+      }
+      const res = await fetch(`${API_BASE_URL}/api/profile/import`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        let errorMsg = `Error ${res.status}`;
+        try {
+          const errData = await res.json();
+          if (errData.detail) errorMsg = errData.detail;
+        } catch {
+          errorMsg = await res.text();
+        }
+        throw new Error(errorMsg);
+      }
+      const imported = (await res.json()) as Profile;
+      set({
+        profile: imported,
+        importing: false,
+        canEnhanceAfterImport: true,
+        dirty: true,
+        error: null,
+      });
+      return true;
+    } catch (err: unknown) {
+      set({
+        importing: false,
+        error: err instanceof Error ? err.message : "Error al importar CV",
+      });
+      return false;
+    }
+  },
+
+  enhanceProfile: async () => {
+    const { profile, canEnhanceAfterImport, enhancing } = get();
+    if (!profile || !canEnhanceAfterImport || enhancing) return false;
+
+    set({ enhancing: true, error: null, canEnhanceAfterImport: false });
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/profile/enhance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+      if (!res.ok) {
+        let errorMsg = `Error ${res.status}`;
+        try {
+          const errData = await res.json();
+          if (errData.detail) errorMsg = errData.detail;
+        } catch {
+          errorMsg = await res.text();
+        }
+        throw new Error(errorMsg);
+      }
+      const data = (await res.json()) as EnhanceProfileResponse;
+      set({
+        profile: data.profile,
+        lastEnhanceStats: data.stats,
+        enhancing: false,
+        dirty: true,
+        error: null,
+      });
+      return true;
+    } catch (err: unknown) {
+      set({
+        enhancing: false,
+        canEnhanceAfterImport: true,
+        error: err instanceof Error ? err.message : "Error al enriquecer perfil con IA",
+      });
+      return false;
+    }
+  },
+
+  dismissImportPrompt: () => {
+    set({ canEnhanceAfterImport: false });
   },
 
   saveProfile: async () => {
@@ -209,6 +349,139 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       entries: p.entries.map((e) =>
         e.id === entryId ? { ...e, facts: e.facts.filter((f) => f.id !== factId) } : e
       ),
+    }));
+  },
+
+  approveSkill: (skillId) => {
+    const now = new Date().toISOString();
+    get().setProfile((p) => ({
+      ...p,
+      skills: p.skills.map((s) =>
+        s.id === skillId ? { ...s, approved: true, approved_at: now } : s
+      ),
+    }));
+  },
+
+  rejectSkill: (skillId) => {
+    get().removeSkill(skillId);
+  },
+
+  approveTitle: (entryId, titleId) => {
+    const now = new Date().toISOString();
+    get().setProfile((p) => ({
+      ...p,
+      entries: p.entries.map((e) =>
+        e.id === entryId
+          ? {
+              ...e,
+              titles: e.titles.map((t) =>
+                t.id === titleId ? { ...t, approved: true, approved_at: now } : t
+              ),
+            }
+          : e
+      ),
+    }));
+  },
+
+  rejectTitle: (entryId, titleId) => {
+    get().removeTitle(entryId, titleId);
+  },
+
+  approveFact: (entryId, factId) => {
+    const now = new Date().toISOString();
+    get().setProfile((p) => ({
+      ...p,
+      entries: p.entries.map((e) => {
+        if (e.id !== entryId) return e;
+        return {
+          ...e,
+          facts: e.facts.map((f) => {
+            if (f.id !== factId) return f;
+            if (f.proposed_text) {
+              return {
+                ...f,
+                text: f.proposed_text,
+                proposed_text: null,
+                source: "ai",
+                approved: true,
+                approved_at: now,
+              };
+            }
+            return { ...f, approved: true, approved_at: now };
+          }),
+        };
+      }),
+    }));
+  },
+
+  rejectFact: (entryId, factId) => {
+    get().setProfile((p) => ({
+      ...p,
+      entries: p.entries.map((e) => {
+        if (e.id !== entryId) return e;
+        const target = e.facts.find((f) => f.id === factId);
+        if (!target) return e;
+        // If it's an existing approved fact with a proposed rewrite, just clear proposed_text
+        if (target.approved !== false && target.proposed_text) {
+          return {
+            ...e,
+            facts: e.facts.map((f) =>
+              f.id === factId ? { ...f, proposed_text: null } : f
+            ),
+          };
+        }
+        // If it's a newly distilled unapproved fact, remove it
+        return {
+          ...e,
+          facts: e.facts.filter((f) => f.id !== factId),
+        };
+      }),
+    }));
+  },
+
+  approveAllSuggestions: () => {
+    const now = new Date().toISOString();
+    get().setProfile((p) => ({
+      ...p,
+      skills: p.skills.map((s) =>
+        s.approved === false ? { ...s, approved: true, approved_at: now } : s
+      ),
+      entries: p.entries.map((e) => ({
+        ...e,
+        titles: e.titles.map((t) =>
+          t.approved === false ? { ...t, approved: true, approved_at: now } : t
+        ),
+        facts: e.facts.map((f) => {
+          if (f.proposed_text) {
+            return {
+              ...f,
+              text: f.proposed_text,
+              proposed_text: null,
+              source: "ai",
+              approved: true,
+              approved_at: now,
+            };
+          }
+          if (f.approved === false) {
+            return { ...f, approved: true, approved_at: now };
+          }
+          return f;
+        }),
+      })),
+    }));
+  },
+
+  rejectAllSuggestions: () => {
+    get().setProfile((p) => ({
+      ...p,
+      skills: p.skills.filter((s) => s.approved !== false),
+      entries: p.entries.map((e) => ({
+        ...e,
+        titles: e.titles.filter((t) => t.approved !== false),
+        facts: e.facts
+          .filter((f) => f.approved !== false)
+          .map((f) => (f.proposed_text ? { ...f, proposed_text: null } : f)),
+      })),
     }));
   },
 }));

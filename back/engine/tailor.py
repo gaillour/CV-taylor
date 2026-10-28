@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from .anti_hallucination import AntiHallucinationValidator
+from .extractor import matches_archetype
 from .llm import LLMClient
 from .models import (
     MAX_EDUCATION_ENTRIES,
@@ -32,8 +33,8 @@ def _score_fact_relevance(fact: Fact, keywords_lower: set[str], archetype: str |
         score += 50
     if fact.default_selected:
         score += 20
-    if archetype and archetype in fact.tags:
-        score += 30
+    if archetype and matches_archetype(archetype, fact.tags):
+        score += 35
 
     fact_text_lower = fact.text.lower()
     for kw in keywords_lower:
@@ -44,15 +45,33 @@ def _score_fact_relevance(fact: Fact, keywords_lower: set[str], archetype: str |
     return score
 
 
+def _score_entry_affinity(entry: Entry, keywords_lower: set[str], archetype: str | None) -> int:
+    """Calculate target relevance (keywords + archetype) excluding base position/default weights."""
+    affinity = 0
+    if archetype and matches_archetype(archetype, entry.archetypes):
+        affinity += 40
+
+    for fact in entry.facts:
+        if not fact.approved:
+            continue
+        f_text_low = fact.text.lower()
+        for kw in keywords_lower:
+            if kw in f_text_low or any(kw in sk.lower() for sk in fact.skill_ids):
+                affinity += 15
+    return affinity
+
+
 def _score_entry_relevance(entry: Entry, keywords_lower: set[str], archetype: str | None) -> int:
     """Calculate matching score between an Entry and target job requirements."""
-    score = entry.position * -10
-    if archetype and archetype in entry.archetypes:
-        score += 40
+    # Base position score: education positions are often 10..20, so use gentle decay
+    score = entry.position * -2
+    score += _score_entry_affinity(entry, keywords_lower, archetype)
     if entry.default_selected:
         score += 15
 
     for fact in entry.facts:
+        if not fact.approved:
+            continue
         score += _score_fact_relevance(fact, keywords_lower, archetype) // 10
     return score
 
@@ -79,6 +98,8 @@ class TailorEngine:
         grouped: dict[str, list[tuple[int, Skill]]] = {}
 
         for sk in self.profile.skills:
+            if not sk.approved:
+                continue
             score = 0
             sk_name_low = sk.name.lower()
             if sk_name_low in keywords_lower:
@@ -105,6 +126,108 @@ class TailorEngine:
             )
         return skill_groups
 
+    def _curate_profile_with_llm(
+        self,
+        job_spec: JobSpec,
+        target_lang: LangCode,
+    ) -> dict[str, list[str]] | None:
+        """Call LLM once as an elite recruiter to curate entries and facts for the target role.
+
+        Returns a dictionary mapping selected `entry_id` to chosen `fact_ids`, or None on fallback.
+        """
+        if not self.client.is_configured:
+            return None
+
+        candidates = [e for e in self.profile.entries if not e.archived]
+        if not candidates:
+            return None
+
+        entries_manifest = []
+        for e in candidates:
+            title_obj = e.select_title(lang=target_lang, archetype=job_spec.archetype)
+            approved_facts = [f for f in e.facts if f.approved]
+            facts_list = [
+                {"id": f.id, "text": f.text}
+                for f in approved_facts
+                if f.lang == target_lang or not any(f2.lang == target_lang for f2 in approved_facts)
+            ]
+            entries_manifest.append(
+                {
+                    "entry_id": e.id,
+                    "kind": e.kind,
+                    "org": e.org,
+                    "title": title_obj.title,
+                    "date_range": e.format_date_range(target_lang),
+                    "context": e.context,
+                    "min_bullets": e.min_bullets,
+                    "max_bullets": e.max_bullets,
+                    "facts": facts_list,
+                }
+            )
+
+        system_prompt = (
+            "You are an elite technical recruiter and CV curator. Your goal is to curate the "
+            "most compelling, relevant 1-page CV for a candidate applying to a target job.\n"
+            "STRICT CURATION RULES:\n"
+            "1. RELEVANCE FIRST: Only select entries that provide direct or strong transferable "
+            "value to the target role. Do NOT include unrelated jobs/roles (e.g., retail, sales, "
+            "mystery shopper) if the target role is software/technical, even if there are empty "
+            "slots.\n"
+            "2. EDUCATION HIERARCHY: If the candidate has university or higher education "
+            "(whether in progress or completed), DO NOT include secondary school (high school / "
+            "bachillerato / secundario) UNLESS the job explicitly requests it.\n"
+            "3. RESPECT SECTION CAPS:\n"
+            "   - 'experience': Maximum 3 entries (fewer is great if others are irrelevant).\n"
+            "   - 'project': Maximum 3 entries.\n"
+            "   - 'education': Maximum 2 entries (usually 1 university entry is ideal).\n"
+            "4. FOR EACH SELECTED ENTRY: Select between `min_bullets` and `max_bullets` of the "
+            "most impactful `fact_ids`.\n"
+            "5. OUTPUT ONLY a JSON object mapping entry_id to a list of fact_ids:\n"
+            "{\n"
+            '  "selected": [\n'
+            '    {"entry_id": "...", "fact_ids": ["...", "..."]}\n'
+            "  ]\n"
+            "}"
+        )
+
+        user_prompt = (
+            f"Target Role: {job_spec.role or 'Software Engineer'}\n"
+            f"Target Archetype: {job_spec.archetype or 'dev'}\n"
+            f"Target Keywords: {', '.join(job_spec.keywords)}\n"
+            f"Candidate Entries Pool:\n{entries_manifest}"
+        )
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+
+        try:
+            res = self.client.parse_json_completion(messages, temperature=0.1)
+            if (
+                not isinstance(res, dict)
+                or "selected" not in res
+                or not isinstance(res["selected"], list)
+            ):
+                return None
+
+            curated_map: dict[str, list[str]] = {}
+            valid_entry_ids = {e.id: e for e in candidates}
+
+            for item in res["selected"]:
+                if not isinstance(item, dict):
+                    continue
+                eid = item.get("entry_id")
+                fids = item.get("fact_ids", [])
+                if eid in valid_entry_ids and isinstance(fids, list):
+                    entry_obj = valid_entry_ids[eid]
+                    valid_fids = {f.id for f in entry_obj.facts}
+                    curated_map[eid] = [fid for fid in fids if fid in valid_fids]
+
+            return curated_map if curated_map else None
+        except Exception:
+            return None
+
     def _select_entries(
         self,
         kind: str,
@@ -114,9 +237,76 @@ class TailorEngine:
     ) -> list[Entry]:
         """Select top relevant entries for a section up to the ATS slot maximum."""
         candidates = [e for e in self.profile.entries if e.kind == kind and not e.archived]
-        scored = [(_score_entry_relevance(e, keywords_lower, archetype), e) for e in candidates]
-        scored.sort(key=lambda item: (-item[0], item[1].position))
-        return [e for _, e in scored[:max_count]]
+        if not candidates:
+            return []
+
+        scored = []
+        for e in candidates:
+            aff = _score_entry_affinity(e, keywords_lower, archetype)
+            rel = _score_entry_relevance(e, keywords_lower, archetype)
+            scored.append((rel, aff, e))
+
+        scored.sort(key=lambda item: (-item[0], item[2].position))
+
+        # Pre-detect if candidate has higher education (university/college/institute)
+        higher_education_ids: set[str] = set()
+        if kind == "education":
+            for e in candidates:
+                is_secondary = any(
+                    term in (e.org + " " + e.select_title().title).lower()
+                    for term in [
+                        "secundario",
+                        "secundaria",
+                        "bachiller",
+                        "bachillerato",
+                        "polimodal",
+                        "high school",
+                    ]
+                )
+                if not is_secondary:
+                    higher_education_ids.add(e.id)
+
+        selected: list[Entry] = []
+
+        for _, aff, entry in scored:
+            if len(selected) >= max_count:
+                break
+
+            # Section-specific rules
+            if kind == "education":
+                is_secondary = any(
+                    term in (entry.org + " " + entry.select_title().title).lower()
+                    for term in [
+                        "secundario",
+                        "secundaria",
+                        "bachiller",
+                        "bachillerato",
+                        "polimodal",
+                        "high school",
+                    ]
+                )
+                # If the candidate has university education, do not include secondary school
+                # unless secondary school has positive keyword affinity for the job
+                if is_secondary and higher_education_ids and aff <= 0:
+                    continue
+
+            elif kind in {"experience", "project"}:
+                # The first entry can be the top relevant/default entry.
+                # Additional entries (slot 2 and 3) require affinity > 0 or default + archetype
+                if len(selected) >= 1:
+                    archetype_match = bool(
+                        archetype and matches_archetype(archetype, entry.archetypes)
+                    )
+                    if aff <= 0 and not (entry.default_selected and archetype_match):
+                        continue
+
+            selected.append(entry)
+
+        # Safety floor: if nothing matched at all, provide the top base entry
+        if not selected and scored:
+            selected.append(scored[0][2])
+
+        return selected
 
     def _adapt_bullets_with_llm(
         self,
@@ -251,34 +441,66 @@ class TailorEngine:
         # 1. Skills
         skill_groups = self._select_skills(target_lang, keywords_lower, archetype)
 
-        # 2. Entries selection
-        exp_entries = self._select_entries(
-            "experience", MAX_EXPERIENCE_ENTRIES, keywords_lower, archetype
-        )
-        proj_entries = self._select_entries(
-            "project", MAX_PROJECT_ENTRIES, keywords_lower, archetype
-        )
-        edu_entries = self._select_entries(
-            "education", MAX_EDUCATION_ENTRIES, keywords_lower, archetype
-        )
+        # 2. Entries selection (LLM curation with fallback to deterministic selection)
+        curated_map: dict[str, list[str]] | None = None
+        if use_llm and self.client.is_configured:
+            curated_map = self._curate_profile_with_llm(job_spec, target_lang)
+
+        if curated_map is not None:
+            entries_by_id = {e.id: e for e in self.profile.entries if not e.archived}
+            exp_entries = [
+                entries_by_id[eid]
+                for eid in curated_map
+                if eid in entries_by_id and entries_by_id[eid].kind == "experience"
+            ][:MAX_EXPERIENCE_ENTRIES]
+            proj_entries = [
+                entries_by_id[eid]
+                for eid in curated_map
+                if eid in entries_by_id and entries_by_id[eid].kind == "project"
+            ][:MAX_PROJECT_ENTRIES]
+            edu_entries = [
+                entries_by_id[eid]
+                for eid in curated_map
+                if eid in entries_by_id and entries_by_id[eid].kind == "education"
+            ][:MAX_EDUCATION_ENTRIES]
+        else:
+            exp_entries = self._select_entries(
+                "experience", MAX_EXPERIENCE_ENTRIES, keywords_lower, archetype
+            )
+            proj_entries = self._select_entries(
+                "project", MAX_PROJECT_ENTRIES, keywords_lower, archetype
+            )
+            edu_entries = self._select_entries(
+                "education", MAX_EDUCATION_ENTRIES, keywords_lower, archetype
+            )
 
         def process_section(entries: list[Entry]) -> list[RenderEntry]:
             rendered_entries: list[RenderEntry] = []
             for entry in entries:
                 selected_title = entry.select_title(lang=target_lang, archetype=archetype)
-                lang_facts = [f for f in entry.facts if f.lang == target_lang] or entry.facts
+                approved_facts = [f for f in entry.facts if f.approved]
+                lang_facts = [f for f in approved_facts if f.lang == target_lang] or approved_facts
+                facts_map = {f.id: f for f in lang_facts}
 
-                # Rank facts by relevance
-                scored_facts = [
-                    (_score_fact_relevance(f, keywords_lower, archetype), f) for f in lang_facts
-                ]
-                scored_facts.sort(key=lambda item: (-item[0], item[1].position))
-                facts = [f for _, f in scored_facts]
+                # Check if curated by LLM
+                curated_fids = curated_map.get(entry.id) if curated_map else None
+                if curated_fids:
+                    chosen_facts = [facts_map[fid] for fid in curated_fids if fid in facts_map]
+                else:
+                    chosen_facts = []
 
-                # Respect entry slot limits
-                target_count = min(len(facts), entry.max_bullets or 4)
-                target_count = max(target_count, entry.min_bullets)
-                chosen_facts = facts[:target_count]
+                if not chosen_facts:
+                    # Rank facts by relevance
+                    scored_facts = [
+                        (_score_fact_relevance(f, keywords_lower, archetype), f) for f in lang_facts
+                    ]
+                    scored_facts.sort(key=lambda item: (-item[0], item[1].position))
+                    facts = [f for _, f in scored_facts]
+
+                    # Respect entry slot limits
+                    target_count = min(len(facts), entry.max_bullets or 4)
+                    target_count = max(target_count, entry.min_bullets)
+                    chosen_facts = facts[:target_count]
 
                 if use_llm and self.client.is_configured:
                     bullets = self._adapt_bullets_with_llm(

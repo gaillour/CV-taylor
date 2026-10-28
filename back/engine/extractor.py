@@ -10,7 +10,41 @@ import httpx
 from .llm import LLMClient
 from .models import JobSpec, LangCode
 
-# Common tech keywords to recognize deterministically when LLM is unavailable
+ARCHETYPE_ALIASES: dict[str, set[str]] = {
+    "dev": {
+        "dev",
+        "backend",
+        "frontend",
+        "fullstack",
+        "data",
+        "mobile",
+        "devops",
+        "lead",
+        "ai",
+        "software",
+    },
+    "soporte": {"soporte", "support", "sysadmin", "it", "infra", "devops", "helpdesk", "qa"},
+    "temporada": {"temporada", "retail", "ventas", "comercial", "atencion", "operaciones"},
+}
+
+
+def matches_archetype(target_archetype: str | None, candidate_tags: list[str] | set[str]) -> bool:
+    """Return True if target_archetype aligns with candidate tags directly or via alias family."""
+    if not target_archetype:
+        return False
+    target_low = target_archetype.lower().strip()
+    candidate_lows = {t.lower().strip() for t in candidate_tags}
+    if target_low in candidate_lows:
+        return True
+
+    # Check alias families
+    for family, aliases in ARCHETYPE_ALIASES.items():
+        if target_low in aliases or target_low == family:
+            if any(cand == family or cand in aliases for cand in candidate_lows):
+                return True
+    return False
+
+
 COMMON_TECH_KEYWORDS = [
     "Python",
     "FastAPI",

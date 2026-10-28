@@ -18,6 +18,7 @@
 - Formatear rangos de fecha siempre con separador explícito `MM/YYYY - MM/YYYY` o `Presente`/`Present` cuando `end_date` esté definido (inclusive si `start_date == end_date`).
 - Preservar al final de toda plantilla `.typ` el bloque `#v(0pt, weak: true)#context [#metadata(counter(page).final().first()) <pages>#metadata(here().position()) <end>]`.
 - Prohibido renderizar `EntryTitle` con `source="ai"` si `approved=False` o `approved_at=None`.
+- Prohibido sobrescribir o descartar datos existentes del Perfil Maestro al importar CVs (`importer.merge_profiles`); toda importación debe ser determinista y estrictamente aditiva (sumar entradas nuevas, variantes de `EntryTitle`, `Fact` y `Skill`).
 - Prohibido agregar dependencias que descarguen paquetes de `@preview` (Typst Universe) en tiempo de ejecución.
 
 ## Comandos de Verificación

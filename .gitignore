@@ -17,7 +17,7 @@ next-env.d.ts
 # Output & temp
 /out/
 /tempo/
-probar_borrar.py
+/backups/
 
 # Env & credentials
 .env*

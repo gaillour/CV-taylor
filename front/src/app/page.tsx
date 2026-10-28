@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { API_BASE_URL, useCvStore } from "@/store/useCvStore";
+import { isProfileEmpty, useProfileStore } from "@/store/useProfileStore";
 import { Snapshot, SnapshotSummary } from "@/types/cv";
 import { TailorModal } from "@/components/tailor/TailorModal";
 import { CvPreview } from "@/components/preview/CvPreview";
@@ -48,6 +49,13 @@ export default function GalleryPage() {
   const [previewLoading, setPreviewLoading] = useState(false);
 
   const { loadSnapshotDraft, startBaseDraft, dirty } = useCvStore();
+  const { profile, fetchProfile } = useProfileStore();
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  const profileEmpty = isProfileEmpty(profile);
 
   useEffect(() => {
     let ignore = false;
@@ -129,11 +137,26 @@ export default function GalleryPage() {
   };
 
   const handleNewBaseCv = async () => {
+    if (profileEmpty) {
+      router.push("/perfil");
+      return;
+    }
     if (dirty && !window.confirm("Tenés cambios sin guardar en el borrador actual. ¿Descartar y crear nuevo CV base?")) {
       return;
     }
     await startBaseDraft();
     router.push("/editor/nuevo");
+  };
+
+  const handleTailorClick = () => {
+    if (profileEmpty) {
+      router.push("/perfil");
+      return;
+    }
+    if (dirty && !window.confirm("Tenés cambios sin guardar en el borrador actual. ¿Descartarlos y adaptar un nuevo CV?")) {
+      return;
+    }
+    setIsTailorOpen(true);
   };
 
   const handleOpenPreview = async (id: string, e: React.MouseEvent) => {
@@ -205,7 +228,7 @@ export default function GalleryPage() {
           </button>
 
           <button
-            onClick={() => setIsTailorOpen(true)}
+            onClick={handleTailorClick}
             className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition cursor-pointer shadow-sm shadow-emerald-950/40"
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -213,6 +236,33 @@ export default function GalleryPage() {
           </button>
         </div>
       </div>
+
+      {/* Banner Onboarding si el perfil está vacío */}
+      {profileEmpty && (
+        <div className="max-w-6xl w-full mx-auto px-6 pt-6">
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-zinc-100">
+                  Configurá tu Perfil Maestro para empezar
+                </p>
+                <p className="text-[11px] text-zinc-400">
+                  Subí tu CV actual en PDF o TXT para desbloquear la adaptación quirúrgica a ofertas de trabajo.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push("/perfil")}
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium transition cursor-pointer self-start sm:self-auto shrink-0 shadow-sm"
+            >
+              Cargar mi CV en Perfil
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Grid Content */}
       <div className="max-w-6xl w-full mx-auto px-6 py-6 flex-1">
@@ -243,7 +293,7 @@ export default function GalleryPage() {
                 Abrir CV Base
               </button>
               <button
-                onClick={() => setIsTailorOpen(true)}
+                onClick={handleTailorClick}
                 className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition cursor-pointer"
               >
                 Adaptar Oferta

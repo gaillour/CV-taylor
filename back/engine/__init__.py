@@ -9,7 +9,7 @@ from .fit import (
     binary_search_density_underfill,
     fit_render_model,
 )
-from .importer import extract_text_from_pdf, parse_profile_from_text
+from .importer import extract_text_from_pdf, merge_profiles, parse_profile_from_text
 from .llm import LLMClient, LLMConfig
 from .models import (
     MAX_COMFORTABLE_DENSITY,
@@ -78,6 +78,7 @@ __all__ = [
     "extract_job_spec_heuristic",
     "extract_text_from_pdf",
     "fetch_url_text",
+    "merge_profiles",
     "parse_profile_from_text",
     "TailorEngine",
     "TailoringPipeline",

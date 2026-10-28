@@ -4,10 +4,30 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 from typing import Any
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field
+
+
+def _load_dotenv_if_present() -> None:
+    """Populate os.environ from a local .env file if keys are not already set."""
+    env_path = Path(".env")
+    if not env_path.is_file():
+        return
+    try:
+        for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, val = line.partition("=")
+            k = key.strip()
+            v = val.strip().strip("'").strip('"')
+            if k:
+                os.environ.setdefault(k, v)
+    except Exception:
+        return
 
 
 class LLMConfig(BaseModel):
@@ -23,6 +43,7 @@ class LLMConfig(BaseModel):
     @classmethod
     def from_env(cls) -> LLMConfig:
         """Create configuration from environment variables with sensible provider fallbacks."""
+        _load_dotenv_if_present()
         # 1. Gemini OpenAI-compatible endpoint
         gemini_key = os.getenv("GEMINI_API_KEY")
         if gemini_key:

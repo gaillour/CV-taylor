@@ -11,11 +11,18 @@ import {
   Loader2,
   Plus,
   Save,
+  Sparkles,
   Trash2,
+  UploadCloud,
   User,
+  X,
 } from "lucide-react";
-import { TopNav } from "@/components/nav/TopNav";
-import { useProfileStore } from "@/store/useProfileStore";
+import { CvDropzone } from "@/components/profile/CvDropzone";
+import {
+  countPendingSuggestions,
+  isProfileEmpty,
+  useProfileStore,
+} from "@/store/useProfileStore";
 import { Entry, EntryKind, EntryTitle, Fact, Profile, Skill } from "@/types/cv";
 
 type SectionTab = "general" | "skills" | "experience" | "project" | "education";
@@ -25,10 +32,14 @@ export default function ProfilePage() {
     profile,
     loading,
     saving,
+    enhancing,
+    canEnhanceAfterImport,
     dirty,
     error,
     fetchProfile,
     saveProfile,
+    enhanceProfile,
+    dismissImportPrompt,
     updateFullName,
     updateContact,
     updateSummary,
@@ -41,10 +52,20 @@ export default function ProfilePage() {
     removeTitle,
     addFact,
     removeFact,
+    approveSkill,
+    rejectSkill,
+    approveTitle,
+    rejectTitle,
+    approveFact,
+    rejectFact,
+    approveAllSuggestions,
+    rejectAllSuggestions,
   } = useProfileStore();
 
   const [activeTab, setActiveTab] = useState<SectionTab>("general");
   const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [manualMode, setManualMode] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -58,10 +79,17 @@ export default function ProfilePage() {
     }
   };
 
+  const handleEnhance = async () => {
+    const ok = await enhanceProfile();
+    if (ok) {
+      setSaveToast("Sugerencias IA generadas. Revisalas y aprobá las que quieras conservar.");
+      setTimeout(() => setSaveToast(null), 4500);
+    }
+  };
+
   if (loading && !profile) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
-        <TopNav />
+      <div className="flex-1 min-h-0 overflow-y-auto bg-zinc-950 text-zinc-100 flex flex-col">
         <div className="flex-1 flex items-center justify-center">
           <div className="flex items-center gap-3 text-zinc-400">
             <Loader2 className="w-5 h-5 animate-spin text-emerald-400" />
@@ -72,10 +100,41 @@ export default function ProfilePage() {
     );
   }
 
+  if (profile && isProfileEmpty(profile) && !manualMode) {
+    return (
+      <div className="flex-1 min-h-0 overflow-y-auto bg-zinc-950 text-zinc-100 flex flex-col">
+        <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 max-w-2xl mx-auto w-full">
+          <div className="text-center space-y-3 mb-8">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+              <span>Onboarding · Perfil Maestro</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-100">
+              Cargá tu Currículum
+            </h1>
+            <p className="text-sm text-zinc-400 max-w-md mx-auto">
+              Subí tu CV actual en PDF o TXT. El motor estructurará tu perfil maestro, extrayendo
+              experiencia, hechos atómicos y catálogo de habilidades.
+            </p>
+          </div>
+
+          <CvDropzone />
+
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => setManualMode(true)}
+              className="text-xs text-zinc-400 hover:text-zinc-200 transition underline underline-offset-4 cursor-pointer"
+            >
+              O preferís empezar desde cero? Completar perfil manualmente
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!profile) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
-        <TopNav />
+      <div className="flex-1 min-h-0 overflow-y-auto bg-zinc-950 text-zinc-100 flex flex-col">
         <div className="flex-1 flex items-center justify-center">
           <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-6 rounded-xl max-w-md text-center">
             <AlertCircle className="w-8 h-8 mx-auto mb-2" />
@@ -93,10 +152,25 @@ export default function ProfilePage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
-      <TopNav />
+  const pendingCount = countPendingSuggestions(profile);
+  const pendingSkillsCount = profile.skills.filter((s) => s.approved === false).length;
+  const countEntryPending = (kind: EntryKind) =>
+    profile.entries
+      .filter((e) =>
+        kind === "project"
+          ? e.kind === "project" || e.kind === ("projects" as EntryKind)
+          : e.kind === kind
+      )
+      .reduce(
+        (acc, e) =>
+          acc +
+          e.titles.filter((t) => t.approved === false).length +
+          e.facts.filter((f) => f.approved === false || Boolean(f.proposed_text)).length,
+        0
+      );
 
+  return (
+    <div className="flex-1 min-h-0 overflow-y-auto bg-zinc-950 text-zinc-100">
       {/* Header Sticky */}
       <div className="sticky top-0 z-20 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800/80 px-6 py-3 flex items-center justify-between">
         <div>
@@ -138,9 +212,16 @@ export default function ProfilePage() {
             </div>
           )}
           <button
+            onClick={() => setImportModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs font-medium rounded-lg transition cursor-pointer"
+          >
+            <UploadCloud className="w-3.5 h-3.5 text-zinc-400" />
+            <span>Importar CV</span>
+          </button>
+          <button
             onClick={handleSave}
             disabled={saving || !dirty}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:hover:bg-emerald-600 text-white text-xs font-medium rounded-lg shadow-sm transition"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:hover:bg-emerald-600 text-white text-xs font-medium rounded-lg shadow-sm transition cursor-pointer"
           >
             {saving ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -152,8 +233,83 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Banners de Flujo Guiado IA */}
+      <div className="max-w-6xl w-full mx-auto px-6 pt-5 space-y-3">
+        {canEnhanceAfterImport && (
+          <div className="bg-violet-500/10 border border-violet-500/30 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-violet-500/20 text-violet-300 shrink-0 mt-0.5">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-zinc-100">
+                  CV cargado. ¿Querés acomodarlo con IA? (1 uso disponible para esta carga)
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Revisá tus datos primero y, si querés, ejecutá una única pasada IA para pulir viñetas sin inventar datos, sugerir títulos por arquetipo y detectar tecnologías ausentes.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={dismissImportPrompt}
+                className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 transition cursor-pointer"
+              >
+                No, dejar así
+              </button>
+              <button
+                onClick={handleEnhance}
+                disabled={enhancing}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition cursor-pointer"
+              >
+                {enhancing ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5" />
+                )}
+                Acomodar con IA
+              </button>
+            </div>
+          </div>
+        )}
+
+        {pendingCount > 0 && (
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/20 text-amber-300 shrink-0 mt-0.5">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold text-zinc-100">
+                  Tenés {pendingCount} {pendingCount === 1 ? "sugerencia" : "sugerencias"} de IA pendientes de revisión
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Las sugerencias sin aprobar no se usan en tus CVs hasta que las aceptes. Podés revisarlas una por una en cada pestaña o resolverlas en bloque.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={rejectAllSuggestions}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-red-300 transition cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+                Descartar todas
+              </button>
+              <button
+                onClick={approveAllSuggestions}
+                className="flex items-center gap-1 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                Aprobar todas ({pendingCount})
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Main Layout */}
-      <div className="flex-1 max-w-6xl w-full mx-auto px-6 py-6 flex flex-col md:flex-row gap-6">
+      <div className="max-w-6xl w-full mx-auto px-6 py-6 flex flex-col md:flex-row gap-6">
         {/* Navigation Sidebar */}
         <aside className="w-full md:w-56 shrink-0 space-y-1">
           <TabButton
@@ -169,6 +325,7 @@ export default function ProfilePage() {
             icon={<Layers className="w-4 h-4" />}
             label="Habilidades"
             badge={`${profile.skills.length}`}
+            pendingCount={pendingSkillsCount}
           />
           <TabButton
             active={activeTab === "experience"}
@@ -176,13 +333,15 @@ export default function ProfilePage() {
             icon={<Briefcase className="w-4 h-4" />}
             label="Experiencia"
             badge={`${profile.entries.filter((e) => e.kind === "experience").length}`}
+            pendingCount={countEntryPending("experience")}
           />
           <TabButton
             active={activeTab === "project"}
             onClick={() => setActiveTab("project")}
             icon={<FolderGit2 className="w-4 h-4" />}
             label="Proyectos"
-            badge={`${profile.entries.filter((e) => e.kind === "project").length}`}
+            badge={`${profile.entries.filter((e) => e.kind === "project" || e.kind === ("projects" as EntryKind)).length}`}
+            pendingCount={countEntryPending("project")}
           />
           <TabButton
             active={activeTab === "education"}
@@ -190,6 +349,7 @@ export default function ProfilePage() {
             icon={<GraduationCap className="w-4 h-4" />}
             label="Educación"
             badge={`${profile.entries.filter((e) => e.kind === "education").length}`}
+            pendingCount={countEntryPending("education")}
           />
         </aside>
 
@@ -212,6 +372,8 @@ export default function ProfilePage() {
               skills={profile.skills}
               onAddSkill={addSkill}
               onRemoveSkill={removeSkill}
+              onApproveSkill={approveSkill}
+              onRejectSkill={rejectSkill}
             />
           )}
 
@@ -227,6 +389,10 @@ export default function ProfilePage() {
               onRemoveTitle={removeTitle}
               onAddFact={addFact}
               onRemoveFact={removeFact}
+              onApproveTitle={approveTitle}
+              onRejectTitle={rejectTitle}
+              onApproveFact={approveFact}
+              onRejectFact={rejectFact}
             />
           )}
 
@@ -234,7 +400,9 @@ export default function ProfilePage() {
             <EntriesTab
               kind="project"
               title="Proyectos Destacados"
-              entries={profile.entries.filter((e) => e.kind === "project")}
+              entries={profile.entries.filter(
+                (e) => e.kind === "project" || e.kind === ("projects" as EntryKind)
+              )}
               onAddEntry={addEntry}
               onUpdateEntry={updateEntry}
               onRemoveEntry={removeEntry}
@@ -242,6 +410,10 @@ export default function ProfilePage() {
               onRemoveTitle={removeTitle}
               onAddFact={addFact}
               onRemoveFact={removeFact}
+              onApproveTitle={approveTitle}
+              onRejectTitle={rejectTitle}
+              onApproveFact={approveFact}
+              onRejectFact={rejectFact}
             />
           )}
 
@@ -257,10 +429,46 @@ export default function ProfilePage() {
               onRemoveTitle={removeTitle}
               onAddFact={addFact}
               onRemoveFact={removeFact}
+              onApproveTitle={approveTitle}
+              onRejectTitle={rejectTitle}
+              onApproveFact={approveFact}
+              onRejectFact={rejectFact}
             />
           )}
         </main>
       </div>
+
+      {/* Modal Importar CV */}
+      {importModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-100">
+                  Importar CV al Perfil Maestro
+                </h3>
+                <p className="text-xs text-zinc-400">
+                  Fusionará nuevas experiencias, variantes de puesto, logros y habilidades sin borrar tu información actual.
+                </p>
+              </div>
+              <button
+                onClick={() => setImportModalOpen(false)}
+                className="text-zinc-500 hover:text-zinc-300 p-1 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <CvDropzone
+              onSuccess={() => {
+                setImportModalOpen(false);
+                setSaveToast("CV fusionado en borrador. Revisá los datos sumados y guardá los cambios.");
+                setTimeout(() => setSaveToast(null), 4000);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -271,17 +479,19 @@ function TabButton({
   icon,
   label,
   badge,
+  pendingCount = 0,
 }: {
   active: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
   badge?: string;
+  pendingCount?: number;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition ${
+      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition cursor-pointer ${
         active
           ? "bg-zinc-800 text-zinc-100 shadow-sm border border-zinc-700/80"
           : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50"
@@ -291,15 +501,25 @@ function TabButton({
         <span className={active ? "text-emerald-400" : "text-zinc-500"}>{icon}</span>
         <span>{label}</span>
       </div>
-      {badge && (
-        <span
-          className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
-            active ? "bg-zinc-700 text-zinc-200" : "bg-zinc-800/80 text-zinc-500"
-          }`}
-        >
-          {badge}
-        </span>
-      )}
+      <div className="flex items-center gap-1.5">
+        {pendingCount > 0 && (
+          <span
+            title={`${pendingCount} sugerencias IA pendientes`}
+            className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30"
+          >
+            ✨ {pendingCount}
+          </span>
+        )}
+        {badge && (
+          <span
+            className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+              active ? "bg-zinc-700 text-zinc-200" : "bg-zinc-800/80 text-zinc-500"
+            }`}
+          >
+            {badge}
+          </span>
+        )}
+      </div>
     </button>
   );
 }
@@ -422,10 +642,14 @@ function SkillsTab({
   skills,
   onAddSkill,
   onRemoveSkill,
+  onApproveSkill,
+  onRejectSkill,
 }: {
   skills: Skill[];
   onAddSkill: (s: Skill) => void;
   onRemoveSkill: (id: string) => void;
+  onApproveSkill: (id: string) => void;
+  onRejectSkill: (id: string) => void;
 }) {
   const [newSkillName, setNewSkillName] = useState("");
   const [newSkillCat, setNewSkillCat] = useState("Lenguajes");
@@ -444,6 +668,8 @@ function SkillsTab({
       level: newSkillLevel.trim() || undefined,
       aliases: [newSkillName.toLowerCase().trim()],
       tags: [],
+      source: "user",
+      approved: true,
     });
     setNewSkillName("");
   };
@@ -487,7 +713,7 @@ function SkillsTab({
         />
         <button
           type="submit"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           Agregar
@@ -504,35 +730,66 @@ function SkillsTab({
                 {cat} ({catSkills.length})
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {catSkills.map((skill) => (
-                  <div
-                    key={skill.id}
-                    className="flex items-center justify-between gap-2 bg-zinc-950 border border-zinc-800/80 rounded px-2.5 py-1.5 text-xs group"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium text-zinc-200 truncate flex items-center gap-1.5">
-                        <span>{skill.name}</span>
-                        {skill.level && (
-                          <span className="text-[10px] text-zinc-500 font-normal">
-                            ({skill.level})
-                          </span>
+                {catSkills.map((skill) => {
+                  const isPending = skill.approved === false;
+                  return (
+                    <div
+                      key={skill.id}
+                      className={`flex items-center justify-between gap-2 rounded px-2.5 py-1.5 text-xs group border ${
+                        isPending
+                          ? "bg-amber-500/10 border-amber-500/40"
+                          : "bg-zinc-950 border-zinc-800/80"
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-zinc-200 truncate flex items-center gap-1.5">
+                          <span>{skill.name}</span>
+                          {skill.level && (
+                            <span className="text-[10px] text-zinc-500 font-normal">
+                              ({skill.level})
+                            </span>
+                          )}
+                          {isPending && (
+                            <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                              IA
+                            </span>
+                          )}
+                        </div>
+                        {skill.aliases && skill.aliases.length > 0 && (
+                          <div className="text-[10px] text-zinc-500 truncate">
+                            {skill.aliases.slice(0, 3).join(", ")}
+                          </div>
                         )}
                       </div>
-                      {skill.aliases && skill.aliases.length > 0 && (
-                        <div className="text-[10px] text-zinc-500 truncate">
-                          {skill.aliases.slice(0, 3).join(", ")}
+                      {isPending ? (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => onApproveSkill(skill.id)}
+                            className="p-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 transition cursor-pointer"
+                            title="Aprobar skill sugerida"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => onRejectSkill(skill.id)}
+                            className="p-1 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 transition cursor-pointer"
+                            title="Descartar skill sugerida"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
                         </div>
+                      ) : (
+                        <button
+                          onClick={() => onRemoveSkill(skill.id)}
+                          className="text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition p-1 cursor-pointer"
+                          title="Eliminar skill"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       )}
                     </div>
-                    <button
-                      onClick={() => onRemoveSkill(skill.id)}
-                      className="text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition p-1"
-                      title="Eliminar skill"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
@@ -553,6 +810,10 @@ function EntriesTab({
   onRemoveTitle,
   onAddFact,
   onRemoveFact,
+  onApproveTitle,
+  onRejectTitle,
+  onApproveFact,
+  onRejectFact,
 }: {
   kind: EntryKind;
   title: string;
@@ -564,6 +825,10 @@ function EntriesTab({
   onRemoveTitle: (entryId: string, titleId: string) => void;
   onAddFact: (entryId: string, f: Fact) => void;
   onRemoveFact: (entryId: string, factId: string) => void;
+  onApproveTitle: (entryId: string, titleId: string) => void;
+  onRejectTitle: (entryId: string, titleId: string) => void;
+  onApproveFact: (entryId: string, factId: string) => void;
+  onRejectFact: (entryId: string, factId: string) => void;
 }) {
   const handleCreateEntry = () => {
     const newId = `${kind}_${Date.now()}`;
@@ -571,15 +836,22 @@ function EntriesTab({
     const newEntry: Entry = {
       id: newId,
       kind,
-      org: kind === "experience" ? "Nueva Empresa" : kind === "project" ? "Nuevo Proyecto" : "Institución",
+      org:
+        kind === "experience"
+          ? "Nueva Empresa"
+          : kind === "project"
+            ? "Nuevo Proyecto"
+            : "Institución",
       start_date: "2024-01-01",
       end_date: "present",
+      context: "",
       titles: [
         {
           id: newTitleId,
           entry_id: newId,
           title: kind === "experience" ? "Desarrollador" : "Proyecto Principal",
           is_default: true,
+          source: "user",
           approved: true,
         },
       ],
@@ -599,7 +871,7 @@ function EntriesTab({
         </div>
         <button
           onClick={handleCreateEntry}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           Nueva entrada
@@ -617,6 +889,10 @@ function EntriesTab({
             onRemoveTitle={onRemoveTitle}
             onAddFact={onAddFact}
             onRemoveFact={onRemoveFact}
+            onApproveTitle={onApproveTitle}
+            onRejectTitle={onRejectTitle}
+            onApproveFact={onApproveFact}
+            onRejectFact={onRejectFact}
           />
         ))}
 
@@ -638,6 +914,10 @@ function EntryCard({
   onRemoveTitle,
   onAddFact,
   onRemoveFact,
+  onApproveTitle,
+  onRejectTitle,
+  onApproveFact,
+  onRejectFact,
 }: {
   entry: Entry;
   onUpdateEntry: (id: string, e: Partial<Entry>) => void;
@@ -646,6 +926,10 @@ function EntryCard({
   onRemoveTitle: (entryId: string, titleId: string) => void;
   onAddFact: (entryId: string, f: Fact) => void;
   onRemoveFact: (entryId: string, factId: string) => void;
+  onApproveTitle: (entryId: string, titleId: string) => void;
+  onRejectTitle: (entryId: string, titleId: string) => void;
+  onApproveFact: (entryId: string, factId: string) => void;
+  onRejectFact: (entryId: string, factId: string) => void;
 }) {
   const [showNewFact, setShowNewFact] = useState(false);
   const [newFactText, setNewFactText] = useState("");
@@ -666,6 +950,8 @@ function EntryCard({
       weight: Number(newFactPriority) || 100,
       tags: [],
       skill_ids: [],
+      source: "user",
+      approved: true,
     });
     setNewFactText("");
     setShowNewFact(false);
@@ -681,6 +967,7 @@ function EntryCard({
       title: newTitleText.trim(),
       archetype: newTitleArchetype.trim() || undefined,
       is_default: entry.titles.length === 0,
+      source: "user",
       approved: true,
     });
     setNewTitleText("");
@@ -728,11 +1015,24 @@ function EntryCard({
         </div>
         <button
           onClick={() => onRemoveEntry(entry.id)}
-          className="text-zinc-600 hover:text-red-400 p-1.5 rounded transition"
+          className="text-zinc-600 hover:text-red-400 p-1.5 rounded transition cursor-pointer"
           title="Eliminar entrada completa"
         >
           <Trash2 className="w-4 h-4" />
         </button>
+      </div>
+
+      {/* Notas / Contexto libre para destilar con IA */}
+      <div className="pt-2 border-t border-zinc-900">
+        <Field label="Notas / Contexto libre (la IA puede destilar hechos atómicos desde este texto)">
+          <textarea
+            rows={2}
+            placeholder="Escribí en crudo qué hiciste, herramientas que usaste o resultados logrados..."
+            value={entry.context || ""}
+            onChange={(e) => onUpdateEntry(entry.id, { context: e.target.value })}
+            className="w-full bg-zinc-900/70 border border-zinc-800 rounded px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500/50 resize-y"
+          />
+        </Field>
       </div>
 
       {/* Títulos / Arquetipos */}
@@ -743,7 +1043,7 @@ function EntryCard({
           </span>
           <button
             onClick={() => setShowNewTitle(!showNewTitle)}
-            className="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+            className="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
           >
             <Plus className="w-3 h-3" />
             Agregar título alternativo
@@ -771,7 +1071,7 @@ function EntryCard({
             />
             <button
               type="submit"
-              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded"
+              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded cursor-pointer"
             >
               Guardar
             </button>
@@ -779,36 +1079,63 @@ function EntryCard({
         )}
 
         <div className="flex flex-wrap gap-2">
-          {entry.titles.map((t) => (
-            <div
-              key={t.id}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs border ${
-                t.is_default
-                  ? "bg-zinc-800 border-emerald-500/30 text-zinc-100"
-                  : "bg-zinc-900 border-zinc-800 text-zinc-300"
-              }`}
-            >
-              <span className="font-medium">{t.title}</span>
-              {t.archetype && (
-                <span className="text-[10px] font-mono px-1 py-0.2 bg-zinc-950 text-emerald-400 rounded">
-                  {t.archetype}
-                </span>
-              )}
-              {t.is_default && (
-                <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1 rounded">
-                  default
-                </span>
-              )}
-              {entry.titles.length > 1 && (
-                <button
-                  onClick={() => onRemoveTitle(entry.id, t.id)}
-                  className="text-zinc-500 hover:text-red-400 ml-1"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-          ))}
+          {entry.titles.map((t) => {
+            const isPending = t.approved === false;
+            return (
+              <div
+                key={t.id}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs border ${
+                  isPending
+                    ? "bg-amber-500/10 border-amber-500/40 text-amber-100"
+                    : t.is_default
+                      ? "bg-zinc-800 border-emerald-500/30 text-zinc-100"
+                      : "bg-zinc-900 border-zinc-800 text-zinc-300"
+                }`}
+              >
+                <span className="font-medium">{t.title}</span>
+                {t.archetype && (
+                  <span className="text-[10px] font-mono px-1 py-0.2 bg-zinc-950 text-emerald-400 rounded">
+                    {t.archetype}
+                  </span>
+                )}
+                {t.is_default && (
+                  <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1 rounded">
+                    default
+                  </span>
+                )}
+                {isPending ? (
+                  <div className="flex items-center gap-1 ml-1">
+                    <span className="text-[9px] font-mono px-1 rounded bg-amber-500/20 text-amber-300">
+                      IA
+                    </span>
+                    <button
+                      onClick={() => onApproveTitle(entry.id, t.id)}
+                      className="text-emerald-400 hover:text-emerald-300 p-0.5 cursor-pointer"
+                      title="Aprobar título sugerido"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => onRejectTitle(entry.id, t.id)}
+                      className="text-red-400 hover:text-red-300 p-0.5 cursor-pointer"
+                      title="Descartar título sugerido"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  entry.titles.length > 1 && (
+                    <button
+                      onClick={() => onRemoveTitle(entry.id, t.id)}
+                      className="text-zinc-500 hover:text-red-400 ml-1 cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -820,7 +1147,7 @@ function EntryCard({
           </span>
           <button
             onClick={() => setShowNewFact(!showNewFact)}
-            className="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+            className="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
           >
             <Plus className="w-3 h-3" />
             Agregar hecho
@@ -855,13 +1182,13 @@ function EntryCard({
                 <button
                   type="button"
                   onClick={() => setShowNewFact(false)}
-                  className="px-2.5 py-1 text-xs text-zinc-400 hover:text-zinc-200"
+                  className="px-2.5 py-1 text-xs text-zinc-400 hover:text-zinc-200 cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded"
+                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded cursor-pointer"
                 >
                   Guardar hecho
                 </button>
@@ -870,30 +1197,101 @@ function EntryCard({
           </form>
         )}
 
-        <div className="space-y-1.5">
-          {entry.facts.map((fact) => (
-            <div
-              key={fact.id}
-              className="flex items-start justify-between gap-3 bg-zinc-900/40 hover:bg-zinc-900/80 border border-zinc-800/60 rounded p-2 text-xs transition group"
-            >
-              <div className="flex-1 space-y-1">
-                <p className="text-zinc-200">{fact.text}</p>
-                <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono">
-                  <span>peso: {fact.weight}</span>
-                  {fact.skill_ids && fact.skill_ids.length > 0 && (
-                    <span>skills: {fact.skill_ids.join(", ")}</span>
+        <div className="space-y-2">
+          {entry.facts.map((fact) => {
+            const isNewAiFact = fact.approved === false;
+            const hasProposal = Boolean(fact.proposed_text);
+
+            return (
+              <div
+                key={fact.id}
+                className={`rounded p-2.5 text-xs transition border group ${
+                  isNewAiFact
+                    ? "bg-amber-500/10 border-amber-500/40"
+                    : hasProposal
+                      ? "bg-violet-500/10 border-violet-500/40"
+                      : "bg-zinc-900/40 hover:bg-zinc-900/80 border-zinc-800/60"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 space-y-1.5">
+                    {isNewAiFact && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          ✨ Hecho destilado por IA (pendiente)
+                        </span>
+                      </div>
+                    )}
+                    <p className={hasProposal ? "text-zinc-400 line-through" : "text-zinc-200"}>
+                      {fact.text}
+                    </p>
+
+                    {hasProposal && (
+                      <div className="p-2 rounded bg-zinc-950/90 border border-violet-500/30 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-mono text-violet-300">
+                            ✨ Mejora de redacción sugerida por IA:
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => onApproveFact(entry.id, fact.id)}
+                              className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-medium transition cursor-pointer"
+                            >
+                              <Check className="w-3 h-3" />
+                              Reemplazar
+                            </button>
+                            <button
+                              onClick={() => onRejectFact(entry.id, fact.id)}
+                              className="flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px] transition cursor-pointer"
+                            >
+                              <X className="w-3 h-3" />
+                              Conservar original
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-zinc-100 font-medium">{fact.proposed_text}</p>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono">
+                      <span>peso: {fact.weight}</span>
+                      {fact.skill_ids && fact.skill_ids.length > 0 && (
+                        <span>skills: {fact.skill_ids.join(", ")}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {isNewAiFact ? (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => onApproveFact(entry.id, fact.id)}
+                        className="flex items-center gap-1 px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-medium transition cursor-pointer"
+                        title="Aprobar hecho destilado"
+                      >
+                        <Check className="w-3 h-3" />
+                        Aprobar
+                      </button>
+                      <button
+                        onClick={() => onRejectFact(entry.id, fact.id)}
+                        className="p-1 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 transition cursor-pointer"
+                        title="Descartar hecho"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => onRemoveFact(entry.id, fact.id)}
+                      className="text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition p-1 cursor-pointer"
+                      title="Eliminar hecho"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   )}
                 </div>
               </div>
-              <button
-                onClick={() => onRemoveFact(entry.id, fact.id)}
-                className="text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition p-1"
-                title="Eliminar hecho"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
+            );
+          })}
 
           {entry.facts.length === 0 && (
             <div className="text-[11px] text-zinc-600 italic">

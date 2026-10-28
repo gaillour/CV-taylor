@@ -303,8 +303,9 @@ def _augment_from_profile(
     profile: Profile,
     *,
     min_fill_pct: float = UNDERFILL_THRESHOLD_PCT,
+    allow_new_entries: bool = False,
 ) -> tuple[RenderModel, FitReport]:
-    """Deterministically add unselected facts/entries from `profile` respecting ATS slots."""
+    """Deterministically add unselected facts from active entries respecting ATS slots."""
     current_model = model
     current_fit = measure_fit(current_model)
     if current_fit.fill_pct >= min_fill_pct or not current_fit.fits_one_page:
@@ -380,7 +381,10 @@ def _augment_from_profile(
             if current_fit.fill_pct >= min_fill_pct:
                 return current_model, current_fit
 
-    # 3. If still underfilled, add unselected non-archived entries respecting SECTION_MAX_ENTRIES
+    if not allow_new_entries:
+        return current_model, current_fit
+
+    # 3. Optional fallback: add unselected non-archived entries respecting SECTION_MAX_ENTRIES
     active_entry_ids: set[str] = {
         r_entry.entry_id
         for sec_name, _ in SECTION_NAMES

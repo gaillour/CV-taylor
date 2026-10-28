@@ -13,7 +13,10 @@ from back.engine import (
     RenderModel,
     TailoringPipeline,
     extract_job_spec,
+    extract_text_from_pdf,
     fit_render_model,
+    merge_profiles,
+    parse_profile_from_text,
     render_cv,
 )
 
@@ -186,6 +189,49 @@ def cmd_render(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_import(args: argparse.Namespace) -> int:
+    """Import and structure a master profile from a PDF or plain text resume."""
+    source_path = Path(args.source)
+    if not source_path.is_file():
+        print(_red(f"Error: No se encontró el archivo de entrada '{source_path}'"), file=sys.stderr)
+        return 1
+
+    out_path = Path(args.out)
+    print(_bold(f"==> Importando CV desde: {source_path.name}"))
+
+    if source_path.suffix.lower() == ".pdf":
+        print(_cyan("    • Extrayendo texto desde documento PDF..."))
+        text = extract_text_from_pdf(source_path)
+    else:
+        print(_cyan("    • Leyendo texto plano..."))
+        text = source_path.read_text(encoding="utf-8", errors="replace")
+
+    if not text.strip():
+        print(_red("Error: No se pudo extraer texto legible del archivo."), file=sys.stderr)
+        return 1
+
+    llm_client = LLMClient() if not args.no_llm else None
+    print(_cyan("    • Estructurando perfil maestro (IA / heurístico)..."))
+    profile = parse_profile_from_text(text, llm=llm_client, default_lang=args.lang)
+
+    if out_path.is_file():
+        try:
+            existing = Profile.from_file(out_path)
+            profile = merge_profiles(existing, profile)
+        except Exception:
+            pass
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    profile.to_json(out_path)
+
+    total_facts = sum(len(e.facts) for e in profile.entries)
+    print(_bold(_green(f"\n[OK] Perfil maestro exportado exitosamente en: {out_path}")))
+    print(f"    • Nombre: {_bold(profile.full_name)}")
+    print(f"    • Habilidades: {len(profile.skills)}")
+    print(f"    • Entradas: {len(profile.entries)} ({total_facts} hechos)")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI argument parser router."""
     parser = argparse.ArgumentParser(
@@ -193,6 +239,23 @@ def main(argv: list[str] | None = None) -> int:
         description="cv-tailor: Deterministic 1-page AI CV tailoring engine and CLI",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # Subcomando: import
+    import_p = subparsers.add_parser("import", help="Import Master Profile from PDF or TXT resume")
+    import_p.add_argument("source", help="Path to PDF or plain text resume")
+    import_p.add_argument(
+        "-o",
+        "--out",
+        default="out/profile.json",
+        help="Output profile JSON path (default: out/profile.json)",
+    )
+    import_p.add_argument("-l", "--lang", choices=["es", "en"], help="Target language (es/en)")
+    import_p.add_argument(
+        "--no-llm",
+        action="store_true",
+        help="Run in offline deterministic heuristic mode without calling LLM endpoints",
+    )
+    import_p.set_defaults(func=cmd_import)
 
     # Subcomando: tailor
     tailor_p = subparsers.add_parser("tailor", help="Adapt Master Profile to a job posting")

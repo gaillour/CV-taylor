@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import React, { useEffect } from "react";
 import { FileStack, PenSquare, Sparkles, UserRound } from "lucide-react";
 import { useCvStore } from "@/store/useCvStore";
+import { useProfileStore } from "@/store/useProfileStore";
 
 const tabBase =
   "relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition";
@@ -12,21 +13,51 @@ const tabActive = "bg-zinc-800 text-zinc-100 shadow-sm";
 const tabIdle = "text-zinc-400 hover:text-zinc-200";
 const tabDisabled = "text-zinc-600 cursor-not-allowed";
 
+const CONFIRM_LEAVE_PROFILE =
+  "Tenés cambios sin guardar en tu Perfil Maestro. ¿Seguro que querés salir sin guardar?";
+
 export function TopNav() {
   const pathname = usePathname();
   const hasDraft = useCvStore((s) => s.renderModel !== null);
-  const dirty = useCvStore((s) => s.dirty);
+  const cvDirty = useCvStore((s) => s.dirty);
   const draftParentId = useCvStore((s) => s.draftParentId);
+
+  const profileDirty = useProfileStore((s) => s.dirty);
+  const fetchProfile = useProfileStore((s) => s.fetchProfile);
 
   // Rehydrate the persisted draft on the client only (avoids SSR mismatch)
   useEffect(() => {
     useCvStore.persist.rehydrate();
   }, []);
 
-  const editorHref = `/editor/${draftParentId ?? "nuevo"}`;
-  const isGallery = pathname === "/";
+  // Browser reload / tab close guard for unsaved changes in either store
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (profileDirty || cvDirty) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [profileDirty, cvDirty]);
+
   const isProfile = pathname.startsWith("/perfil");
+  const isGallery = pathname === "/";
   const isEditor = pathname.startsWith("/editor");
+
+  const handleLeaveProfile = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (isProfile && profileDirty) {
+      if (!window.confirm(CONFIRM_LEAVE_PROFILE)) {
+        e.preventDefault();
+        return;
+      }
+      fetchProfile();
+    }
+  };
+
+  const editorHref = `/editor/${draftParentId ?? "nuevo"}`;
 
   return (
     <header className="h-14 shrink-0 border-b border-zinc-800/80 bg-zinc-950/70 backdrop-blur-md px-6 flex items-center gap-6 z-30">
@@ -43,25 +74,35 @@ export function TopNav() {
       </div>
 
       <nav className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5">
-        <Link href="/" className={`${tabBase} ${isGallery ? tabActive : tabIdle}`}>
+        <Link
+          href="/"
+          onClick={handleLeaveProfile}
+          className={`${tabBase} ${isGallery ? tabActive : tabIdle}`}
+        >
           <FileStack className="w-3.5 h-3.5" />
           CVs
         </Link>
 
-        <Link href="/perfil" className={`${tabBase} ${isProfile ? tabActive : tabIdle}`}>
+        <Link
+          href="/perfil"
+          className={`${tabBase} ${isProfile ? tabActive : tabIdle}`}
+          title={profileDirty ? "Perfil con cambios sin guardar" : "Perfil Maestro"}
+        >
           <UserRound className="w-3.5 h-3.5" />
           Perfil
+          {profileDirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
         </Link>
 
         {hasDraft ? (
           <Link
             href={editorHref}
+            onClick={handleLeaveProfile}
             className={`${tabBase} ${isEditor ? tabActive : tabIdle}`}
-            title={dirty ? "Borrador con cambios sin guardar" : "Borrador activo"}
+            title={cvDirty ? "Borrador con cambios sin guardar" : "Borrador activo"}
           >
             <PenSquare className="w-3.5 h-3.5" />
             Editor
-            {dirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+            {cvDirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
           </Link>
         ) : (
           <span className={`${tabBase} ${tabDisabled}`} title="Abrí o creá un CV desde la galería">

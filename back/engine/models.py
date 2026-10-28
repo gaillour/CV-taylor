@@ -51,6 +51,9 @@ class Skill(BaseModel):
     level: str | None = None
     level_en: str | None = None
     tags: list[str] = Field(default_factory=list)
+    source: TitleSource = "user"
+    approved: bool = True
+    approved_at: datetime | str | None = None
 
     def display_label(self, lang: LangCode = "es") -> str:
         """Format skill name with optional proficiency level in target language."""
@@ -103,6 +106,10 @@ class Fact(BaseModel):
     pinned: bool = False
     weight: int = 100
     default_selected: bool = False
+    source: TitleSource = "user"
+    approved: bool = True
+    approved_at: datetime | str | None = None
+    proposed_text: str | None = None
 
 
 class Entry(BaseModel):
@@ -411,6 +418,8 @@ class RenderModel(BaseModel):
         skill_groups: list[RenderSkillGroup] = []
         grouped: dict[str, list[Skill]] = {}
         for sk in profile.skills:
+            if not sk.approved:
+                continue
             if not include_all and archetype and sk.tags and archetype not in sk.tags:
                 continue
             cat = sk.category_label(target_lang)
@@ -448,7 +457,8 @@ class RenderModel(BaseModel):
                     continue
 
             selected_title = entry.select_title(lang=target_lang, archetype=archetype)
-            lang_facts = [f for f in entry.facts if f.lang == target_lang] or entry.facts
+            approved_facts = [f for f in entry.facts if f.approved]
+            lang_facts = [f for f in approved_facts if f.lang == target_lang] or approved_facts
             sorted_facts = sorted(lang_facts, key=lambda f: f.position)
 
             if not include_all:

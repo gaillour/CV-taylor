@@ -22,6 +22,9 @@ export interface Skill {
   level?: string | null;
   level_en?: string | null;
   tags?: string[];
+  source?: TitleSource;
+  approved?: boolean;
+  approved_at?: string | null;
 }
 
 export interface EntryTitle {
@@ -47,6 +50,23 @@ export interface Fact {
   pinned?: boolean;
   weight?: number;
   default_selected?: boolean;
+  source?: TitleSource;
+  approved?: boolean;
+  approved_at?: string | null;
+  proposed_text?: string | null;
+}
+
+export interface EnhanceStats {
+  distilled_facts: number;
+  improved_facts: number;
+  suggested_titles: number;
+  detected_skills: number;
+}
+
+export interface EnhanceProfileResponse {
+  profile: Profile;
+  stats: EnhanceStats;
+  used_llm: boolean;
 }
 
 export interface Entry {

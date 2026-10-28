@@ -49,6 +49,7 @@ Plataforma de adaptación quirúrgica de currículums técnicos ante ofertas lab
 
 ## 4. Contratos e Invariantes del Sistema
 - **SSOT de Datos:** Todos los contratos residen en `back/engine/models.py`. Prohibido duplicar esquemas en Markdown.
+- **Perfil Maestro Acumulativo:** El Perfil Maestro es un banco histórico estrictamente aditivo; al importar CVs previos (`merge_profiles`) nunca se eliminan ni pisan experiencias, proyectos, variantes de puesto (`EntryTitle`), hechos (`Fact`) ni habilidades existentes.
 - **Anti-Alucinación Estricta:** Toda viñeta renderizada debe trazar obligatoriamente a uno o más `fact_ids` del perfil maestro. Métricas numéricas y nombres de herramientas deben existir exactamente en el perfil o en `skills.aliases`.
 - **Estructura Fija ATS-Strict:** Encabezados semánticos nativos (`<H1>`, `<H2>`) sin `#grid` para preservar orden lineal en parsers. Sección `summary` obligatoria e inmutable.
 - **Límite de 1 Página Confortable:** Densidad acotada a $d \le 0.35$. Se prohíbe forzar $d = 1.0$ para comprimir texto; el espacio vertical excedente se resuelve podando contenido secundario.

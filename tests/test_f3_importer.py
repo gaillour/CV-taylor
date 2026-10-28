@@ -5,9 +5,13 @@ from pathlib import Path
 import pytest
 import typst
 
-from back.engine.importer import extract_text_from_pdf, parse_profile_from_text
+from back.engine.importer import (
+    extract_text_from_pdf,
+    merge_profiles,
+    parse_profile_from_text,
+)
 from back.engine.llm import LLMClient, LLMConfig
-from back.engine.models import Profile, RenderModel
+from back.engine.models import ContactInfo, Entry, EntryTitle, Fact, Profile, RenderModel, Skill
 from back.engine.renderer import render_cv
 
 
@@ -277,3 +281,231 @@ def test_parse_profile_from_text_llm_fallback_on_error(monkeypatch: pytest.Monke
     assert profile.full_name == "Martin Palermo"
     assert profile.contact.email == "martin@boca.com"
     assert len(profile.entries) >= 1
+
+
+def test_parse_profile_from_text_normalizes_projects_kind(monkeypatch: pytest.MonkeyPatch):
+    client = LLMClient(LLMConfig(api_key="mock-key"))
+    mock_llm_output = {
+        "full_name": "Carlos Tevez",
+        "contact": {"email": "carlos@boca.com"},
+        "entries": [
+            {
+                "kind": "projects",  # Plural form returned by LLM
+                "org": "CV Tailor Engine",
+                "title": "Creator",
+                "bullets": ["High-performance CLI."],
+            },
+            {
+                "kind": "unknown_custom_category",
+                "org": "Voluntariado",
+                "title": "Colaborador",
+                "bullets": ["Tareas comunitarias."],
+            },
+        ],
+    }
+    monkeypatch.setattr(client, "parse_json_completion", lambda *args, **kwargs: mock_llm_output)
+
+    profile = parse_profile_from_text("Dummy text", llm=client)
+    kinds = [e.kind for e in profile.entries]
+    assert "project" in kinds
+    assert "projects" not in kinds
+    for e in profile.entries:
+        assert e.kind in {"experience", "project", "education", "certification", "other"}
+
+
+def test_heuristic_parser_projects_section_uses_singular_project_kind():
+    raw_cv = """
+    Juan Perez
+    juan@test.com
+    PROYECTOS
+    Tailor Engine | 2024 - Presente
+    - Sistema de tailoring de CV con Typst.
+    """
+    profile = parse_profile_from_text(raw_cv)
+    assert any(e.kind == "project" for e in profile.entries)
+    assert not any(e.kind == "projects" for e in profile.entries)  # type: ignore[comparison-overlap]
+
+
+def test_merge_profiles_adds_title_variants_facts_and_new_entries_without_loss():
+    base = Profile(
+        id="default",
+        full_name="Juan Ignacio Gaillour",
+        contact=ContactInfo(
+            email="juan@actual.com",
+            phone="+54 9 223 111-2222",
+            location="Mar del Plata, AR",
+            github="github.com/juangaillour",
+        ),
+        summary="Resumen actual curado.",
+        skills=[
+            Skill(
+                id="skill_python",
+                name="Python",
+                category="Lenguajes",
+                aliases=["py"],
+            )
+        ],
+        entries=[
+            Entry(
+                id="exp_mercadolibre",
+                kind="experience",
+                org="Mercado Libre",
+                start_date="2023-03",
+                end_date="Presente",
+                titles=[
+                    EntryTitle(
+                        id="title_exp_mercadolibre_default",
+                        entry_id="exp_mercadolibre",
+                        title="Software Engineer",
+                        is_default=True,
+                        approved=True,
+                    )
+                ],
+                facts=[
+                    Fact(
+                        id="fact_exp_mercadolibre_1",
+                        entry_id="exp_mercadolibre",
+                        text="Desarrollé microservicios de pagos en Python y FastAPI.",
+                        position=0,
+                    )
+                ],
+            ),
+            Entry(
+                id="proj_cv_tailor",
+                kind="project",
+                org="CV Tailor",
+                start_date="2024-01",
+                end_date="Presente",
+                titles=[
+                    EntryTitle(
+                        id="title_proj_cv_tailor_default",
+                        entry_id="proj_cv_tailor",
+                        title="Creador",
+                        is_default=True,
+                        approved=True,
+                    )
+                ],
+                facts=[
+                    Fact(
+                        id="fact_proj_cv_tailor_1",
+                        entry_id="proj_cv_tailor",
+                        text="Motor determinista de 1 página A4 con Typst.",
+                        position=0,
+                    )
+                ],
+            ),
+        ],
+    )
+
+    incoming_old_cv = Profile(
+        id="default",
+        full_name="Candidato",
+        contact=ContactInfo(
+            email="contacto@candidato.com",
+            phone="+00 000 0000",
+            location="Remoto",
+            linkedin="linkedin.com/in/juangaillour",
+        ),
+        summary="Resumen viejo que no debe pisar al actual.",
+        skills=[
+            Skill(id="skill_python", name="python", category="Lenguajes"),
+            Skill(id="skill_docker", name="Docker", category="DevOps"),
+        ],
+        entries=[
+            Entry(
+                id="exp_mercado_libre",
+                kind="experience",
+                org="Mercado Libre!",
+                location="Buenos Aires",
+                start_date="2023-03",
+                end_date="Presente",
+                titles=[
+                    EntryTitle(
+                        id="title_old_default",
+                        entry_id="exp_mercado_libre",
+                        title="Backend Developer",
+                        is_default=True,
+                        approved=True,
+                    )
+                ],
+                facts=[
+                    Fact(
+                        id="fact_old_1",
+                        entry_id="exp_mercado_libre",
+                        text="Desarrolle microservicios de pagos en Python y FastAPI",
+                        position=0,
+                    ),
+                    Fact(
+                        id="fact_old_2",
+                        entry_id="exp_mercado_libre",
+                        text="Optimicé consultas SQL reduciendo latencia en 35%.",
+                        position=1,
+                    ),
+                ],
+            ),
+            Entry(
+                id="exp_globant",
+                kind="experience",
+                org="Globant",
+                start_date="2021-01",
+                end_date="2023-02",
+                titles=[
+                    EntryTitle(
+                        id="title_exp_globant_default",
+                        entry_id="exp_globant",
+                        title="Python Developer Jr",
+                        is_default=True,
+                        approved=True,
+                    )
+                ],
+                facts=[
+                    Fact(
+                        id="fact_exp_globant_1",
+                        entry_id="exp_globant",
+                        text="Mantenimiento de APIs RESTful y pruebas automatizadas.",
+                        position=0,
+                    )
+                ],
+            ),
+        ],
+    )
+
+    merged = merge_profiles(base, incoming_old_cv)
+
+    # Header preserves existing non-empty fields and fills missing social link
+    assert merged.full_name == "Juan Ignacio Gaillour"
+    assert merged.contact.email == "juan@actual.com"
+    assert merged.contact.phone == "+54 9 223 111-2222"
+    assert merged.contact.location == "Mar del Plata, AR"
+    assert merged.contact.github == "github.com/juangaillour"
+    assert merged.contact.linkedin == "linkedin.com/in/juangaillour"
+    assert merged.summary == "Resumen actual curado."
+
+    # Skills merged without duplicates
+    skill_names = [s.name for s in merged.skills]
+    assert skill_names == ["Python", "Docker"]
+
+    # Existing project is preserved
+    proj_entries = [e for e in merged.entries if e.kind == "project"]
+    assert len(proj_entries) == 1
+    assert proj_entries[0].org == "CV Tailor"
+
+    # Experiences: Mercado Libre merged + Globant added as new entry
+    exp_entries = [e for e in merged.entries if e.kind == "experience"]
+    assert len(exp_entries) == 2
+
+    meli = next(e for e in exp_entries if e.id == "exp_mercadolibre")
+    assert meli.location == "Buenos Aires"
+    # Both titles exist: original remains default, incoming becomes additional variant
+    assert [t.title for t in meli.titles] == ["Software Engineer", "Backend Developer"]
+    assert meli.titles[0].is_default is True
+    assert meli.titles[1].is_default is False
+    assert meli.titles[1].approved is True
+    # Duplicate bullet skipped, new bullet appended
+    assert len(meli.facts) == 2
+    assert "Optimicé consultas SQL" in meli.facts[1].text
+    assert meli.facts[1].id == "fact_exp_mercadolibre_2"
+
+    globant = next(e for e in exp_entries if "globant" in e.id)
+    assert globant.org == "Globant"
+    assert len(globant.facts) == 1

@@ -382,3 +382,111 @@ def test_harmonize_resume_rejects_hallucinated_metrics_and_skills(
     # The hallucinated bullet must be rejected and reverted to the original bullet
     assert harmonized.experience[0].bullets[0].text == orig_bullet.text
     assert harmonized.experience[0].bullets[0].fact_ids == orig_bullet.fact_ids
+
+
+def test_tailor_curation_excludes_secondary_and_irrelevant_jobs_deterministic() -> None:
+    """Deterministic selection excludes secondary school with university and irrelevant jobs."""
+    profile_data = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+    # Add a secondary education entry
+    profile_data["entries"].append(
+        {
+            "id": "edu_secundario_test",
+            "kind": "education",
+            "org": "Colegio Nacional (Secundario)",
+            "start_date": "2016",
+            "end_date": "2021",
+            "position": 5,
+            "archived": False,
+            "default_selected": True,
+            "archetypes": [],
+            "titles": [
+                {
+                    "id": "title_sec_test",
+                    "title": "Bachiller",
+                    "approved": True,
+                }
+            ],
+            "facts": [],
+        }
+    )
+    # Add an irrelevant experience entry
+    profile_data["entries"].append(
+        {
+            "id": "exp_retail_test",
+            "kind": "experience",
+            "org": "Retail Store",
+            "start_date": "2020",
+            "end_date": "2021",
+            "position": 6,
+            "archived": False,
+            "default_selected": True,
+            "archetypes": ["temporada"],
+            "titles": [
+                {
+                    "id": "title_retail_test",
+                    "title": "Cajero y Atención al Público",
+                    "approved": True,
+                }
+            ],
+            "facts": [],
+        }
+    )
+    custom_profile = Profile.model_validate(profile_data)
+    engine = TailorEngine(custom_profile, client=None)
+
+    job_spec = JobSpec(
+        role="Backend Developer",
+        archetype="backend",
+        keywords=["Python", "FastAPI", "PostgreSQL"],
+    )
+
+    tailored = engine.tailor(job_spec, use_llm=False)
+    edu_ids = [e.entry_id for e in tailored.education]
+    exp_ids = [e.entry_id for e in tailored.experience]
+
+    assert "edu_secundario_test" not in edu_ids
+    assert "exp_retail_test" not in exp_ids
+
+
+def test_tailor_curation_with_llm_curator(monkeypatch: pytest.MonkeyPatch) -> None:
+    """LLM curator directly dictates entries and facts, enforcing editorial relevance."""
+    profile = Profile.from_json(PROFILE_PATH)
+    client = LLMClient(LLMConfig(api_key="test-key", base_url="https://api.openai.com/v1"))
+    engine = TailorEngine(profile, client=client)
+
+    job_spec = JobSpec(
+        role="Python Backend Developer",
+        archetype="dev",
+        keywords=["Python", "FastAPI"],
+    )
+
+    mock_curation = {
+        "selected": [
+            {
+                "entry_id": "exp_simple_mdq",
+                "fact_ids": ["fact_simple_arch", "fact_simple_endpoints"],
+            },
+            {"entry_id": "proj_turniate", "fact_ids": ["fact_turniate_saas"]},
+            {"entry_id": "edu_unmdp", "fact_ids": []},
+        ]
+    }
+
+    # Intercept parse_json_completion: return mock_curation on first call, fallback on subsequent
+    calls = []
+
+    def mock_json(*args, **kwargs):
+        calls.append(args)
+        if len(calls) == 1:
+            return mock_curation
+        return []
+
+    monkeypatch.setattr(client, "parse_json_completion", mock_json)
+
+    tailored = engine.tailor(job_spec, use_llm=True)
+    exp_ids = [e.entry_id for e in tailored.experience]
+    proj_ids = [e.entry_id for e in tailored.projects]
+    edu_ids = [e.entry_id for e in tailored.education]
+
+    assert exp_ids == ["exp_simple_mdq"]
+    assert proj_ids == ["proj_turniate"]
+    assert edu_ids == ["edu_unmdp"]

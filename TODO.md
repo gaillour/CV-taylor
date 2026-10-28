@@ -58,17 +58,22 @@
   - [x] Tests automatizados de API en `tests/test_api_profile.py` (72 tests globales pasando al 100%).
   - [x] Frontend compilando y validando limpio (`pnpm build` y `pnpm lint`).
 
-- [ ] **Slice 7: Ingesta y Onboarding — Upload de CV Previo**
-  - [ ] Endpoint `POST /api/profile/import` (PDF/TXT $\to$ `importer.py` $\to$ `Profile`).
-  - [ ] Subcomando CLI `cvt import <archivo.pdf|txt> -o <perfil.json>`.
-  - [ ] Dropzone dentro de `/perfil` (onboarding si el perfil está vacío).
+- [x] **Slice 7: Ingesta y Onboarding — Upload de CV Previo**
+  - [x] Endpoint `POST /api/profile/import` (PDF/TXT $\to$ `importer.py` $\to$ `Profile` sin persistir en disco).
+  - [x] Subcomando CLI `cvt import <archivo.pdf|txt> -o <perfil.json> [--lang es|en] [--no-llm]`.
+  - [x] Componente `CvDropzone` y vista protagonista de Onboarding en `/perfil` cuando el perfil está vacío con opción de modo manual.
+  - [x] Modal "Importar CV" accesible en el header de `/perfil` para re-importar en cualquier momento.
+  - [x] Banner CTA y redirección controlada en `/` (Galería) si el perfil maestro está vacío.
+  - [x] 76 tests pasando al 100% (`tests/test_api_profile.py`), linter `ruff` y build de frontend limpios.
 
-- [ ] **Slice 8: Asistencias IA en Perfil**
-  - [ ] Destilar: texto libre de una entry $\to$ facts propuestos.
-  - [ ] Sugerir títulos alternativos por arquetipo.
-  - [ ] Mejorar fact existente sin inventar datos (validación anti-alucinación).
-  - [ ] Detectar skills mencionadas ausentes del catálogo.
-  - [ ] Todo output IA entra como `source="ai"`, `approved=False` hasta aprobación manual.
+- [x] **Slice 8: Asistencias IA en Perfil**
+  - [x] Destilar: texto libre de una entry $\to$ facts propuestos.
+  - [x] Sugerir títulos alternativos por arquetipo.
+  - [x] Mejorar fact existente sin inventar datos (validación anti-alucinación).
+  - [x] Detectar skills mencionadas ausentes del catálogo.
+  - [x] Todo output IA entra como `source="ai"`, `approved=False` hasta aprobación manual.
+  - [x] Presupuesto acotado de IA: 1 pasada opcional de "Acomodar con IA" habilitada exclusivamente tras importar un CV (`canEnhanceAfterImport`), sin botón libre en el header.
+  - [x] Fix de scroll vertical en `/perfil` y limpieza de Topbar en Editor (retiro de `snap_id`, badge ATS limpio `ATS X%` y retiro de switch `ES/EN` inefectivo en borrador).
 
 - [ ] **Slice 9: Persistencia Cloud — Supabase + Retorno al Perfil**
   - [ ] Integración de Supabase Auth, Postgres y Storage para perfil y snapshots inmutables.
@@ -77,6 +82,9 @@
 ---
 
 ## Deuda Técnica / Optimizaciones Pendientes
+- [ ] **Soporte real de Idioma (`es` / `en`) y Traducción de Contenido:**
+  - El switch `ES/EN` del editor se retiró porque `RenderModel` está desnormalizado (cambiar `lang` en el editor solo alteraba encabezados de sección sin traducir viñetas ni títulos).
+  - Solución prevista: gestionar el idioma objetivo al generar el CV (`TailorModal` / `POST /api/tailor` traduciendo/seleccionando hechos en el idioma destino) o sumar variantes bilingües asistidas en el Perfil Maestro.
 - [ ] **Desacoplar estado de inputs en CvEditor para eliminar lag de tipeo:**
   - Actualmente cada pulsación de tecla en `BulletList` / inputs emite a Zustand y dispara compilación Typst a 150ms provocando re-renders del árbol completo.
   - Solución prevista: manejar estado local desacoplado en cada input/textarea con sincronización al store únicamente en `onBlur` o debounce local mayor sin re-renderizar componentes padre.

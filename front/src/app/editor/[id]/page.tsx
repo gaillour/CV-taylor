@@ -7,8 +7,8 @@ import { CvPreview } from "@/components/preview/CvPreview";
 import { FillGauge } from "@/components/preview/FillGauge";
 import { CvEditor } from "@/components/editor/CvEditor";
 import { ExportActions } from "@/components/toolbar/ExportActions";
-import { Snapshot, ThemeName, LangCode } from "@/types/cv";
-import { RefreshCw, Palette, Globe, Target, GitBranch, Loader2 } from "lucide-react";
+import { Snapshot, ThemeName } from "@/types/cv";
+import { RefreshCw, Palette, Target, Loader2 } from "lucide-react";
 
 const DISCARD_PROMPT =
   "Tenés cambios sin guardar en el borrador actual. ¿Descartarlos y abrir esta versión?";
@@ -90,13 +90,6 @@ function EditorContent() {
     }));
   };
 
-  const handleLangChange = (lang: LangCode) => {
-    updateModel((prev) => ({
-      ...prev,
-      lang,
-    }));
-  };
-
   if (!ready) {
     return (
       <div className="flex-1 flex items-center justify-center text-zinc-500 text-sm gap-2">
@@ -115,15 +108,7 @@ function EditorContent() {
             {lastJobSpec?.role || "CV base"}
             {lastJobSpec?.company ? ` · ${lastJobSpec.company}` : ""}
           </span>
-          {draftParentId ? (
-            <span
-              className="flex items-center gap-1 font-mono text-[11px] text-zinc-500"
-              title={`Basado en versión: ${draftParentId} (guardar creará una nueva versión sin sobreescribir la original)`}
-            >
-              <GitBranch className="w-3 h-3" />
-              {draftParentId}
-            </span>
-          ) : (
+          {!draftParentId && (
             <span className="font-mono text-[11px] text-amber-400/80">sin guardar</span>
           )}
         </div>
@@ -138,15 +123,10 @@ function EditorContent() {
                   ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                   : "bg-amber-500/10 border-amber-500/20 text-amber-400"
               }`}
-              title={`Score ATS: ${lastAts.score}%\nRol: ${lastJobSpec?.role || "General"}\nEmpresa: ${lastJobSpec?.company || "Confidencial"}`}
+              title={`Score ATS: ${lastAts.score}%`}
             >
               <Target className="w-3.5 h-3.5" />
               <span>ATS {lastAts.score}%</span>
-              {lastJobSpec?.role && (
-                <span className="text-zinc-500 font-sans hidden xl:inline">
-                  · {lastJobSpec.role}
-                </span>
-              )}
             </div>
           )}
 
@@ -167,24 +147,6 @@ function EditorContent() {
                 }`}
               >
                 {t}
-              </button>
-            ))}
-          </div>
-
-          {/* Lang Selector */}
-          <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-xs">
-            <Globe className="w-3.5 h-3.5 text-zinc-400 ml-2 mr-1" />
-            {(["es", "en"] as LangCode[]).map((l) => (
-              <button
-                key={l}
-                onClick={() => handleLangChange(l)}
-                className={`px-2 py-1 rounded-md uppercase transition ${
-                  renderModel?.lang === l
-                    ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                {l}
               </button>
             ))}
           </div>

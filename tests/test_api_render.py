@@ -5,12 +5,18 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from back.api.main import app
 from back.engine.models import Profile, RenderModel
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _use_fixture_profile(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CVT_PROFILE_PATH", "fixtures/profile_juan.json")
 
 
 def test_health_check() -> None:
