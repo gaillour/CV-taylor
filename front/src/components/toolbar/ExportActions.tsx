@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCvStore } from "@/store/useCvStore";
-import { Download, Save, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { Download, Save, CheckCircle2, AlertCircle, X, RotateCcw } from "lucide-react";
 
 interface ToastNotification {
   type: "success" | "error";
@@ -13,8 +13,39 @@ interface ToastNotification {
 
 export function ExportActions() {
   const router = useRouter();
-  const { exportPdf, saveSnapshot, exportingPdf, savingSnapshot, renderModel } = useCvStore();
+  const {
+    exportPdf,
+    saveSnapshot,
+    exportingPdf,
+    savingSnapshot,
+    renderModel,
+    dirty,
+    revertDraft,
+    draftParentId,
+  } = useCvStore();
   const [toast, setToast] = useState<ToastNotification | null>(null);
+
+  const handleDiscard = async () => {
+    if (!dirty) return;
+    if (
+      !window.confirm(
+        draftParentId
+          ? "¿Descartar los cambios no guardados y volver a la versión original?"
+          : "¿Descartar el borrador y volver a la galería?"
+      )
+    ) {
+      return;
+    }
+    await revertDraft();
+    if (!draftParentId) {
+      router.replace("/");
+    } else {
+      showToast({
+        type: "success",
+        title: "Cambios descartados",
+      });
+    }
+  };
 
   const showToast = (notification: ToastNotification) => {
     setToast(notification);
@@ -60,6 +91,22 @@ export function ExportActions() {
   return (
     <>
       <div className="flex items-center gap-2">
+        {/* Discard Unsaved Changes Button */}
+        {dirty && (
+          <button
+            onClick={handleDiscard}
+            title={
+              draftParentId
+                ? "Revertir cambios a la versión guardada"
+                : "Descartar borrador y volver a la galería"
+            }
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-900/60 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 border border-zinc-800 hover:border-rose-500/30 rounded-lg text-xs font-medium transition cursor-pointer shadow-sm"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Descartar</span>
+          </button>
+        )}
+
         {/* Minimalist Save Version Button */}
         <button
           onClick={handleSaveSnapshot}

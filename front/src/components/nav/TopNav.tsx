@@ -34,12 +34,23 @@ export function TopNav() {
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (profileDirty || cvDirty) {
+        if (cvDirty) {
+          sessionStorage.setItem("cv_discard_pending", "true");
+        }
         e.preventDefault();
       }
     };
+
+    // If user clicked 'Cancel' on browser's reload prompt, window regains focus
+    const handleWindowFocus = () => {
+      sessionStorage.removeItem("cv_discard_pending");
+    };
+
     window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("focus", handleWindowFocus);
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("focus", handleWindowFocus);
     };
   }, [profileDirty, cvDirty]);
 

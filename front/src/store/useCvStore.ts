@@ -49,6 +49,7 @@ interface CvState {
   loadSnapshotDraft: (snapshot: Snapshot) => void;
   startBaseDraft: () => Promise<void>;
   discardDraft: () => void;
+  revertDraft: () => Promise<void>;
 }
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -310,6 +311,27 @@ export const useCvStore = create<CvState>()(
             draftParentId: null,
             dirty: false,
           });
+        },
+
+        revertDraft: async () => {
+          clearPendingPreview();
+          const parentId = get().draftParentId;
+          if (!parentId) {
+            get().discardDraft();
+            return;
+          }
+          try {
+            const res = await fetch(`${API_BASE_URL}/api/snapshots/${parentId}`);
+            if (!res.ok) {
+              get().discardDraft();
+              return;
+            }
+            const snapshot: Snapshot = await res.json();
+            get().loadSnapshotDraft(snapshot);
+            await get().fetchPreview();
+          } catch {
+            get().discardDraft();
+          }
         },
     }),
     {

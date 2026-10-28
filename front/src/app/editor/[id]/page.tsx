@@ -39,8 +39,33 @@ function EditorContent() {
   useEffect(() => {
     if (!hydrated) return;
 
-    // If draftParentId changed (e.g. user saved snapshot), silently sync the route
     const state = useCvStore.getState();
+
+    // Handle reload with unsaved changes discarded by the user (F5 confirmed)
+    if (typeof window !== "undefined" && sessionStorage.getItem("cv_discard_pending") === "true") {
+      sessionStorage.removeItem("cv_discard_pending");
+      if (id === "nuevo" || !state.draftParentId) {
+        state.discardDraft();
+        router.replace("/");
+        return;
+      }
+      fetch(`${API_BASE_URL}/api/snapshots/${id}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Snapshot no encontrado");
+          return res.json() as Promise<Snapshot>;
+        })
+        .then((snapshot) => {
+          state.loadSnapshotDraft(snapshot);
+          fetchPreview();
+        })
+        .catch(() => {
+          state.discardDraft();
+          router.replace("/");
+        });
+      return;
+    }
+
+    // If draftParentId changed (e.g. user saved snapshot), silently sync the route
     if (state.draftParentId && state.draftParentId !== id && handledIdRef.current === id) {
       handledIdRef.current = state.draftParentId;
       router.replace(`/editor/${state.draftParentId}`);
