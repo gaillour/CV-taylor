@@ -38,6 +38,33 @@ class ContactInfo(BaseModel):
     website: str | None = None
 
 
+DEFAULT_CATEGORY_TRANSLATIONS: dict[str, dict[LangCode, str]] = {
+    "lenguajes": {"en": "Languages", "es": "Lenguajes"},
+    "frameworks & librerías": {"en": "Frameworks & Libraries", "es": "Frameworks & Librerías"},
+    "frameworks": {"en": "Frameworks", "es": "Frameworks"},
+    "bases de datos": {"en": "Databases", "es": "Bases de Datos"},
+    "devops & cloud": {"en": "DevOps & Cloud", "es": "DevOps & Cloud"},
+    "herramientas": {"en": "Tools", "es": "Herramientas"},
+    "herramientas & metodologías": {
+        "en": "Tools & Methodologies",
+        "es": "Herramientas & Metodologías",
+    },
+    "metodologías": {"en": "Methodologies", "es": "Metodologías"},
+    "arquitectura & diseño": {"en": "Architecture & Design", "es": "Arquitectura & Diseño"},
+    "soft skills": {"en": "Soft Skills", "es": "Soft Skills"},
+    "idiomas": {"en": "Languages", "es": "Idiomas"},
+}
+
+DEFAULT_LEVEL_TRANSLATIONS: dict[str, dict[LangCode, str]] = {
+    "avanzado": {"en": "Advanced", "es": "Avanzado"},
+    "intermedio": {"en": "Intermediate", "es": "Intermedio"},
+    "básico": {"en": "Basic", "es": "Básico"},
+    "nativo": {"en": "Native", "es": "Nativo"},
+    "bilingüe": {"en": "Bilingual", "es": "Bilingüe"},
+    "profesional": {"en": "Professional", "es": "Profesional"},
+}
+
+
 class Skill(BaseModel):
     """Canonical skill entry and anti-hallucination alias whitelist."""
 
@@ -58,14 +85,22 @@ class Skill(BaseModel):
     def display_label(self, lang: LangCode = "es") -> str:
         """Format skill name with optional proficiency level in target language."""
         lvl = self.level_en if (lang == "en" and self.level_en) else self.level
+        if lvl and lang == "en" and not self.level_en:
+            lvl_norm = lvl.strip().lower()
+            if lvl_norm in DEFAULT_LEVEL_TRANSLATIONS:
+                lvl = DEFAULT_LEVEL_TRANSLATIONS[lvl_norm]["en"]
         if lvl:
             return f"{self.name} ({lvl})"
         return self.name
 
     def category_label(self, lang: LangCode = "es") -> str:
-        """Return localized category header."""
-        if lang == "en" and self.category_en:
-            return self.category_en
+        """Return localized category header with dictionary fallback."""
+        if lang == "en":
+            if self.category_en:
+                return self.category_en
+            cat_norm = self.category.strip().lower()
+            if cat_norm in DEFAULT_CATEGORY_TRANSLATIONS:
+                return DEFAULT_CATEGORY_TRANSLATIONS[cat_norm]["en"]
         return self.category
 
 

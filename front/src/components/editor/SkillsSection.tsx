@@ -2,6 +2,7 @@
 
 import React from "react";
 import { RenderSkillGroup } from "@/types/cv";
+import { BufferedInput } from "./BufferedFields";
 import { Plus, Trash2 } from "lucide-react";
 
 interface SkillsSectionProps {
@@ -55,10 +56,10 @@ export function SkillsSection({ skills, onChange }: SkillsSectionProps) {
             className="group p-2.5 bg-zinc-900/60 border border-zinc-800/80 rounded-lg space-y-2"
           >
             <div className="flex items-center gap-2">
-              <input
+              <BufferedInput
                 type="text"
                 value={skillGroup.category}
-                onChange={(e) => handleCategoryChange(idx, e.target.value)}
+                onCommit={(val) => handleCategoryChange(idx, val)}
                 placeholder="Categoría (ej: Backend & DBs)"
                 className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs font-semibold text-zinc-200 focus:outline-none focus:border-emerald-500/50"
               />
@@ -72,10 +73,10 @@ export function SkillsSection({ skills, onChange }: SkillsSectionProps) {
               </button>
             </div>
             <div>
-              <input
+              <BufferedInput
                 type="text"
                 value={skillGroup.items}
-                onChange={(e) => handleItemsChange(idx, e.target.value)}
+                onCommit={(val) => handleItemsChange(idx, val)}
                 placeholder="Ítems separados por comas (ej: Python, FastAPI, PostgreSQL)"
                 className="w-full bg-zinc-900/80 border border-zinc-800 rounded px-2 py-1 text-[11px] text-zinc-300 focus:outline-none focus:border-emerald-500/50 font-mono"
               />

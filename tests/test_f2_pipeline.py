@@ -16,6 +16,7 @@ from back.engine import (
     Profile,
     RenderBullet,
     RenderModel,
+    Skill,
     Snapshot,
     TailorEngine,
     TailoringPipeline,
@@ -490,3 +491,44 @@ def test_tailor_curation_with_llm_curator(monkeypatch: pytest.MonkeyPatch) -> No
     assert exp_ids == ["exp_simple_mdq"]
     assert proj_ids == ["proj_turniate"]
     assert edu_ids == ["edu_unmdp"]
+
+
+def test_tailor_bilingual_skills_and_harmonize(monkeypatch: pytest.MonkeyPatch) -> None:
+    """English tailoring translates skill categories and harmonizes titles and summary."""
+    profile = Profile.from_json(PROFILE_PATH)
+    # 1. Skill category fallback
+    skill = Skill(id="sk_py", name="Python", category="Lenguajes")
+    assert skill.category_label("es") == "Lenguajes"
+    assert skill.category_label("en") == "Languages"
+
+    # 2. Harmonize title and summary in English
+    client = LLMClient(LLMConfig(api_key="test-key", base_url="https://api.openai.com/v1"))
+    engine = TailorEngine(profile, client=client)
+
+    job_spec = JobSpec(role="Software Engineer", lang="en", keywords=["Python", "FastAPI"])
+    model = RenderModel.from_profile(profile, lang="en")
+
+    mock_harmonized = {
+        "summary": "Full Stack Engineer with 3+ years building scalable Python web applications.",
+        "experience": [
+            {
+                "entry_id": model.experience[0].entry_id,
+                "title": "Lead Software Engineer",
+                "bullets": [
+                    {
+                        "fact_ids": model.experience[0].bullets[0].fact_ids,
+                        "text": model.experience[0].bullets[0].text,
+                        "skill_ids": model.experience[0].bullets[0].skill_ids,
+                    }
+                ],
+            }
+        ],
+        "projects": [],
+        "education": [],
+    }
+
+    monkeypatch.setattr(client, "parse_json_completion", lambda *args, **kwargs: mock_harmonized)
+    result = engine.harmonize_resume(model, job_spec)
+
+    assert result.summary == mock_harmonized["summary"]
+    assert result.experience[0].title == "Lead Software Engineer"

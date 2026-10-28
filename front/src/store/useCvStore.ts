@@ -108,7 +108,8 @@ export const useCvStore = create<CvState>()(
             set({
               svg: data.svg,
               fitReport: data.fit_report,
-              renderModel: data.render_model,
+              // Only overwrite renderModel on initial hydration or explicit reset (when model argument was not passed)
+              ...(model ? {} : { renderModel: data.render_model }),
               loading: false,
             });
           } catch (err: unknown) {

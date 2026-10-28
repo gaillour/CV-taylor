@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { BufferedTextarea } from "./BufferedFields";
 
 interface SummarySectionProps {
   summary: string;
@@ -14,10 +15,10 @@ export function SummarySection({ summary, onChange }: SummarySectionProps) {
         <span>Resumen Profesional / Perfil ATS</span>
         <span className="font-mono">{summary.length} caracteres</span>
       </div>
-      <textarea
+      <BufferedTextarea
         rows={4}
         value={summary}
-        onChange={(e) => onChange(e.target.value, 150)}
+        onCommit={(val) => onChange(val, 0)}
         placeholder="Escribe tu resumen profesional aquí..."
         className="w-full bg-zinc-900/80 border border-zinc-800 rounded-lg p-2.5 text-zinc-200 text-xs resize-y focus:outline-none focus:border-emerald-500/50 leading-relaxed"
       />

@@ -81,13 +81,16 @@
 
 ---
 
-## Deuda Técnica / Optimizaciones Pendientes
-- [ ] **Soporte real de Idioma (`es` / `en`) y Traducción de Contenido:**
-  - El switch `ES/EN` del editor se retiró porque `RenderModel` está desnormalizado (cambiar `lang` en el editor solo alteraba encabezados de sección sin traducir viñetas ni títulos).
-  - Solución prevista: gestionar el idioma objetivo al generar el CV (`TailorModal` / `POST /api/tailor` traduciendo/seleccionando hechos en el idioma destino) o sumar variantes bilingües asistidas en el Perfil Maestro.
-- [ ] **Desacoplar estado de inputs en CvEditor para eliminar lag de tipeo:**
-  - Actualmente cada pulsación de tecla en `BulletList` / inputs emite a Zustand y dispara compilación Typst a 150ms provocando re-renders del árbol completo.
-  - Solución prevista: manejar estado local desacoplado en cada input/textarea con sincronización al store únicamente en `onBlur` o debounce local mayor sin re-renderizar componentes padre.
+## Deuda Técnica / Optimizaciones
+- [x] **Soporte real de Idioma (`es` / `en`) y Traducción de Contenido:**
+  - Fallback determinista bilingüe en categorías y niveles de habilidades (`DEFAULT_CATEGORY_TRANSLATIONS` / `DEFAULT_LEVEL_TRANSLATIONS`).
+  - `_adapt_bullets_with_llm` fuerza redacción y vocabulario en el idioma de destino (`target_lang`).
+  - `harmonize_resume` traduce y armoniza títulos de entradas (`title`), resumen (`summary`) y viñetas en la misma pasada sin llamadas adicionales a la IA.
+  - Ejecución garantizada de armonización en `TailoringPipeline` cuando `current_model.lang != profile.default_lang`.
+- [x] **Desacoplar estado de inputs en CvEditor para eliminar lag de tipeo:**
+  - Primitivos reutilizables `BufferedInput` y `BufferedTextarea` con estado local en `useState`, debounce de 250ms y flush en `onBlur`.
+  - Desacople completo de `CvEditor`, `BulletList`, `ExperienceSection`, `ProjectsSection`, `EducationSection`, `SummarySection`, `HeaderSection` y `SkillsSection`.
+  - Fix en `useCvStore.ts`: `fetchPreview` ya no pisa `renderModel` en cliente cuando recibe un modelo explícito.
 
 ---
 

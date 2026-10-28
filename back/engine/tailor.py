@@ -323,6 +323,12 @@ class TailorEngine:
             {"id": f.id, "text": f.text, "skills": f.skill_ids} for f in selected_facts
         ]
 
+        lang_rule = (
+            "Write exclusively in English (e.g. 'Automation of CI/CD pipelines...')."
+            if target_lang == "en"
+            else "Escribe exclusivamente en Español (ej. 'Automatización de pipelines...')."
+        )
+
         system_prompt = (
             "You are an elite resume editor optimizing for ATS and human technical recruiters. "
             "Rewrite the candidate's factual achievements for the target role.\n"
@@ -330,10 +336,10 @@ class TailorEngine:
             "1. NEVER invent metrics, numbers, percentages, or scale. Every number "
             "MUST come directly from the source fact.\n"
             "2. NEVER add tools or skills not in source facts or candidate skills.\n"
-            "3. Write each bullet in executive third-person or action nominal style "
-            "(e.g., 'Automatización de...' instead of 'Automaticé...').\n"
-            "4. Keep each bullet between 16 and 24 words for optimal 1-page visual flow.\n"
-            "5. Cite the exact source fact ID in 'fact_ids'.\n"
+            f"3. {lang_rule}\n"
+            "4. Write each bullet in executive third-person or action nominal style.\n"
+            "5. Keep each bullet between 16 and 24 words for optimal 1-page visual flow.\n"
+            "6. Cite the exact source fact ID in 'fact_ids'.\n"
             "Respond ONLY with a JSON array of objects:\n"
             '[{"fact_id": "...", "text": "...", "skill_ids": ["..."]}]'
         )
@@ -604,28 +610,36 @@ class TailorEngine:
             for ed in model.education
         ]
 
+        lang_directive = (
+            "Ensure the entire resume (summary, titles, bullets) is strictly in English."
+            if model.lang == "en"
+            else "Ensure the entire resume (summary, titles, bullets) is strictly in Spanish."
+        )
+
         system_prompt = (
             "You are an elite executive CV editor performing a final editorial consistency pass. "
             "The candidate's resume has already been physically fitted to 1 page A4.\n"
             "Your task is to harmonize style, tone, and flow across the entire CV "
             "so it reads as a unified, compelling technical narrative.\n"
+            f"LANGUAGE DIRECTIVE: {lang_directive}\n"
             "STRICT INVARIANTS (ANY VIOLATION WILL BE REJECTED BY AUTOMATED LINTERS):\n"
             "1. NEVER invent, alter, or round numbers, percentages, or scale. Every single number "
             "must come verbatim from the original bullet.\n"
             "2. NEVER introduce unauthorized tools, frameworks, or languages not present "
             "in original bullets or skills.\n"
             "3. Keep each bullet concise (16-24 words) in professional executive third-person or "
-            "action nominal style (e.g. 'Automatización de...', 'Liderazgo en...').\n"
-            "4. Do NOT add or drop bullets. Every output bullet must preserve the exact "
+            "action nominal style.\n"
+            "4. Translate or adapt entry titles to match the Target Language.\n"
+            "5. Do NOT add or drop bullets. Every output bullet must preserve the exact "
             "'fact_ids' of its source.\n"
             "Respond ONLY with a JSON object in this exact schema:\n"
             "{\n"
             '  "summary": "...",\n'
-            '  "experience": [{"entry_id": "...", "bullets": '
+            '  "experience": [{"entry_id": "...", "title": "...", "bullets": '
             '[{"fact_ids": ["..."], "text": "...", "skill_ids": ["..."]}]}],\n'
-            '  "projects": [{"entry_id": "...", "bullets": '
+            '  "projects": [{"entry_id": "...", "title": "...", "bullets": '
             '[{"fact_ids": ["..."], "text": "...", "skill_ids": ["..."]}]}],\n'
-            '  "education": [{"entry_id": "...", "bullets": '
+            '  "education": [{"entry_id": "...", "title": "...", "bullets": '
             '[{"fact_ids": ["..."], "text": "...", "skill_ids": ["..."]}]}]\n'
             "}"
         )
@@ -655,22 +669,33 @@ class TailorEngine:
                 raw_entries: list[dict[str, Any]],
             ) -> list[RenderEntry]:
                 raw_by_id = {
-                    item.get("entry_id"): item.get("bullets", [])
+                    item.get("entry_id"): item
                     for item in raw_entries
                     if isinstance(item, dict) and "entry_id" in item
                 }
                 updated_entries: list[RenderEntry] = []
                 for orig_entry in original_entries:
-                    new_bullets_raw = raw_by_id.get(orig_entry.entry_id)
-                    if not new_bullets_raw or not isinstance(new_bullets_raw, list):
+                    item = raw_by_id.get(orig_entry.entry_id)
+                    if not item:
                         updated_entries.append(orig_entry)
                         continue
 
+                    # Update title if localized / harmonized
+                    new_title = orig_entry.title
+                    cand_title = item.get("title")
+                    if isinstance(cand_title, str) and cand_title.strip():
+                        new_title = cand_title.strip()
+
+                    new_bullets_raw = item.get("bullets", [])
+                    if not new_bullets_raw or not isinstance(new_bullets_raw, list):
+                        updated_entries.append(orig_entry.model_copy(update={"title": new_title}))
+                        continue
+
                     rewritten_by_fid: dict[str, str] = {}
-                    for item in new_bullets_raw:
-                        if isinstance(item, dict):
-                            fids = item.get("fact_ids", [])
-                            txt = item.get("text", "").strip()
+                    for b_item in new_bullets_raw:
+                        if isinstance(b_item, dict):
+                            fids = b_item.get("fact_ids", [])
+                            txt = b_item.get("text", "").strip()
                             if fids and txt:
                                 rewritten_by_fid[str(fids[0])] = txt
 
@@ -702,7 +727,9 @@ class TailorEngine:
                             harmonized_bullets.append(cand_bullet)
 
                     updated_entries.append(
-                        orig_entry.model_copy(update={"bullets": harmonized_bullets})
+                        orig_entry.model_copy(
+                            update={"title": new_title, "bullets": harmonized_bullets}
+                        )
                     )
                 return updated_entries
 

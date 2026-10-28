@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { RenderEntry, RenderBullet } from "@/types/cv";
 import { BulletList } from "./BulletList";
+import { BufferedInput } from "./BufferedFields";
 import { Plus, Trash2, Check, ChevronDown, ChevronUp } from "lucide-react";
 
 interface ProjectsSectionProps {
@@ -150,20 +151,20 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[10px] text-zinc-400 mb-0.5">Nombre del Proyecto</label>
-                      <input
+                      <BufferedInput
                         type="text"
                         value={entry.title}
-                        onChange={(e) => handleFieldChange(idx, "title", e.target.value)}
+                        onCommit={(val) => handleFieldChange(idx, "title", val)}
                         className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500/50"
                       />
                     </div>
                     <div>
                       <label className="block text-[10px] text-zinc-400 mb-0.5">Enlace / Repo</label>
-                      <input
+                      <BufferedInput
                         type="text"
                         value={entry.link || ""}
                         placeholder="github.com/usuario/repo"
-                        onChange={(e) => handleFieldChange(idx, "link", e.target.value)}
+                        onCommit={(val) => handleFieldChange(idx, "link", val)}
                         className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500/50"
                       />
                     </div>
@@ -172,19 +173,19 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[10px] text-zinc-400 mb-0.5">Fechas</label>
-                      <input
+                      <BufferedInput
                         type="text"
                         value={entry.date_label}
-                        onChange={(e) => handleFieldChange(idx, "date_label", e.target.value)}
+                        onCommit={(val) => handleFieldChange(idx, "date_label", val)}
                         className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500/50"
                       />
                     </div>
                     <div>
                       <label className="block text-[10px] text-zinc-400 mb-0.5">Contexto / Organización</label>
-                      <input
+                      <BufferedInput
                         type="text"
                         value={entry.org}
-                        onChange={(e) => handleFieldChange(idx, "org", e.target.value)}
+                        onCommit={(val) => handleFieldChange(idx, "org", val)}
                         className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500/50"
                       />
                     </div>

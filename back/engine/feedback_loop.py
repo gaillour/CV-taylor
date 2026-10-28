@@ -177,8 +177,11 @@ class TailoringPipeline:
         # 4. Deterministic 1-page fit engine (computes physical skeleton at d <= 0.35)
         fitted_model, fit_report = fit_render_model(current_model, candidate_pool=self.profile)
 
-        # 4b. Single editorial consistency pass if pruning occurred and LLM is active
-        if use_llm and self.client.is_configured and fit_report.pruned_fact_ids:
+        # 4b. Single editorial consistency pass if pruning occurred or language differs
+        needs_harmonize = bool(fit_report.pruned_fact_ids) or (
+            current_model.lang != self.profile.default_lang
+        )
+        if use_llm and self.client.is_configured and needs_harmonize:
             harmonized_model = self.tailor_engine.harmonize_resume(fitted_model, job_spec)
             second_model, second_fit = fit_render_model(
                 harmonized_model, candidate_pool=self.profile

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ContactInfo } from "@/types/cv";
+import { BufferedInput } from "./BufferedFields";
 
 interface HeaderSectionProps {
   fullName: string;
@@ -16,10 +17,10 @@ export function HeaderSection({ fullName, contact, onChange }: HeaderSectionProp
         <label className="block text-[11px] font-medium text-zinc-400 mb-1">
           Nombre Completo
         </label>
-        <input
+        <BufferedInput
           type="text"
           value={fullName}
-          onChange={(e) => onChange({ fullName: e.target.value }, 150)}
+          onCommit={(val) => onChange({ fullName: val }, 0)}
           className="w-full bg-zinc-900/80 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-zinc-200 focus:outline-none focus:border-emerald-500/50"
         />
       </div>
@@ -29,11 +30,11 @@ export function HeaderSection({ fullName, contact, onChange }: HeaderSectionProp
           <label className="block text-[11px] font-medium text-zinc-400 mb-1">
             Email
           </label>
-          <input
+          <BufferedInput
             type="email"
             value={contact.email}
-            onChange={(e) =>
-              onChange({ contact: { ...contact, email: e.target.value } }, 150)
+            onCommit={(val) =>
+              onChange({ contact: { ...contact, email: val } }, 0)
             }
             className="w-full bg-zinc-900/80 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-zinc-200 focus:outline-none focus:border-emerald-500/50"
           />
@@ -43,11 +44,11 @@ export function HeaderSection({ fullName, contact, onChange }: HeaderSectionProp
           <label className="block text-[11px] font-medium text-zinc-400 mb-1">
             Teléfono
           </label>
-          <input
+          <BufferedInput
             type="text"
             value={contact.phone}
-            onChange={(e) =>
-              onChange({ contact: { ...contact, phone: e.target.value } }, 150)
+            onCommit={(val) =>
+              onChange({ contact: { ...contact, phone: val } }, 0)
             }
             className="w-full bg-zinc-900/80 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-zinc-200 focus:outline-none focus:border-emerald-500/50"
           />
@@ -58,11 +59,11 @@ export function HeaderSection({ fullName, contact, onChange }: HeaderSectionProp
         <label className="block text-[11px] font-medium text-zinc-400 mb-1">
           Ubicación
         </label>
-        <input
+        <BufferedInput
           type="text"
           value={contact.location}
-          onChange={(e) =>
-            onChange({ contact: { ...contact, location: e.target.value } }, 150)
+          onCommit={(val) =>
+            onChange({ contact: { ...contact, location: val } }, 0)
           }
           className="w-full bg-zinc-900/80 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-zinc-200 focus:outline-none focus:border-emerald-500/50"
         />
@@ -73,12 +74,12 @@ export function HeaderSection({ fullName, contact, onChange }: HeaderSectionProp
           <label className="block text-[11px] font-medium text-zinc-400 mb-1">
             GitHub
           </label>
-          <input
+          <BufferedInput
             type="text"
             value={contact.github || ""}
             placeholder="github.com/usuario"
-            onChange={(e) =>
-              onChange({ contact: { ...contact, github: e.target.value || null } }, 150)
+            onCommit={(val) =>
+              onChange({ contact: { ...contact, github: val || null } }, 0)
             }
             className="w-full bg-zinc-900/80 border border-zinc-800 rounded-lg px-2 py-1.5 text-zinc-200 focus:outline-none focus:border-emerald-500/50 text-[11px]"
           />
@@ -88,12 +89,12 @@ export function HeaderSection({ fullName, contact, onChange }: HeaderSectionProp
           <label className="block text-[11px] font-medium text-zinc-400 mb-1">
             LinkedIn
           </label>
-          <input
+          <BufferedInput
             type="text"
             value={contact.linkedin || ""}
             placeholder="linkedin.com/in/usuario"
-            onChange={(e) =>
-              onChange({ contact: { ...contact, linkedin: e.target.value || null } }, 150)
+            onCommit={(val) =>
+              onChange({ contact: { ...contact, linkedin: val || null } }, 0)
             }
             className="w-full bg-zinc-900/80 border border-zinc-800 rounded-lg px-2 py-1.5 text-zinc-200 focus:outline-none focus:border-emerald-500/50 text-[11px]"
           />
@@ -103,12 +104,12 @@ export function HeaderSection({ fullName, contact, onChange }: HeaderSectionProp
           <label className="block text-[11px] font-medium text-zinc-400 mb-1">
             Web
           </label>
-          <input
+          <BufferedInput
             type="text"
             value={contact.website || ""}
             placeholder="portfolio.dev"
-            onChange={(e) =>
-              onChange({ contact: { ...contact, website: e.target.value || null } }, 150)
+            onCommit={(val) =>
+              onChange({ contact: { ...contact, website: val || null } }, 0)
             }
             className="w-full bg-zinc-900/80 border border-zinc-800 rounded-lg px-2 py-1.5 text-zinc-200 focus:outline-none focus:border-emerald-500/50 text-[11px]"
           />

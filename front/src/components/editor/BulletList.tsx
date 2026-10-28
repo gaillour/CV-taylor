@@ -3,6 +3,7 @@
 import React from "react";
 import { RenderBullet } from "@/types/cv";
 import { Check, Pin, Trash2, Plus } from "lucide-react";
+import { BufferedTextarea } from "./BufferedFields";
 
 interface BulletListProps {
   bullets: RenderBullet[];
@@ -81,12 +82,12 @@ export function BulletList({ bullets, onChange }: BulletListProps) {
                 <Check className="w-3 h-3 stroke-[3]" />
               </button>
 
-              {/* Textarea */}
+              {/* Textarea with local buffer */}
               <div className="flex-1 min-w-0">
-                <textarea
+                <BufferedTextarea
                   rows={2}
                   value={bullet.text}
-                  onChange={(e) => handleTextChange(idx, e.target.value)}
+                  onCommit={(text) => handleTextChange(idx, text)}
                   className={`w-full bg-transparent text-xs text-zinc-200 resize-y focus:outline-none focus:ring-1 focus:ring-emerald-500/50 rounded p-1 transition leading-relaxed ${
                     !isSelected ? "line-through text-zinc-500" : ""
                   }`}
