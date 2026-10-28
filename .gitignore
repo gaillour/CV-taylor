@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# Node / Front
+node_modules/
+front/node_modules/
+.next/
+front/.next/
+*.tsbuildinfo
+next-env.d.ts
+
+# Output & temp
+/out/
+/tempo/
+probar_borrar.py
+
+# Env & credentials
+.env*
+*.pem
+
+# OS & misc
+.DS_Store
+Thumbs.db

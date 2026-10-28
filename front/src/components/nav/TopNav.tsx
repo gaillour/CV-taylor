@@ -1,0 +1,75 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import React, { useEffect } from "react";
+import { FileStack, PenSquare, Sparkles, UserRound } from "lucide-react";
+import { useCvStore } from "@/store/useCvStore";
+
+const tabBase =
+  "relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition";
+const tabActive = "bg-zinc-800 text-zinc-100 shadow-sm";
+const tabIdle = "text-zinc-400 hover:text-zinc-200";
+const tabDisabled = "text-zinc-600 cursor-not-allowed";
+
+export function TopNav() {
+  const pathname = usePathname();
+  const hasDraft = useCvStore((s) => s.renderModel !== null);
+  const dirty = useCvStore((s) => s.dirty);
+  const draftParentId = useCvStore((s) => s.draftParentId);
+
+  // Rehydrate the persisted draft on the client only (avoids SSR mismatch)
+  useEffect(() => {
+    useCvStore.persist.rehydrate();
+  }, []);
+
+  const editorHref = `/editor/${draftParentId ?? "nuevo"}`;
+  const isGallery = pathname === "/";
+  const isProfile = pathname.startsWith("/perfil");
+  const isEditor = pathname.startsWith("/editor");
+
+  return (
+    <header className="h-14 shrink-0 border-b border-zinc-800/80 bg-zinc-950/70 backdrop-blur-md px-6 flex items-center gap-6 z-30">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <Sparkles className="w-4 h-4" />
+        </div>
+        <h1 className="text-sm font-semibold tracking-tight text-zinc-100 flex items-center gap-2">
+          CV Tailor
+          <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            F3 MVP
+          </span>
+        </h1>
+      </div>
+
+      <nav className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5">
+        <Link href="/" className={`${tabBase} ${isGallery ? tabActive : tabIdle}`}>
+          <FileStack className="w-3.5 h-3.5" />
+          CVs
+        </Link>
+
+        <Link href="/perfil" className={`${tabBase} ${isProfile ? tabActive : tabIdle}`}>
+          <UserRound className="w-3.5 h-3.5" />
+          Perfil
+        </Link>
+
+        {hasDraft ? (
+          <Link
+            href={editorHref}
+            className={`${tabBase} ${isEditor ? tabActive : tabIdle}`}
+            title={dirty ? "Borrador con cambios sin guardar" : "Borrador activo"}
+          >
+            <PenSquare className="w-3.5 h-3.5" />
+            Editor
+            {dirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+          </Link>
+        ) : (
+          <span className={`${tabBase} ${tabDisabled}`} title="Abrí o creá un CV desde la galería">
+            <PenSquare className="w-3.5 h-3.5" />
+            Editor
+          </span>
+        )}
+      </nav>
+    </header>
+  );
+}

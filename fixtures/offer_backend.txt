@@ -1,0 +1,18 @@
+Buscamos Desarrollador Backend Senior (Python / FastAPI)
+
+Sobre el puesto:
+En TechLogistics estamos buscando un Ingeniero de Software Backend para sumarse a nuestro equipo de producto.
+Diseñarás e implementarás APIs de alto rendimiento y microservicios escalables para gestión logística.
+
+Requisitos obligatorios:
+- Experiencia sólida desarrollando en Python y frameworks modernos (FastAPI, Flask o Django).
+- Dominio de bases de datos relacionales como PostgreSQL y diseño de modelos de datos SQL.
+- Manejo de contenedores con Docker y flujos de integración continua (CI/CD, Git).
+- Conocimientos en optimización de consultas y sistemas de mensajería o caching (Redis).
+- Capacidad para escribir código limpio, modular y testeado (Pytest).
+
+Responsabilidades:
+- Diseñar arquitecturas backend basadas en microservicios y REST APIs.
+- Optimizar el rendimiento y la latencia de endpoints críticos.
+- Colaborar con desarrolladores frontend y diseñar contratos de integración.
+- Mantener cobertura de tests unitarios e integrados.

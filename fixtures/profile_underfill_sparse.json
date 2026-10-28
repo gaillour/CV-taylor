@@ -1,0 +1,372 @@
+{
+  "id": "underfill_sparse_fixture",
+  "schema_version": "1.0.0",
+  "full_name": "Lucía Valentina Quiroga",
+  "default_lang": "es",
+  "contact": {
+    "email": "lucia.quiroga@example.com",
+    "phone": "+54 223 511-4090",
+    "location": "Mar del Plata, AR",
+    "github": "github.com/lquiroga",
+    "linkedin": "linkedin.com/in/lquiroga"
+  },
+  "summary": "Desarrolladora Backend Python y estudiante avanzada de Ingeniería Informática con experiencia en diseño de APIs REST con FastAPI, modelado relacional en PostgreSQL y automatización en Linux.",
+  "skills": [
+    {
+      "id": "sk_py",
+      "name": "Python",
+      "category": "Lenguajes",
+      "aliases": [
+        "python"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_sql",
+      "name": "SQL",
+      "category": "Lenguajes",
+      "aliases": [
+        "sql"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_ts",
+      "name": "TypeScript",
+      "category": "Lenguajes",
+      "aliases": [
+        "typescript"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_fastapi",
+      "name": "FastAPI",
+      "category": "Backend",
+      "aliases": [
+        "fastapi"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_pg",
+      "name": "PostgreSQL",
+      "category": "Datos e Infraestructura",
+      "aliases": [
+        "postgresql"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_docker",
+      "name": "Docker & Linux",
+      "category": "Datos e Infraestructura",
+      "aliases": [
+        "docker",
+        "linux"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_es",
+      "name": "Español",
+      "category": "Idiomas",
+      "level": "Nativo",
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_en",
+      "name": "Inglés",
+      "category": "Idiomas",
+      "level": "Avanzado",
+      "tags": [
+        "dev"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "exp_austral_soft",
+      "kind": "experience",
+      "org": "Austral Software",
+      "location": "Mar del Plata, AR",
+      "start_date": "2025-04",
+      "end_date": "present",
+      "date_precision": "month",
+      "position": 1,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_austral_es",
+          "title": "Desarrolladora Backend Python",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_aus_1",
+          "text": "Desarrollo de servicios backend en FastAPI y PostgreSQL para gestión de inventario y facturación electrónica con validación estricta mediante Pydantic.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_py",
+            "sk_fastapi",
+            "sk_pg"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 100,
+          "default_selected": true
+        },
+        {
+          "id": "f_aus_2",
+          "text": "Implementación de migraciones relacionales versionadas, índices de búsqueda y pruebas automatizadas con pytest en entornos contenerizados Docker.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_pg",
+            "sk_docker",
+            "sk_sql"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 90,
+          "default_selected": true
+        },
+        {
+          "id": "f_aus_3",
+          "text": "Optimización de tareas programadas de sincronización de catálogos y monitoreo de errores operativos en servidores Linux.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_py",
+            "sk_docker"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 85,
+          "default_selected": false
+        }
+      ]
+    },
+    {
+      "id": "exp_unmdp_lab",
+      "kind": "experience",
+      "org": "Laboratorio de Sistemas — UNMdP",
+      "location": "Mar del Plata, AR",
+      "start_date": "2024-03",
+      "end_date": "2025-03",
+      "date_precision": "month",
+      "position": 2,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_lab_es",
+          "title": "Ayudante de Segunda y Desarrolladora de Herramientas Internas",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_lab_1",
+          "text": "Automatización de corrección de entregas prácticas mediante scripts en Python y entornos aislados en contenedores Docker.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_py",
+            "sk_docker"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 92,
+          "default_selected": true
+        },
+        {
+          "id": "f_lab_2",
+          "text": "Asistencia técnica en consultas de programación estructurada, estructuras de datos y administración básica de Linux.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_py",
+            "sk_docker"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 82,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "proj_turnos_api",
+      "kind": "project",
+      "org": "TurnosMed API",
+      "start_date": "2025",
+      "date_precision": "year",
+      "link": "github.com/lquiroga/turnosmed",
+      "position": 10,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_tmed_es",
+          "title": "TurnosMed — Sistema de Gestión de Turnos Clínicos",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_tmed_1",
+          "text": "API RESTful en FastAPI y PostgreSQL con control de concurrencia pesimista para evitar solapamientos en reservas de consultorios.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_fastapi",
+            "sk_pg"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 95,
+          "default_selected": true
+        },
+        {
+          "id": "f_tmed_2",
+          "text": "Panel web en TypeScript para administración de agendas profesionales y envío automatizado de recordatorios.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_ts"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 80,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "proj_log_analyzer",
+      "kind": "project",
+      "org": "LogMetrics CLI",
+      "start_date": "2024",
+      "date_precision": "year",
+      "link": "github.com/lquiroga/logmetrics",
+      "position": 11,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_logm_es",
+          "title": "LogMetrics — Herramienta CLI de Análisis de Logs HTTP",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_logm_1",
+          "text": "Procesador streaming en Python para agregación de percentiles de latencia, códigos de estado y detección de picos de tráfico en archivos de log masivos.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_py"
+          ],
+          "position": 1,
+          "pinned": false,
+          "weight": 88,
+          "default_selected": true
+        },
+        {
+          "id": "f_logm_2",
+          "text": "Exportación de reportes estructurados en JSON y tablas Markdown para diagnóstico rápido de cuellos de botella en servidores web.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_py"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 76,
+          "default_selected": false
+        }
+      ]
+    },
+    {
+      "id": "edu_unmdp_lq",
+      "kind": "education",
+      "org": "Universidad Nacional de Mar del Plata",
+      "location": "Mar del Plata, AR",
+      "start_date": "2022-03",
+      "end_date": "present",
+      "date_precision": "month",
+      "position": 20,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 0,
+      "titles": [
+        {
+          "id": "t_edu_lq",
+          "title": "Ingeniería Informática",
+          "lang": "es",
+          "is_default": true
+        }
+      ],
+      "facts": []
+    }
+  ]
+}

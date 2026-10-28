@@ -1,0 +1,1521 @@
+{
+  "id": "juan_gaillour",
+  "schema_version": "1.0.0",
+  "full_name": "Juan Ignacio Gaillour",
+  "default_lang": "es",
+  "contact": {
+    "email": "juangaillour.8@gmail.com",
+    "phone": "+54 223 506-0690",
+    "location": "Mar del Plata, Buenos Aires, AR",
+    "github": "github.com/gaillour",
+    "linkedin": "linkedin.com/in/juangaillour"
+  },
+  "summary": "Estudiante avanzado de Ingeniería Informática (UNMdP) con experiencia en desarrollo backend y full stack (Python, FastAPI, Next.js, PostgreSQL/Supabase), automatización de datos sobre +10.000 registros operativos y administración de infraestructura Linux/Docker.",
+  "summary_en": "Computer Engineering student (UNMdP) experienced in backend and full-stack development (Python, FastAPI, Next.js, PostgreSQL/Supabase), data automation across +10,000 operational records, and Linux/Docker infrastructure administration.",
+  "skills": [
+    {
+      "id": "skill_python",
+      "name": "Python",
+      "category": "Lenguajes",
+      "category_en": "Languages",
+      "aliases": [
+        "python",
+        "python3",
+        "py",
+        "scripting en python",
+        "python para datos"
+      ],
+      "tags": [
+        "dev",
+        "soporte",
+        "temporada"
+      ]
+    },
+    {
+      "id": "skill_typescript",
+      "name": "TypeScript",
+      "category": "Lenguajes",
+      "category_en": "Languages",
+      "aliases": [
+        "typescript",
+        "ts",
+        "javascript",
+        "js"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "skill_sql",
+      "name": "SQL",
+      "category": "Lenguajes",
+      "category_en": "Languages",
+      "aliases": [
+        "sql",
+        "consultas sql",
+        "plpgsql"
+      ],
+      "tags": [
+        "dev",
+        "soporte"
+      ]
+    },
+    {
+      "id": "skill_java",
+      "name": "Java",
+      "category": "Lenguajes",
+      "category_en": "Languages",
+      "aliases": [
+        "java",
+        "jvm",
+        "processing"
+      ],
+      "tags": [
+        "dev",
+        "soporte"
+      ]
+    },
+    {
+      "id": "skill_c",
+      "name": "C",
+      "category": "Lenguajes",
+      "category_en": "Languages",
+      "aliases": [
+        "c",
+        "ansi c",
+        "assembler",
+        "ensamblador"
+      ],
+      "tags": [
+        "dev",
+        "soporte"
+      ]
+    },
+    {
+      "id": "skill_bash",
+      "name": "Bash",
+      "category": "Lenguajes",
+      "category_en": "Languages",
+      "aliases": [
+        "bash",
+        "shell",
+        "zsh",
+        "sh",
+        "shell scripting"
+      ],
+      "tags": [
+        "dev",
+        "soporte"
+      ]
+    },
+    {
+      "id": "skill_fastapi",
+      "name": "FastAPI",
+      "category": "Frameworks y Backend",
+      "category_en": "Frameworks & Backend",
+      "aliases": [
+        "fastapi",
+        "rest api",
+        "apis rest"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "skill_nextjs",
+      "name": "Next.js (React)",
+      "category": "Frameworks y Backend",
+      "category_en": "Frameworks & Backend",
+      "aliases": [
+        "next.js",
+        "nextjs",
+        "react",
+        "reactjs"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "skill_pydantic",
+      "name": "Pydantic",
+      "category": "Frameworks y Backend",
+      "category_en": "Frameworks & Backend",
+      "aliases": [
+        "pydantic",
+        "pydantic v2",
+        "json schema"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "skill_mcp",
+      "name": "Model Context Protocol (MCP)",
+      "category": "Frameworks y Backend",
+      "category_en": "Frameworks & Backend",
+      "aliases": [
+        "mcp",
+        "model context protocol",
+        "fastmcp",
+        "file search api",
+        "rag"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "skill_nodejs",
+      "name": "Node.js",
+      "category": "Frameworks y Backend",
+      "category_en": "Frameworks & Backend",
+      "aliases": [
+        "node.js",
+        "nodejs",
+        "node"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "skill_whatsapp_api",
+      "name": "WhatsApp Business API",
+      "category": "Frameworks y Backend",
+      "category_en": "Frameworks & Backend",
+      "aliases": [
+        "whatsapp business api",
+        "whatsapp api"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "skill_postgresql",
+      "name": "PostgreSQL",
+      "category": "Bases de Datos e Infraestructura",
+      "category_en": "Databases & Infrastructure",
+      "aliases": [
+        "postgresql",
+        "postgres",
+        "modelado relacional",
+        "data qa"
+      ],
+      "tags": [
+        "dev",
+        "soporte"
+      ]
+    },
+    {
+      "id": "skill_supabase",
+      "name": "Supabase",
+      "category": "Bases de Datos e Infraestructura",
+      "category_en": "Databases & Infrastructure",
+      "aliases": [
+        "supabase",
+        "postgresql en supabase"
+      ],
+      "tags": [
+        "dev",
+        "soporte"
+      ]
+    },
+    {
+      "id": "skill_docker",
+      "name": "Docker",
+      "category": "Bases de Datos e Infraestructura",
+      "category_en": "Databases & Infrastructure",
+      "aliases": [
+        "docker",
+        "docker compose",
+        "contenedores",
+        "microservicios"
+      ],
+      "tags": [
+        "dev",
+        "soporte"
+      ]
+    },
+    {
+      "id": "skill_linux",
+      "name": "Linux (Arch, Ubuntu Server)",
+      "category": "Bases de Datos e Infraestructura",
+      "category_en": "Databases & Infrastructure",
+      "aliases": [
+        "linux",
+        "arch linux",
+        "ubuntu",
+        "ubuntu server",
+        "sysadmin"
+      ],
+      "tags": [
+        "dev",
+        "soporte",
+        "temporada"
+      ]
+    },
+    {
+      "id": "skill_git",
+      "name": "Git",
+      "category": "Bases de Datos e Infraestructura",
+      "category_en": "Databases & Infrastructure",
+      "aliases": [
+        "git",
+        "github"
+      ],
+      "tags": [
+        "dev",
+        "soporte",
+        "temporada"
+      ]
+    },
+    {
+      "id": "skill_vercel",
+      "name": "Vercel",
+      "category": "Bases de Datos e Infraestructura",
+      "category_en": "Databases & Infrastructure",
+      "aliases": [
+        "vercel"
+      ],
+      "tags": [
+        "dev",
+        "soporte"
+      ]
+    },
+    {
+      "id": "skill_flyio",
+      "name": "Fly.io",
+      "category": "Bases de Datos e Infraestructura",
+      "category_en": "Databases & Infrastructure",
+      "aliases": [
+        "fly.io",
+        "fly"
+      ],
+      "tags": [
+        "dev",
+        "soporte"
+      ]
+    },
+    {
+      "id": "skill_networking",
+      "name": "Redes TCP/IP y VPNs (Tailscale/WireGuard)",
+      "category": "Sistemas y Soporte",
+      "category_en": "Systems & Support",
+      "aliases": [
+        "tcp/ip",
+        "tailscale",
+        "wireguard",
+        "vpn",
+        "lan",
+        "wlan",
+        "redes"
+      ],
+      "tags": [
+        "soporte",
+        "temporada"
+      ]
+    },
+    {
+      "id": "skill_support_ops",
+      "name": "Soporte L1/L2 y Documentación (SOP)",
+      "category": "Sistemas y Soporte",
+      "category_en": "Systems & Support",
+      "aliases": [
+        "soporte l1/l2",
+        "soporte técnico",
+        "sop",
+        "documentación técnica",
+        "jira",
+        "tickets",
+        "active directory",
+        "microsoft 365",
+        "windows 10/11"
+      ],
+      "tags": [
+        "soporte"
+      ]
+    },
+    {
+      "id": "skill_ecommerce_pos",
+      "name": "Operaciones Comerciales, POS y Tiendanube",
+      "category": "Operaciones y Comercial",
+      "category_en": "Operations & Retail",
+      "aliases": [
+        "tiendanube",
+        "pos",
+        "qr",
+        "modo",
+        "american express",
+        "amex",
+        "excel",
+        "sheets",
+        "control de stock",
+        "mystery shopper"
+      ],
+      "tags": [
+        "temporada"
+      ]
+    },
+    {
+      "id": "skill_lang_es",
+      "name": "Español",
+      "category": "Idiomas",
+      "category_en": "Languages (Spoken)",
+      "aliases": [
+        "español",
+        "spanish"
+      ],
+      "level": "Nativo",
+      "level_en": "Native",
+      "tags": [
+        "dev",
+        "soporte",
+        "temporada"
+      ]
+    },
+    {
+      "id": "skill_lang_en",
+      "name": "Inglés",
+      "category": "Idiomas",
+      "category_en": "Languages (Spoken)",
+      "aliases": [
+        "inglés",
+        "ingles",
+        "english"
+      ],
+      "level": "Avanzado",
+      "level_en": "Advanced",
+      "tags": [
+        "dev",
+        "soporte",
+        "temporada"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "exp_simple_mdq",
+      "kind": "experience",
+      "org": "Simple MDQ",
+      "location": "Mar del Plata, AR",
+      "location_en": "Mar del Plata, Argentina",
+      "start_date": "2025-06",
+      "end_date": "present",
+      "date_precision": "month",
+      "position": 1,
+      "default_selected": true,
+      "archetypes": [
+        "dev",
+        "soporte",
+        "temporada"
+      ],
+      "min_bullets": 2,
+      "max_bullets": 4,
+      "context": "Sistema comercial desacoplado (Presupuestos Simple) enfocado en la gestión, emisión y cálculo de cotizaciones en tiempo real con FastAPI, Next.js y Supabase (PostgreSQL), desplegado en Fly.io y Vercel. Incluye etapa previa de gestión operativa y e-commerce en Tiendanube (12/2023 - 12/2024).",
+      "skill_ids": [
+        "skill_python",
+        "skill_fastapi",
+        "skill_nextjs",
+        "skill_pydantic",
+        "skill_postgresql",
+        "skill_supabase",
+        "skill_vercel",
+        "skill_flyio",
+        "skill_support_ops",
+        "skill_ecommerce_pos"
+      ],
+      "titles": [
+        {
+          "id": "title_simple_dev_es",
+          "entry_id": "exp_simple_mdq",
+          "title": "Desarrollador Full Stack / Backend",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_simple_dev_en",
+          "entry_id": "exp_simple_mdq",
+          "title": "Full Stack / Backend Developer",
+          "lang": "en",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_simple_soporte_es",
+          "entry_id": "exp_simple_mdq",
+          "title": "Desarrollador / Soporte y Mantenimiento de Sistemas",
+          "lang": "es",
+          "archetype": "soporte",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_simple_datos_es",
+          "entry_id": "exp_simple_mdq",
+          "title": "Soporte de Sistemas y Gestión de Datos",
+          "lang": "es",
+          "archetype": "soporte",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_simple_temp_es",
+          "entry_id": "exp_simple_mdq",
+          "title": "Gestión de E-commerce y Operaciones",
+          "lang": "es",
+          "archetype": "temporada",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact_simple_arch",
+          "entry_id": "exp_simple_mdq",
+          "text": "Diseño e implementación de arquitectura desacoplada utilizando FastAPI (Python) para el motor de cómputo y Next.js para la interfaz de usuario.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "skill_python",
+            "skill_fastapi",
+            "skill_nextjs"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 100,
+          "default_selected": true
+        },
+        {
+          "id": "fact_simple_endpoints",
+          "entry_id": "exp_simple_mdq",
+          "text": "Construcción de endpoints asíncronos tipados de alto rendimiento con Pydantic, optimizando el manejo de CORS y el enrutamiento.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "skill_fastapi",
+            "skill_pydantic"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 95,
+          "default_selected": true
+        },
+        {
+          "id": "fact_simple_db",
+          "entry_id": "exp_simple_mdq",
+          "text": "Modelado e integración de base de datos relacional (PostgreSQL en Supabase) con reglas de borrado lógico, inmutabilidad y versionado histórico.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_postgresql",
+            "skill_supabase",
+            "skill_sql"
+          ],
+          "position": 3,
+          "pinned": true,
+          "weight": 95,
+          "default_selected": true
+        },
+        {
+          "id": "fact_simple_deploy",
+          "entry_id": "exp_simple_mdq",
+          "text": "Administración de despliegues continuos y monitoreo en producción (Vercel, Fly.io), manteniendo una disponibilidad superior al 99.5%.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_vercel",
+            "skill_flyio"
+          ],
+          "position": 4,
+          "pinned": false,
+          "weight": 90,
+          "default_selected": true
+        },
+        {
+          "id": "fact_simple_support_incidencias",
+          "entry_id": "exp_simple_mdq",
+          "text": "Soporte técnico L1/L2 y resolución de incidencias operativas de software, conectividad y sincronización de datos para más de 500 transacciones y cotizaciones.",
+          "lang": "es",
+          "tags": [
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_support_ops",
+            "skill_postgresql"
+          ],
+          "position": 5,
+          "pinned": false,
+          "weight": 85,
+          "default_selected": false
+        },
+        {
+          "id": "fact_simple_sop",
+          "entry_id": "exp_simple_mdq",
+          "text": "Elaboración y actualización de documentación técnica, guías de procedimiento (SOP) y manuales operativos para usuarios administradores.",
+          "lang": "es",
+          "tags": [
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_support_ops"
+          ],
+          "position": 6,
+          "pinned": false,
+          "weight": 80,
+          "default_selected": false
+        },
+        {
+          "id": "fact_simple_tiendanube",
+          "entry_id": "exp_simple_mdq",
+          "text": "Administración continua de catálogo online, listas de precios, conciliación de stock físico vs. digital y despacho de pedidos en Tiendanube.",
+          "lang": "es",
+          "tags": [
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_ecommerce_pos"
+          ],
+          "position": 7,
+          "pinned": false,
+          "weight": 70,
+          "default_selected": false
+        },
+        {
+          "id": "fact_simple_atencion",
+          "entry_id": "exp_simple_mdq",
+          "text": "Atención de consultas comerciales pre y post-venta por canales digitales, gestionando cambios, devoluciones y seguimiento de envíos.",
+          "lang": "es",
+          "tags": [
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_ecommerce_pos"
+          ],
+          "position": 8,
+          "pinned": false,
+          "weight": 65,
+          "default_selected": false
+        }
+      ]
+    },
+    {
+      "id": "exp_scania",
+      "kind": "experience",
+      "org": "Scania (Freelance)",
+      "location": "Mar del Plata, AR",
+      "location_en": "Mar del Plata, Argentina",
+      "start_date": "2026-02",
+      "end_date": "2026-02",
+      "date_precision": "month",
+      "position": 2,
+      "default_selected": true,
+      "archetypes": [
+        "dev",
+        "soporte",
+        "temporada"
+      ],
+      "min_bullets": 2,
+      "max_bullets": 4,
+      "context": "Herramienta de procesamiento masivo orientada a optimización logística. Analiza la proximidad geográfica entre un parque vehicular superior a 10.000 unidades y una red de 20 concesionarios oficiales, automatizando cálculos de ruteo y distancias.",
+      "skill_ids": [
+        "skill_python",
+        "skill_support_ops"
+      ],
+      "titles": [
+        {
+          "id": "title_scania_dev_es",
+          "entry_id": "exp_scania",
+          "title": "Desarrollador Python / Automatización y Datos",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_scania_dev_en",
+          "entry_id": "exp_scania",
+          "title": "Python Developer / Data & Automation",
+          "lang": "en",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_scania_soporte_es",
+          "entry_id": "exp_scania",
+          "title": "Procesamiento y Validación de Datos",
+          "lang": "es",
+          "archetype": "soporte",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_scania_temp_es",
+          "entry_id": "exp_scania",
+          "title": "Asistente Técnico y Automatización de Datos",
+          "lang": "es",
+          "archetype": "temporada",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact_scania_pipeline",
+          "entry_id": "exp_scania",
+          "text": "Desarrollo de scripts de procesamiento y normalización en Python para el análisis de proximidad logística sobre un dataset de +10.000 vehículos.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "soporte",
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_python"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 100,
+          "default_selected": true
+        },
+        {
+          "id": "fact_scania_distancias",
+          "entry_id": "exp_scania",
+          "text": "Automatización de algoritmos de cálculo de distancias y mapeo de flotas entre unidades operativas y 20 concesionarios oficiales.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_python"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 95,
+          "default_selected": true
+        },
+        {
+          "id": "fact_scania_validacion",
+          "entry_id": "exp_scania",
+          "text": "Implementación de validaciones de consistencia de datos y documentación técnica detallada de la lógica de cómputo y contingencias para handoff al cliente.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "soporte",
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_python",
+            "skill_support_ops"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 90,
+          "default_selected": true
+        },
+        {
+          "id": "fact_scania_handoff",
+          "entry_id": "exp_scania",
+          "text": "Conducción de sesiones de handoff técnico, code review y capacitación directa a ingenieros y referentes operativos de la compañía.",
+          "lang": "es",
+          "tags": [
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_support_ops"
+          ],
+          "position": 4,
+          "pinned": false,
+          "weight": 80,
+          "default_selected": false
+        }
+      ]
+    },
+    {
+      "id": "exp_tradingpos",
+      "kind": "experience",
+      "org": "TradingPos (American Express / MODO)",
+      "location": "Mar del Plata, AR",
+      "location_en": "Mar del Plata, Argentina",
+      "start_date": "2024-12",
+      "end_date": "2025-07",
+      "date_precision": "month",
+      "position": 3,
+      "default_selected": false,
+      "archetypes": [
+        "soporte",
+        "temporada"
+      ],
+      "min_bullets": 2,
+      "max_bullets": 3,
+      "context": "Relevamiento presencial y auditoría técnica/comercial de más de 400 comercios adheridos a las redes de cobro de American Express y MODO en Mar del Plata y Costa Atlántica, con registro en tiempo real mediante aplicación corporativa y evaluaciones mystery shopper.",
+      "skill_ids": [
+        "skill_support_ops",
+        "skill_ecommerce_pos"
+      ],
+      "titles": [
+        {
+          "id": "title_tradingpos_soporte_es",
+          "entry_id": "exp_tradingpos",
+          "title": "Auditoría de Datos Operativos y Soporte",
+          "lang": "es",
+          "archetype": "soporte",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_tradingpos_soporte_en",
+          "entry_id": "exp_tradingpos",
+          "title": "Operational Data Audit & Support",
+          "lang": "en",
+          "archetype": "soporte",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_tradingpos_temp_es",
+          "entry_id": "exp_tradingpos",
+          "title": "Auditor de Campo y Mystery Shopper",
+          "lang": "es",
+          "archetype": "temporada",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact_tradingpos_relevamiento",
+          "entry_id": "exp_tradingpos",
+          "text": "Relevamiento presencial y auditoría técnica de +400 comercios y terminales POS, verificando conectividad, aceptación de pagos y métricas operativas en tiempo real.",
+          "lang": "es",
+          "tags": [
+            "soporte",
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_support_ops",
+            "skill_ecommerce_pos"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 90,
+          "default_selected": true
+        },
+        {
+          "id": "fact_tradingpos_incidencias",
+          "entry_id": "exp_tradingpos",
+          "text": "Auditoría de calidad y consistencia de datos transaccionales mediante app corporativa con 100% de cumplimiento de rutas, coordinando el escalamiento de desvíos.",
+          "lang": "es",
+          "tags": [
+            "soporte",
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_support_ops",
+            "skill_ecommerce_pos"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 85,
+          "default_selected": true
+        },
+        {
+          "id": "fact_tradingpos_mystery",
+          "entry_id": "exp_tradingpos",
+          "text": "Ejecución de evaluaciones encubiertas (mystery shopping) de punta a punta para medir calidad de atención y aplicación efectiva de promociones vigentes con MODO.",
+          "lang": "es",
+          "tags": [
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_ecommerce_pos"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 75,
+          "default_selected": false
+        }
+      ]
+    },
+    {
+      "id": "proj_turniate",
+      "kind": "project",
+      "org": "Turniate",
+      "start_date": "2026",
+      "date_precision": "year",
+      "position": 10,
+      "default_selected": true,
+      "archetypes": [
+        "dev",
+        "temporada"
+      ],
+      "min_bullets": 1,
+      "max_bullets": 3,
+      "context": "Plataforma SaaS multi-tenant orientada a la automatización integral del flujo de reservas y turnos comerciales vía WhatsApp Business API, con FastAPI, Next.js, Supabase (PostgreSQL) y servidores FastMCP para agentes de IA.",
+      "skill_ids": [
+        "skill_python",
+        "skill_fastapi",
+        "skill_nextjs",
+        "skill_postgresql",
+        "skill_supabase",
+        "skill_mcp",
+        "skill_whatsapp_api"
+      ],
+      "titles": [
+        {
+          "id": "title_turniate_dev_es",
+          "entry_id": "proj_turniate",
+          "title": "Turniate — Plataforma SaaS de Reservas",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_turniate_dev_en",
+          "entry_id": "proj_turniate",
+          "title": "Turniate — SaaS Booking Platform",
+          "lang": "en",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_turniate_soporte_es",
+          "entry_id": "proj_turniate",
+          "title": "Turniate — Gestión SaaS y Bases de Datos",
+          "lang": "es",
+          "archetype": "soporte",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_turniate_temp_es",
+          "entry_id": "proj_turniate",
+          "title": "Turniate — Sistema de Gestión de Turnos y Reservas",
+          "lang": "es",
+          "archetype": "temporada",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact_turniate_saas",
+          "entry_id": "proj_turniate",
+          "text": "Desarrollo de plataforma SaaS multi-tenant con FastAPI y Next.js para gestión concurrente de reservas y turnos comerciales.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_fastapi",
+            "skill_nextjs",
+            "skill_python"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 95,
+          "default_selected": true
+        },
+        {
+          "id": "fact_turniate_mcp",
+          "entry_id": "proj_turniate",
+          "text": "Integración de mensajería automatizada con WhatsApp Business API e implementación de servidores FastMCP para agentes de IA.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "skill_whatsapp_api",
+            "skill_mcp"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 90,
+          "default_selected": true
+        },
+        {
+          "id": "fact_turniate_db",
+          "entry_id": "proj_turniate",
+          "text": "Modelado de esquemas relacionales multi-empresa en PostgreSQL (Supabase), asegurando aislamiento estricto y consistencia de datos transaccionales.",
+          "lang": "es",
+          "tags": [
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_postgresql",
+            "skill_supabase"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 85,
+          "default_selected": false
+        }
+      ]
+    },
+    {
+      "id": "proj_facu_rag",
+      "kind": "project",
+      "org": "Facu RAG",
+      "start_date": "2026",
+      "date_precision": "year",
+      "position": 11,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "max_bullets": 3,
+      "context": "Sistema de recuperación aumentada (RAG) diseñado para consultar programas académicos, apuntes y bibliografía técnica de Ingeniería Informática mediante File Search APIs y servidores Model Context Protocol (MCP).",
+      "skill_ids": [
+        "skill_python",
+        "skill_mcp"
+      ],
+      "titles": [
+        {
+          "id": "title_facu_rag_dev_es",
+          "entry_id": "proj_facu_rag",
+          "title": "Facu RAG — Asistente Académico y Búsqueda Semántica",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_facu_rag_dev_en",
+          "entry_id": "proj_facu_rag",
+          "title": "Facu RAG — Academic Assistant & Semantic Search",
+          "lang": "en",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_facu_rag_soporte_es",
+          "entry_id": "proj_facu_rag",
+          "title": "Facu RAG — Pipeline de Procesamiento de Datos",
+          "lang": "es",
+          "archetype": "soporte",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact_facu_rag_pipeline",
+          "entry_id": "proj_facu_rag",
+          "text": "Pipeline de ingesta, indexación y búsqueda semántica sobre bibliografía universitaria mediante File Search APIs.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_python",
+            "skill_mcp"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 92,
+          "default_selected": true
+        },
+        {
+          "id": "fact_facu_rag_mcp",
+          "entry_id": "proj_facu_rag",
+          "text": "Servidor local bajo estándar Model Context Protocol (MCP) para conectar repositorios de datos locales con LLMs.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_mcp",
+            "skill_python"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 88,
+          "default_selected": true
+        },
+        {
+          "id": "fact_facu_rag_chunking",
+          "entry_id": "proj_facu_rag",
+          "text": "Optimización de prompting y estrategias de chunking/parsing documental para maximizar la precisión en respuestas técnicas complejas.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "skill_python",
+            "skill_mcp"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 80,
+          "default_selected": false
+        }
+      ]
+    },
+    {
+      "id": "proj_vm32",
+      "kind": "project",
+      "org": "Máquina Virtual de 32 Bits",
+      "start_date": "2025",
+      "date_precision": "year",
+      "link": "github.com/gaillour/maquinavirtual",
+      "position": 12,
+      "default_selected": true,
+      "archetypes": [
+        "dev",
+        "soporte"
+      ],
+      "min_bullets": 1,
+      "max_bullets": 3,
+      "context": "Emulador colaborativo de un procesador de 32 bits implementado en Java, capaz de cargar y ejecutar binarios compilados desde código ensamblador, simulando memoria física virtualizada, registros de CPU y stack pointer.",
+      "skill_ids": [
+        "skill_java",
+        "skill_c"
+      ],
+      "titles": [
+        {
+          "id": "title_vm32_dev_es",
+          "entry_id": "proj_vm32",
+          "title": "Máquina Virtual de 32 Bits",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_vm32_dev_en",
+          "entry_id": "proj_vm32",
+          "title": "32-Bit Virtual Machine Emulator",
+          "lang": "en",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_vm32_soporte_es",
+          "entry_id": "proj_vm32",
+          "title": "Máquina Virtual y Arquitectura de Bajo Nivel",
+          "lang": "es",
+          "archetype": "soporte",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_vm32_soporte_en",
+          "entry_id": "proj_vm32",
+          "title": "Virtual Machine & Low-Level Architecture",
+          "lang": "en",
+          "archetype": "soporte",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact_vm32_emulador",
+          "entry_id": "proj_vm32",
+          "text": "Emulador de arquitectura de procesador de 32 bits en Java, ejecutando binarios compilados desde código ensamblador.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_java",
+            "skill_c"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 90,
+          "default_selected": true
+        },
+        {
+          "id": "fact_vm32_memoria",
+          "entry_id": "proj_vm32",
+          "text": "Simulación del ciclo completo de instrucción, manejo de registros, pila (stack) y memoria física virtualizada.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_java"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 85,
+          "default_selected": true
+        },
+        {
+          "id": "fact_vm32_decoder",
+          "entry_id": "proj_vm32",
+          "text": "Construcción modular del decodificador de instrucciones y parsers de imagen binaria con manejo de excepciones a bajo nivel.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "skill_java"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 78,
+          "default_selected": false
+        }
+      ]
+    },
+    {
+      "id": "proj_homelab",
+      "kind": "project",
+      "org": "Infraestructura Homelab",
+      "start_date": "2026",
+      "date_precision": "year",
+      "position": 13,
+      "default_selected": false,
+      "archetypes": [
+        "soporte",
+        "temporada"
+      ],
+      "min_bullets": 1,
+      "max_bullets": 2,
+      "context": "Servidor dedicado sobre Ubuntu Server para centralizar más de 8 servicios contenerizados en Docker (Jellyfin, Immich, Syncthing) en régimen 24/7, aislado mediante red privada virtual en malla Tailscale (WireGuard).",
+      "skill_ids": [
+        "skill_linux",
+        "skill_docker",
+        "skill_networking"
+      ],
+      "titles": [
+        {
+          "id": "title_homelab_soporte_es",
+          "entry_id": "proj_homelab",
+          "title": "Infraestructura y Servidor de Servicios (Self-Hosted)",
+          "lang": "es",
+          "archetype": "soporte",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_homelab_soporte_en",
+          "entry_id": "proj_homelab",
+          "title": "Homelab Infrastructure & Systems (Self-Hosted)",
+          "lang": "en",
+          "archetype": "soporte",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_homelab_temp_es",
+          "entry_id": "proj_homelab",
+          "title": "Infraestructura y Redes Locales (Self-Hosted)",
+          "lang": "es",
+          "archetype": "temporada",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact_homelab_docker",
+          "entry_id": "proj_homelab",
+          "text": "Configuración, securización y administración continua de servidor Linux (Ubuntu Server) orquestando más de 8 servicios contenerizados con Docker en régimen 24/7.",
+          "lang": "es",
+          "tags": [
+            "soporte",
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_linux",
+            "skill_docker"
+          ],
+          "position": 1,
+          "pinned": false,
+          "weight": 88,
+          "default_selected": true
+        },
+        {
+          "id": "fact_homelab_tailscale",
+          "entry_id": "proj_homelab",
+          "text": "Despliegue de red privada virtual mediante Tailscale (VPN/WireGuard), monitoreo de recursos del host y diagnóstico de conectividad remota cifrada.",
+          "lang": "es",
+          "tags": [
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_networking",
+            "skill_linux"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 84,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "proj_hardware_delay",
+      "kind": "project",
+      "org": "Hardware y Electrónica Analógica",
+      "start_date": "2025",
+      "date_precision": "year",
+      "position": 14,
+      "default_selected": false,
+      "archetypes": [
+        "soporte"
+      ],
+      "min_bullets": 1,
+      "max_bullets": 2,
+      "context": "Montaje, soldadura y puesta a punto de un circuito de retardo de audio analógico (delay) sobre placa PCB a partir de esquemáticos, con diagnóstico mediante multímetro e instrumental de banco.",
+      "skill_ids": [
+        "skill_support_ops"
+      ],
+      "titles": [
+        {
+          "id": "title_hardware_soporte_es",
+          "entry_id": "proj_hardware_delay",
+          "title": "Hardware y Electrónica Analógica (Pedal Delay DIY)",
+          "lang": "es",
+          "archetype": "soporte",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact_hardware_pcb",
+          "entry_id": "proj_hardware_delay",
+          "text": "Ensamble, soldadura e inspección visual de circuitos impresos (PCB) y componentes analógicos a partir de esquemáticos.",
+          "lang": "es",
+          "tags": [
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_support_ops"
+          ],
+          "position": 1,
+          "pinned": false,
+          "weight": 78,
+          "default_selected": true
+        },
+        {
+          "id": "fact_hardware_multimetro",
+          "entry_id": "proj_hardware_delay",
+          "text": "Diagnóstico metódico de fallas de continuidad, caídas de tensión y señales parásitas mediante multímetro e instrumental de banco.",
+          "lang": "es",
+          "tags": [
+            "soporte"
+          ],
+          "skill_ids": [
+            "skill_support_ops"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 75,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "proj_fisica_2d",
+      "kind": "project",
+      "org": "Simulador de Física 2D",
+      "start_date": "2026",
+      "date_precision": "year",
+      "link": "github.com/gaillour/simulador-fisica-2d",
+      "position": 15,
+      "default_selected": false,
+      "archetypes": [
+        "temporada"
+      ],
+      "min_bullets": 1,
+      "max_bullets": 2,
+      "context": "Aplicación gráfica interactiva desarrollada en Java con Processing para la simulación de fenómenos físicos vectoriales, gravedad y detección continua de colisiones en tiempo real.",
+      "skill_ids": [
+        "skill_java",
+        "skill_git"
+      ],
+      "titles": [
+        {
+          "id": "title_fisica_dev_es",
+          "entry_id": "proj_fisica_2d",
+          "title": "Simulador de Física 2D",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_fisica_dev_en",
+          "entry_id": "proj_fisica_2d",
+          "title": "2D Physics Simulator",
+          "lang": "en",
+          "archetype": "dev",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_fisica_temp_es",
+          "entry_id": "proj_fisica_2d",
+          "title": "Simulador Interactivo y Manejo de Eventos",
+          "lang": "es",
+          "archetype": "temporada",
+          "is_default": false,
+          "source": "user",
+          "approved": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact_fisica_engine",
+          "entry_id": "proj_fisica_2d",
+          "text": "Desarrollo de motor interactivo en Java utilizando Processing para simulación visual de cinemática, colisiones y leyes físicas vectoriales en tiempo real.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_java"
+          ],
+          "position": 1,
+          "pinned": false,
+          "weight": 76,
+          "default_selected": true
+        },
+        {
+          "id": "fact_fisica_input",
+          "entry_id": "proj_fisica_2d",
+          "text": "Diseño de interfaces de manipulación directa mediante periféricos bajo código modular orientado a objetos versionado con Git.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_java",
+            "skill_git"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 72,
+          "default_selected": false
+        }
+      ]
+    },
+    {
+      "id": "edu_unmdp",
+      "kind": "education",
+      "org": "Universidad Nacional de Mar del Plata",
+      "location": "Mar del Plata, AR",
+      "location_en": "Mar del Plata, Argentina",
+      "start_date": "2022-03",
+      "end_date": "present",
+      "date_precision": "month",
+      "position": 20,
+      "default_selected": true,
+      "archetypes": [
+        "dev",
+        "soporte",
+        "temporada"
+      ],
+      "min_bullets": 0,
+      "max_bullets": 2,
+      "titles": [
+        {
+          "id": "title_edu_unmdp_es",
+          "entry_id": "edu_unmdp",
+          "title": "Ingeniería Informática",
+          "lang": "es",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        },
+        {
+          "id": "title_edu_unmdp_en",
+          "entry_id": "edu_unmdp",
+          "title": "Computer Engineering (Ingeniería Informática)",
+          "lang": "en",
+          "is_default": true,
+          "source": "user",
+          "approved": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "fact_edu_unmdp_core",
+          "entry_id": "edu_unmdp",
+          "text": "Formación en ingeniería de software, algoritmos y estructuras de datos, arquitectura de computadoras, bases de datos relacionales y sistemas operativos.",
+          "lang": "es",
+          "tags": [
+            "dev",
+            "soporte",
+            "temporada"
+          ],
+          "skill_ids": [
+            "skill_c",
+            "skill_java",
+            "skill_sql",
+            "skill_linux"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 90,
+          "default_selected": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1238 @@
+{
+  "id": "overflow_extreme_fixture",
+  "schema_version": "1.0.0",
+  "full_name": "Martín Alejandro Echeverría",
+  "default_lang": "es",
+  "contact": {
+    "email": "martin.echeverria@example.com",
+    "phone": "+54 11 4555-9102",
+    "location": "Buenos Aires, AR",
+    "github": "github.com/mecheverria",
+    "linkedin": "linkedin.com/in/mecheverria",
+    "website": "mecheverria.dev"
+  },
+  "summary": "Ingeniero de Software Senior y Arquitecto de Sistemas Distribuidos con sólida trayectoria diseñando plataformas transaccionales de alta disponibilidad, motores de procesamiento en tiempo real sobre Kubernetes y pipelines de datos analíticos sobre PostgreSQL, Kafka y Python. Experiencia liderando migraciones críticas sin tiempo de inactividad, estandarización de observabilidad OpenTelemetry y automatización de infraestructura multi-región.",
+  "skills": [
+    {
+      "id": "sk_python",
+      "name": "Python",
+      "category": "Lenguajes",
+      "aliases": [
+        "python",
+        "py"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_go",
+      "name": "Go",
+      "category": "Lenguajes",
+      "aliases": [
+        "golang",
+        "go"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_ts",
+      "name": "TypeScript",
+      "category": "Lenguajes",
+      "aliases": [
+        "typescript",
+        "ts"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_sql",
+      "name": "SQL",
+      "category": "Lenguajes",
+      "aliases": [
+        "sql",
+        "plpgsql"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_fastapi",
+      "name": "FastAPI",
+      "category": "Backend y Arquitectura",
+      "aliases": [
+        "fastapi"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_kafka",
+      "name": "Apache Kafka",
+      "category": "Backend y Arquitectura",
+      "aliases": [
+        "kafka"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_grpc",
+      "name": "gRPC / Protobuf",
+      "category": "Backend y Arquitectura",
+      "aliases": [
+        "grpc",
+        "protobuf"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_postgres",
+      "name": "PostgreSQL",
+      "category": "Datos e Infraestructura",
+      "aliases": [
+        "postgresql",
+        "postgres"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_redis",
+      "name": "Redis",
+      "category": "Datos e Infraestructura",
+      "aliases": [
+        "redis"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_docker",
+      "name": "Docker & Kubernetes",
+      "category": "Datos e Infraestructura",
+      "aliases": [
+        "docker",
+        "kubernetes",
+        "k8s"
+      ],
+      "tags": [
+        "dev"
+      ]
+    },
+    {
+      "id": "sk_linux",
+      "name": "Linux",
+      "category": "Datos e Infraestructura",
+      "aliases": [
+        "linux"
+      ],
+      "tags": [
+        "dev"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "exp_fintech_core",
+      "kind": "experience",
+      "org": "PagosSur Fintech",
+      "location": "Buenos Aires, AR",
+      "start_date": "2024-03",
+      "end_date": "present",
+      "date_precision": "month",
+      "position": 1,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 2,
+      "titles": [
+        {
+          "id": "t_fintech_es",
+          "title": "Staff Backend Engineer — Core Transaccional",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_fin_1",
+          "text": "Diseño y puesta en producción del motor de liquidación instantánea en Python y Go procesando más de 45.000 transacciones por minuto con latencia p99 inferior a 35 ms.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_go"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 100,
+          "default_selected": true
+        },
+        {
+          "id": "f_fin_2",
+          "text": "Implementación de libro mayor contable append-only sobre PostgreSQL particionado con garantías de idempotencia estricta y conciliación automática diaria.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_postgres",
+            "sk_sql"
+          ],
+          "position": 2,
+          "pinned": true,
+          "weight": 98,
+          "default_selected": true
+        },
+        {
+          "id": "f_fin_3",
+          "text": "Orquestación de consumidores de eventos sobre Apache Kafka con manejo determinista de dead-letter queues, backpressure y reintentos exponenciales.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_kafka",
+            "sk_python"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 90,
+          "default_selected": true
+        },
+        {
+          "id": "f_fin_4",
+          "text": "Reducción del 42% en costos de cómputo mediante optimización de pools de conexiones asíncronos, caché distribuida en Redis y perfiles de memoria continua.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_redis",
+            "sk_python"
+          ],
+          "position": 4,
+          "pinned": false,
+          "weight": 85,
+          "default_selected": true
+        },
+        {
+          "id": "f_fin_5",
+          "text": "Estandarización de contratos OpenAPI y esquemas Protobuf entre 14 microservicios críticos con validación automatizada de compatibilidad retroactiva en CI.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_grpc",
+            "sk_fastapi"
+          ],
+          "position": 5,
+          "pinned": false,
+          "weight": 75,
+          "default_selected": true
+        },
+        {
+          "id": "f_fin_6",
+          "text": "Coordinación de simulacros trimestrales de recuperación ante desastres (chaos engineering) y capacitación técnica a 12 ingenieros del área de plataforma.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_docker",
+            "sk_linux"
+          ],
+          "position": 6,
+          "pinned": false,
+          "weight": 60,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "exp_logistica_cloud",
+      "kind": "experience",
+      "org": "RutasAndinas Cloud",
+      "location": "Córdoba, AR",
+      "start_date": "2022-05",
+      "end_date": "2024-02",
+      "date_precision": "month",
+      "position": 2,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 2,
+      "titles": [
+        {
+          "id": "t_log_es",
+          "title": "Senior Backend Developer — Plataforma Logística",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_log_1",
+          "text": "Desarrollo del servicio de ruteo dinámico y telemetría vehicular en FastAPI y PostgreSQL/PostGIS para una flota activa de 18.000 unidades de transporte.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_fastapi",
+            "sk_postgres"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 96,
+          "default_selected": true
+        },
+        {
+          "id": "f_log_2",
+          "text": "Migración progresiva de monolito legado hacia servicios desacoplados en contenedores Docker sobre Kubernetes manteniendo disponibilidad del 99.95%.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_docker",
+            "sk_linux"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 88,
+          "default_selected": true
+        },
+        {
+          "id": "f_log_3",
+          "text": "Construcción de pipeline de ingesta de coordenadas GPS en tiempo real con validación de anomalías y compresión de series temporales.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_kafka"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 80,
+          "default_selected": true
+        },
+        {
+          "id": "f_log_4",
+          "text": "Implementación de tableros operativos en TypeScript y alertas automatizadas de desvío de ruta para centros de monitoreo regional.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_ts"
+          ],
+          "position": 4,
+          "pinned": false,
+          "weight": 70,
+          "default_selected": true
+        },
+        {
+          "id": "f_log_5",
+          "text": "Automatización de pruebas de integración end-to-end con entornos efímeros en Docker Compose reduciendo el tiempo de regresión de 4 horas a 18 minutos.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_docker",
+            "sk_python"
+          ],
+          "position": 5,
+          "pinned": false,
+          "weight": 65,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "exp_data_ops",
+      "kind": "experience",
+      "org": "DataPulse Analytics",
+      "location": "Mar del Plata, AR",
+      "start_date": "2020-08",
+      "end_date": "2022-04",
+      "date_precision": "month",
+      "position": 3,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_dp_es",
+          "title": "Python Data & Backend Engineer",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_dp_1",
+          "text": "Arquitectura de pipelines ETL declarativos en Python y SQL procesando 120 millones de eventos diarios provenientes de comercios minoristas.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_sql"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 92,
+          "default_selected": true
+        },
+        {
+          "id": "f_dp_2",
+          "text": "Optimización de consultas analíticas complejas e índices compuestos en PostgreSQL reduciendo tiempos de generación de reportes de 40 segundos a 900 ms.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_postgres",
+            "sk_sql"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 82,
+          "default_selected": true
+        },
+        {
+          "id": "f_dp_3",
+          "text": "Desarrollo de APIs REST internas con autenticación OAuth2, control de tasa por cliente (rate limiting) en Redis y auditoría de accesos.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_fastapi",
+            "sk_redis"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 72,
+          "default_selected": true
+        },
+        {
+          "id": "f_dp_4",
+          "text": "Mantenimiento de scripts de aprovisionamiento en Linux y rotación automatizada de copias de seguridad cifradas.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_linux"
+          ],
+          "position": 4,
+          "pinned": false,
+          "weight": 55,
+          "default_selected": true
+        },
+        {
+          "id": "f_dp_5",
+          "text": "Implementación de validadores declarativos de esquemas JSON y controles de integridad previa a la carga en almacenes analíticos.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_sql"
+          ],
+          "position": 5,
+          "pinned": false,
+          "weight": 52,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "exp_cloud_sec",
+      "kind": "experience",
+      "org": "Aegis Cloud Security",
+      "location": "Buenos Aires, AR",
+      "start_date": "2019-02",
+      "end_date": "2020-07",
+      "date_precision": "month",
+      "position": 4,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_aegis_es",
+          "title": "Backend & Infrastructure Engineer",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_aeg_1",
+          "text": "Desarrollo de agentes de inspección de configuración e inventario de contenedores en Go y Python sobre clústeres Linux de producción.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go",
+            "sk_python",
+            "sk_linux"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 91,
+          "default_selected": true
+        },
+        {
+          "id": "f_aeg_2",
+          "text": "Centralización de registros de auditoría de accesos e intentos de intrusión en PostgreSQL con alertas en tiempo real.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_postgres",
+            "sk_sql"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 74,
+          "default_selected": true
+        },
+        {
+          "id": "f_aeg_3",
+          "text": "Automatización de rotación de secretos y certificados TLS internos mediante servicios gRPC de baja sobrecarga.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_grpc",
+            "sk_go"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 51,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "exp_nebula_stream",
+      "kind": "experience",
+      "org": "Nebula Stream Systems",
+      "location": "Buenos Aires, AR",
+      "start_date": "2018-01",
+      "end_date": "2019-01",
+      "date_precision": "month",
+      "position": 5,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_neb_es",
+          "title": "Software Engineer — Plataformas de Streaming y Telemetría",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_neb_1",
+          "text": "Construcción de conectores de ingesta continua en Python y Apache Kafka para consolidar métricas operativas de más de 3.500 servidores distribuidos.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_kafka"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 90,
+          "default_selected": true
+        },
+        {
+          "id": "f_neb_2",
+          "text": "Implementación de agregadores de ventanas deslizantes en memoria y persistencia transaccional en PostgreSQL con particionamiento mensual automatizado.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_postgres",
+            "sk_sql"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 66,
+          "default_selected": true
+        },
+        {
+          "id": "f_neb_3",
+          "text": "Despliegue de servicios de consulta rápida en FastAPI y Redis para tableros de diagnóstico de incidentes en tiempo real.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_fastapi",
+            "sk_redis"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 50,
+          "default_selected": true
+        },
+        {
+          "id": "f_neb_4",
+          "text": "Estandarización de empaquetado en contenedores Docker multi-etapa reduciendo el tamaño de imágenes de producción en un 65%.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_docker",
+            "sk_linux"
+          ],
+          "position": 4,
+          "pinned": false,
+          "weight": 48,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "exp_quant_grid",
+      "kind": "experience",
+      "org": "QuantGrid Labs",
+      "location": "Remoto, AR",
+      "start_date": "2017-01",
+      "end_date": "2017-12",
+      "date_precision": "month",
+      "position": 6,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_qg_es",
+          "title": "Junior Backend Developer — Motores de Cálculo",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_qg_1",
+          "text": "Desarrollo de workers asíncronos en Python para ejecución paralela de simulaciones numéricas y consolidación de resultados en PostgreSQL.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_postgres"
+          ],
+          "position": 1,
+          "pinned": false,
+          "weight": 81,
+          "default_selected": true
+        },
+        {
+          "id": "f_qg_2",
+          "text": "Creación de herramientas de validación de datos de entrada y generación automatizada de reportes técnicos en formato estructurado.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_sql"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 46,
+          "default_selected": true
+        },
+        {
+          "id": "f_qg_3",
+          "text": "Administración de entornos de integración continua sobre servidores Linux y automatización de despliegues mediante scripts POSIX.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_linux",
+            "sk_docker"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 44,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "proj_distributed_kv",
+      "kind": "project",
+      "org": "RaftKV Engine",
+      "start_date": "2025",
+      "date_precision": "year",
+      "link": "github.com/mecheverria/raftkv",
+      "position": 10,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_raft_es",
+          "title": "RaftKV — Almacén Clave-Valor Distribuido con Consenso Raft",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_raft_1",
+          "text": "Implementación desde cero del protocolo de consenso distribuido Raft en Go con elección de líder, replicación de log y compactación por snapshots.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go",
+            "sk_grpc"
+          ],
+          "position": 1,
+          "pinned": true,
+          "weight": 94,
+          "default_selected": true
+        },
+        {
+          "id": "f_raft_2",
+          "text": "Suite de pruebas deterministas de particiones de red y pérdida de paquetes simulando fallos bizantinos y recuperación automática de quórum.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 78,
+          "default_selected": true
+        },
+        {
+          "id": "f_raft_3",
+          "text": "Cliente CLI interactivo y exportador de métricas Prometheus para visualizar latencia de replicación por nodo.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go",
+            "sk_docker"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 58,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "proj_query_gardener",
+      "kind": "project",
+      "org": "PG Index Advisor",
+      "start_date": "2024",
+      "date_precision": "year",
+      "link": "github.com/mecheverria/pg-advisor",
+      "position": 11,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_pga_es",
+          "title": "PG Index Advisor — Analizador Estático de Planes de Ejecución SQL",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_pga_1",
+          "text": "Herramienta en Python que inspecciona árboles AST de consultas SQL y planes EXPLAIN ANALYZE para detectar sequential scans costosos y sugerir índices parciales.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_postgres",
+            "sk_sql"
+          ],
+          "position": 1,
+          "pinned": false,
+          "weight": 89,
+          "default_selected": true
+        },
+        {
+          "id": "f_pga_2",
+          "text": "Integración como GitHub Action que comenta automáticamente el impacto estimado de migraciones SQL en pull requests.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_docker"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 68,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "proj_trace_gateway",
+      "kind": "project",
+      "org": "EdgeGate Proxy",
+      "start_date": "2023",
+      "date_precision": "year",
+      "position": 12,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_eg_es",
+          "title": "EdgeGate — API Gateway Ligero con Trazabilidad Distribuida",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_eg_1",
+          "text": "Proxy reverso asíncrono con propagación automática de contextos W3C TraceContext, circuit breaking adaptativo y validación de tokens JWT.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go",
+            "sk_redis"
+          ],
+          "position": 1,
+          "pinned": false,
+          "weight": 84,
+          "default_selected": true
+        },
+        {
+          "id": "f_eg_2",
+          "text": "Soporte para recarga en caliente (hot reload) de rutas y políticas de seguridad mediante archivos YAML sin desconectar clientes activos.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go",
+            "sk_linux"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 62,
+          "default_selected": true
+        },
+        {
+          "id": "f_eg_3",
+          "text": "Integración de limitadores de tasa distribuidos mediante algoritmos token-bucket sincronizados sobre clústeres Redis de baja latencia.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go",
+            "sk_redis"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 57,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "proj_event_replay",
+      "kind": "project",
+      "org": "KafkaReplay Studio",
+      "start_date": "2023",
+      "date_precision": "year",
+      "link": "github.com/mecheverria/kafkareplay",
+      "position": 13,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_kr_es",
+          "title": "KafkaReplay — Orquestador de Reprocesamiento de Eventos Históricos",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_kr_1",
+          "text": "Servicio en Python y FastAPI para re-inyectar particiones históricas de Apache Kafka hacia entornos de staging con filtrado declarativo y enmascaramiento de PII.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_fastapi",
+            "sk_kafka"
+          ],
+          "position": 1,
+          "pinned": false,
+          "weight": 83,
+          "default_selected": true
+        },
+        {
+          "id": "f_kr_2",
+          "text": "Control automático de velocidad de emisión para evitar saturación de consumidores aguas abajo y registro de auditoría en PostgreSQL.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_postgres",
+            "sk_kafka"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 61,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "proj_pg_anonymizer",
+      "kind": "project",
+      "org": "PG Anonymizer CLI",
+      "start_date": "2022",
+      "date_precision": "year",
+      "position": 14,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_pganon_es",
+          "title": "PG Anonymizer — Sanitizador Determinista de Dumps PostgreSQL",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_pganon_1",
+          "text": "Utilidad de línea de comandos para transformar volcados SQL de producción preservando integridad referencial y distribuciones estadísticas para pruebas de rendimiento.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_postgres",
+            "sk_sql"
+          ],
+          "position": 1,
+          "pinned": false,
+          "weight": 79,
+          "default_selected": true
+        },
+        {
+          "id": "f_pganon_2",
+          "text": "Ejecución en streaming sin requerir almacenamiento intermedio en disco mediante tuberías POSIX en entornos Linux.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_linux",
+            "sk_python"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 54,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "proj_otel_collector",
+      "kind": "project",
+      "org": "OtelMesh Collector",
+      "start_date": "2022",
+      "date_precision": "year",
+      "link": "github.com/mecheverria/otelmesh",
+      "position": 15,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_otel_es",
+          "title": "OtelMesh — Agente Ligero de Agregación de Trazas y Métricas",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_otel_1",
+          "text": "Colector de telemetría en Go con muestreo adaptativo por cola (tail-based sampling) para retener el 100% de trazas con errores o alta latencia.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go",
+            "sk_grpc"
+          ],
+          "position": 1,
+          "pinned": false,
+          "weight": 77,
+          "default_selected": true
+        },
+        {
+          "id": "f_otel_2",
+          "text": "Compresión de lotes de exportación OTLP y buffer circular en memoria con límite estricto de consumo de RAM.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go",
+            "sk_linux"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 45,
+          "default_selected": true
+        },
+        {
+          "id": "f_otel_3",
+          "text": "Integración nativa con paneles de diagnóstico e inspección en vivo de pipelines de telemetría.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_ts",
+            "sk_docker"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 42,
+          "default_selected": true
+        },
+        {
+          "id": "f_otel_4",
+          "text": "Implementación de filtros de enriquecimiento de metadatos de infraestructura Kubernetes y exportación dual hacia Prometheus y ClickHouse.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go",
+            "sk_docker"
+          ],
+          "position": 4,
+          "pinned": false,
+          "weight": 41,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "proj_db_chaos",
+      "kind": "project",
+      "org": "FaultProxy SQL",
+      "start_date": "2021",
+      "date_precision": "year",
+      "link": "github.com/mecheverria/faultproxy-sql",
+      "position": 16,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 1,
+      "titles": [
+        {
+          "id": "t_fpsql_es",
+          "title": "FaultProxy SQL — Inyector de Fallos de Red para Clientes PostgreSQL",
+          "lang": "es",
+          "archetype": "dev",
+          "is_default": true
+        }
+      ],
+      "facts": [
+        {
+          "id": "f_fpsql_1",
+          "text": "Proxy TCP a nivel de protocolo wire de PostgreSQL para simular latencia determinista, desconexiones abruptas y errores de serialización en pruebas de resiliencia.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go",
+            "sk_postgres"
+          ],
+          "position": 1,
+          "pinned": false,
+          "weight": 76,
+          "default_selected": true
+        },
+        {
+          "id": "f_fpsql_2",
+          "text": "API de control en tiempo real para activar escenarios de degradación desde suites de pytest sin reiniciar contenedores de base de datos.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_docker"
+          ],
+          "position": 2,
+          "pinned": false,
+          "weight": 40,
+          "default_selected": true
+        },
+        {
+          "id": "f_fpsql_3",
+          "text": "Registro detallado de paquetes interceptados y tiempos de reconexión de drivers asíncronos para validación de pools de conexiones.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_go",
+            "sk_postgres"
+          ],
+          "position": 3,
+          "pinned": false,
+          "weight": 39,
+          "default_selected": true
+        },
+        {
+          "id": "f_fpsql_4",
+          "text": "Generación automática de informes comparativos de degradación de latencia por percentil y detección de fugas de descriptores de socket.",
+          "lang": "es",
+          "tags": [
+            "dev"
+          ],
+          "skill_ids": [
+            "sk_python",
+            "sk_go"
+          ],
+          "position": 4,
+          "pinned": false,
+          "weight": 38,
+          "default_selected": true
+        }
+      ]
+    },
+    {
+      "id": "edu_unmdp_eng",
+      "kind": "education",
+      "org": "Universidad Nacional de Mar del Plata",
+      "location": "Mar del Plata, AR",
+      "start_date": "2018-03",
+      "end_date": "2023-12",
+      "date_precision": "month",
+      "position": 20,
+      "default_selected": true,
+      "archetypes": [
+        "dev"
+      ],
+      "min_bullets": 0,
+      "titles": [
+        {
+          "id": "t_edu_eng",
+          "title": "Ingeniería Informática",
+          "lang": "es",
+          "is_default": true
+        }
+      ],
+      "facts": []
+    }
+  ]
+}

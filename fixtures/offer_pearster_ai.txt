@@ -1,0 +1,55 @@
+What This Journey Looks Like
+
+At Pearster, we are hiring an AI Engineer to join our team. This is a 100% remote position where you will be responsible for designing, building, and implementing AI-powered solutions that solve real business challenges and create meaningful impact.
+
+You will work with modern Artificial Intelligence technologies, including Generative AI, Large Language Models (LLMs), Machine Learning, and intelligent automation, collaborating with cross-functional teams to transform ideas and business needs into scalable, production-ready solutions.
+
+We are looking for a curious, hands-on, and innovative professional who enjoys experimenting with emerging technologies, solving complex problems, and turning the latest advances in AI into practical solutions.
+
+What You'll Lead And Build
+
+    Build solutions leveraging Generative AI, Large Language Models (LLMs), and Machine Learning.
+    Design, develop, and deploy AI-powered applications and solutions.
+    Develop and integrate AI agents, APIs, and intelligent automation workflows.
+    Build solutions using RAG (Retrieval-Augmented Generation), embeddings, vector databases, and prompt engineering.
+    Integrate AI models and services from platforms such as OpenAI, Anthropic, Google, AWS, Azure, or similar providers.
+    Develop prototypes and Proofs of Concept (POCs) and help transform successful experiments into production-ready solutions.
+    Evaluate and optimize AI solutions for accuracy, reliability, performance, scalability, and cost.
+    Collaborate with Engineering, Product, and business stakeholders to identify opportunities where AI can create meaningful value.
+    Integrate AI capabilities into existing applications, platforms, and workflows.
+    Contribute to responsible AI practices, including security, privacy, monitoring, and appropriate use of AI systems.
+    Stay up to date with emerging AI technologies, frameworks, tools, and industry best practices.
+    Share knowledge and contribute to building AI capabilities and best practices across the organization.
+
+What You Bring to the Table
+
+    Strong programming skills, preferably in Python.
+    Professional experience in Software Engineering, Artificial Intelligence, Machine Learning, Data Science, or a related technical field.
+    Hands-on experience building applications using Generative AI and Large Language Models (LLMs).
+    Experience integrating APIs and developing backend services.
+    Knowledge of prompt engineering, RAG, embeddings, vector databases, and AI agents.
+    Familiarity with AI frameworks and tools such as LangChain, LlamaIndex, Hugging Face, or similar technologies.
+    Experience working with AI APIs and platforms such as OpenAI, Anthropic, Google Gemini, or similar.
+    Familiarity with cloud platforms such as AWS, Azure, or Google Cloud.
+    Understanding of Git, APIs, CI/CD, and modern software development practices.
+    Strong analytical and problem-solving skills.
+    Ability to work independently in a fully remote environment.
+    Strong communication and collaboration skills.
+    Intermediate to advanced English level to collaborate effectively in an international environment.
+
+Benefits that Move you Forward.
+
+We’re here to amplify your brilliance, not contain it.
+
+    Work from anywhere with true flexibility and freedom.
+    Earn in USD with compensation that matches your expertise.
+    Recharge confidently with dedicated paid time off.
+    Advance your career with fully covered international certifications.
+    Access coworking spaces worldwide whenever you want a professional setup.
+    Strengthen your English and expand your global reach.
+    Connect and have fun with activities that unite our international team.
+    Feel appreciated with personalized gifts and a thoughtful welcome kit.
+    Grow our community and earn through our referral program.
+
+At Pearster,
+ your journey matters, and we’re here to help you go further than you imagined.
