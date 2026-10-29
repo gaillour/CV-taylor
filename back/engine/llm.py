@@ -13,6 +13,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 def _load_dotenv_if_present() -> None:
     """Populate os.environ from a local .env file if keys are not already set."""
+    if "PYTEST_CURRENT_TEST" in os.environ:
+        return
     env_path = Path(".env")
     if not env_path.is_file():
         return

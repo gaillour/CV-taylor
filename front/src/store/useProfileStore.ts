@@ -10,7 +10,9 @@ import {
   Skill,
 } from "@/types/cv";
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+import { API_BASE_URL, apiFetch } from "@/lib/api";
+
+export { API_BASE_URL };
 
 export function isProfileEmpty(profile: Profile | null): boolean {
   if (!profile) return true;
@@ -100,7 +102,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   fetchProfile: async () => {
     set({ loading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/api/profile`);
+      const res = await apiFetch(`${API_BASE_URL}/api/profile`);
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${await res.text()}`);
       }
@@ -123,7 +125,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       if (currentProfile && !isProfileEmpty(currentProfile)) {
         formData.append("base_profile", JSON.stringify(currentProfile));
       }
-      const res = await fetch(`${API_BASE_URL}/api/profile/import`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/profile/import`, {
         method: "POST",
         body: formData,
       });
@@ -161,7 +163,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
     set({ enhancing: true, error: null, canEnhanceAfterImport: false });
     try {
-      const res = await fetch(`${API_BASE_URL}/api/profile/enhance`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/profile/enhance`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
@@ -205,7 +207,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
     set({ saving: true, error: null });
     try {
-      const res = await fetch(`${API_BASE_URL}/api/profile`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),

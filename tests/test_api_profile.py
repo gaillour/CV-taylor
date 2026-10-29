@@ -488,3 +488,74 @@ def test_unapproved_items_excluded_from_render_model_and_tailor() -> None:
     assert [b.text for b in tailored.experience[0].bullets] == [
         "Desarrollo de servicios en Python."
     ]
+
+
+def test_upsert_bullet_fact_updates_existing_and_creates_new(isolated_profile: Path) -> None:
+    seed_profile_if_missing(isolated_profile)
+    current_profile = client.get("/api/profile").json()
+    first_entry = current_profile["entries"][0]
+    entry_id = first_entry["id"]
+    first_fact_id = first_entry["facts"][0]["id"] if first_entry["facts"] else None
+
+    # 1. Update existing fact
+    if first_fact_id:
+        update_res = client.post(
+            "/api/profile/facts/upsert",
+            json={
+                "entry_id": entry_id,
+                "fact_id": first_fact_id,
+                "text": "Texto editado desde el CV y sincronizado al perfil maestro.",
+                "lang": "es",
+            },
+        )
+        assert update_res.status_code == 200, update_res.text
+        data = update_res.json()
+        assert data["created"] is False
+        assert data["fact"]["id"] == first_fact_id
+        assert data["fact"]["text"] == "Texto editado desde el CV y sincronizado al perfil maestro."
+        assert data["fact"]["approved"] is True
+        assert data["fact"]["source"] == "user"
+
+    # 2. Create new fact when fact_id is None
+    create_res = client.post(
+        "/api/profile/facts/upsert",
+        json={
+            "entry_id": entry_id,
+            "fact_id": None,
+            "text": "Nuevo logro añadido desde el editor de CV.",
+            "lang": "es",
+            "skill_ids": ["python"],
+        },
+    )
+    assert create_res.status_code == 200, create_res.text
+    new_data = create_res.json()
+    assert new_data["created"] is True
+    assert new_data["fact"]["text"] == "Nuevo logro añadido desde el editor de CV."
+    assert new_data["fact"]["approved"] is True
+    assert new_data["fact"]["skill_ids"] == ["python"]
+
+    # Verify persistence
+    persisted = client.get("/api/profile").json()
+    entry = next(e for e in persisted["entries"] if e["id"] == entry_id)
+    assert any(f["id"] == new_data["fact"]["id"] for f in entry["facts"])
+
+    # 3. Invalid entry_id returns 404
+    bad_res = client.post(
+        "/api/profile/facts/upsert",
+        json={
+            "entry_id": "non_existent_entry_999",
+            "text": "Texto cualquiera",
+        },
+    )
+    assert bad_res.status_code == 404
+
+    # 4. Empty text returns 422
+    empty_res = client.post(
+        "/api/profile/facts/upsert",
+        json={
+            "entry_id": entry_id,
+            "text": "   ",
+        },
+    )
+    assert empty_res.status_code == 422
+

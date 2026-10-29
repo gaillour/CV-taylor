@@ -194,6 +194,8 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
                   {/* Bullet list for this project */}
                   <BulletList
                     bullets={entry.bullets}
+                    sectionKey="projects"
+                    entryId={entry.entry_id}
                     onChange={(bullets, debounceMs) =>
                       handleBulletsChange(idx, bullets, debounceMs)
                     }

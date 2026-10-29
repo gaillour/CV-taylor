@@ -9,7 +9,12 @@ import {
   Snapshot,
   TailorRequest,
   TailorResponse,
+  UpsertBulletFactResponse,
 } from "@/types/cv";
+import { useProfileStore } from "@/store/useProfileStore";
+import { API_BASE_URL, apiFetch } from "@/lib/api";
+
+export { API_BASE_URL };
 
 export interface AtsSummary {
   score: number;
@@ -50,9 +55,12 @@ interface CvState {
   startBaseDraft: () => Promise<void>;
   discardDraft: () => void;
   revertDraft: () => Promise<void>;
+  saveBulletToProfile: (
+    sectionKey: "experience" | "projects" | "education",
+    entryId: string,
+    bulletIndex: number,
+  ) => Promise<{ factId: string; created: boolean }>;
 }
-
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let previewSeq = 0;
@@ -91,7 +99,7 @@ export const useCvStore = create<CvState>()(
           set({ loading: true, error: null });
           try {
             const targetModel = model ?? get().renderModel;
-            const res = await fetch(`${API_BASE_URL}/api/render/preview`, {
+            const res = await apiFetch(`${API_BASE_URL}/api/render/preview`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -143,7 +151,7 @@ export const useCvStore = create<CvState>()(
         tailorCv: async (req: TailorRequest): Promise<TailorResponse> => {
           set({ tailorLoading: true, tailorError: null });
           try {
-            const res = await fetch(`${API_BASE_URL}/api/tailor`, {
+            const res = await apiFetch(`${API_BASE_URL}/api/tailor`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(req),
@@ -195,7 +203,7 @@ export const useCvStore = create<CvState>()(
           if (!model) return;
           set({ exportingPdf: true });
           try {
-            const res = await fetch(`${API_BASE_URL}/api/export/pdf`, {
+            const res = await apiFetch(`${API_BASE_URL}/api/export/pdf`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -238,7 +246,7 @@ export const useCvStore = create<CvState>()(
           if (!model) throw new Error("No hay modelo de CV disponible para guardar.");
           set({ savingSnapshot: true });
           try {
-            const res = await fetch(`${API_BASE_URL}/api/export/snapshot`, {
+            const res = await apiFetch(`${API_BASE_URL}/api/export/snapshot`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -321,7 +329,7 @@ export const useCvStore = create<CvState>()(
             return;
           }
           try {
-            const res = await fetch(`${API_BASE_URL}/api/snapshots/${parentId}`);
+            const res = await apiFetch(`${API_BASE_URL}/api/snapshots/${parentId}`);
             if (!res.ok) {
               get().discardDraft();
               return;
@@ -332,6 +340,76 @@ export const useCvStore = create<CvState>()(
           } catch {
             get().discardDraft();
           }
+        },
+
+        saveBulletToProfile: async (
+          sectionKey: "experience" | "projects" | "education",
+          entryId: string,
+          bulletIndex: number,
+        ) => {
+          const model = get().renderModel;
+          if (!model) throw new Error("No hay modelo de CV activo.");
+
+          const sectionEntries = model[sectionKey];
+          const entry = sectionEntries.find((e) => e.entry_id === entryId);
+          if (!entry) throw new Error(`Entrada ${entryId} no encontrada en ${sectionKey}.`);
+
+          const bullet = entry.bullets[bulletIndex];
+          if (!bullet) throw new Error(`Viñeta en índice ${bulletIndex} no encontrada.`);
+
+          const existingFactId = bullet.fact_ids && bullet.fact_ids.length > 0 ? bullet.fact_ids[0] : null;
+
+          const res = await apiFetch(`${API_BASE_URL}/api/profile/facts/upsert`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              entry_id: entryId,
+              fact_id: existingFactId,
+              text: bullet.text,
+              lang: model.lang,
+              skill_ids: bullet.skill_ids || [],
+            }),
+          });
+
+          if (!res.ok) {
+            let errorMsg = `Error ${res.status}: ${res.statusText}`;
+            try {
+              const body = await res.json();
+              if (body.detail) errorMsg = body.detail;
+            } catch {
+              // fallback
+            }
+            throw new Error(errorMsg);
+          }
+
+          const data: UpsertBulletFactResponse = await res.json();
+
+          // Sincronizar el store de perfil si está instanciado
+          useProfileStore.getState().fetchProfile();
+
+          // Actualizar el fact_id en el bullet del modelo activo si era nuevo
+          if (data.created || !existingFactId) {
+            set((state) => {
+              if (!state.renderModel) return state;
+              const nextModel = { ...state.renderModel };
+              const targetSection = [...nextModel[sectionKey]];
+              const targetIdx = targetSection.findIndex((e) => e.entry_id === entryId);
+              if (targetIdx >= 0) {
+                const targetEntry = { ...targetSection[targetIdx] };
+                const bullets = [...targetEntry.bullets];
+                bullets[bulletIndex] = {
+                  ...bullets[bulletIndex],
+                  fact_ids: [data.fact.id],
+                };
+                targetEntry.bullets = bullets;
+                targetSection[targetIdx] = targetEntry;
+                nextModel[sectionKey] = targetSection;
+              }
+              return { renderModel: nextModel };
+            });
+          }
+
+          return { factId: data.fact.id, created: data.created };
         },
     }),
     {

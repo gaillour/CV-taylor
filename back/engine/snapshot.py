@@ -29,6 +29,7 @@ class Snapshot(BaseModel):
     job_spec: JobSpec | None = None
     render_model: RenderModel
     metadata: dict[str, Any] = Field(default_factory=dict)
+    deleted_at: str | None = None
 
     @classmethod
     def create(

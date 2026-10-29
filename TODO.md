@@ -75,10 +75,19 @@
   - [x] Presupuesto acotado de IA: 1 pasada opcional de "Acomodar con IA" habilitada exclusivamente tras importar un CV (`canEnhanceAfterImport`), sin botón libre en el header.
   - [x] Fix de scroll vertical en `/perfil` y limpieza de Topbar en Editor (retiro de `snap_id`, badge ATS limpio `ATS X%` y retiro de switch `ES/EN` inefectivo en borrador).
 
-- [ ] **Slice 9: Persistencia Cloud — Supabase + Retorno al Perfil**
-  - [ ] Integración de Supabase Auth, Postgres y Storage para perfil y snapshots inmutables.
-  - [ ] Soft delete de snapshots en base de datos (`deleted_at: timestamptz | null`) con preservación de inmutabilidad en almacenamiento y filtro en la Galería (`WHERE deleted_at IS NULL`).
-  - [ ] Botón por viñeta en Editor "Guardar en Perfil" (crea/actualiza fact aprobado). Ediciones del editor son locales al CV por defecto.
+- [x] **Slice 9: Persistencia Cloud — Supabase + Retorno al Perfil**
+  - [x] **Slice 9A: Retorno al Perfil + Soft Delete (Capa Repository / Adapter)**
+    - [x] Capa Repository (`LocalStorageRepository`) con preservación física de inmutabilidad en snapshots (`out/snapshots/_deleted.json`).
+    - [x] Soft delete de snapshots (`deleted_at: str | None`) vía `DELETE /api/snapshots/{id}` con filtrado automático en galería (`GET /api/snapshots`).
+    - [x] Endpoint `POST /api/profile/facts/upsert` (`upsert_fact_in_profile`) para retorno al Perfil Maestro (actualiza fact existente si coincide id con `source='user'`, `approved=True` o crea nuevo fact).
+    - [x] Botón por viñeta en Editor (`BulletList`) "Guardar en Perfil" con feedback visual de guardado inmediato y sincronización del store.
+    - [x] Botón "Archivar" en tarjetas e historial de versiones en la Galería con confirmación y refresco reactivo.
+    - [x] 88 tests pasando al 100% y builds / linters limpios en backend y frontend.
+  - [x] **Slice 9B: Supabase Auth, Postgres y Storage**
+    - [x] Tablas `profiles`, `snapshots` con RLS, buckets de Storage para snapshots JSON/PDF inmutables y trigger SQL anti-mutación (`supabase/migrations/001_slice_9b_supabase.sql`).
+    - [x] Supabase Auth en Next.js con vista `/login` (Email/Password + OAuth) y validación de Bearer JWT en FastAPI (`get_current_user` en `back/api/auth.py`).
+    - [x] `SupabaseStorageRepository` con fallback automático a `LocalStorageRepository` si no hay credenciales configuradas (`back/engine/storage.py`).
+    - [x] 92 tests pasando al 100%, `ruff` y `next build` limpios.
 
 ---
 

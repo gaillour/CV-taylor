@@ -179,6 +179,8 @@ export function EducationSection({ entries, onChange }: EducationSectionProps) {
                   {/* Bullet list for education (optional awards/honors) */}
                   <BulletList
                     bullets={entry.bullets}
+                    sectionKey="education"
+                    entryId={entry.entry_id}
                     onChange={(bullets, debounceMs) =>
                       handleBulletsChange(idx, bullets, debounceMs)
                     }

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from back.engine.models import DesignKnobs, FitReport, RenderModel
-from back.engine.profile_store import load_profile
 from back.engine.renderer import render_cv
+from back.engine.storage import StorageRepository, get_repo_for_user
 
 router = APIRouter()
 
@@ -17,7 +19,7 @@ class PreviewRequest(BaseModel):
 
     render_model: RenderModel | None = Field(
         default=None,
-        description="RenderModel to compile to SVG. Defaults to Juan's master profile.",
+        description="RenderModel to compile to SVG. Defaults to active master profile.",
     )
 
 
@@ -30,13 +32,16 @@ class PreviewResponse(BaseModel):
 
 
 @router.post("/preview", response_model=PreviewResponse)
-def preview_cv(payload: PreviewRequest | None = None) -> PreviewResponse:
+def preview_cv(
+    repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
+    payload: PreviewRequest | None = None,
+) -> PreviewResponse:
     """Render a RenderModel (or default profile) to SVG with fit telemetry."""
     try:
         if payload is not None and payload.render_model is not None:
             active_model = payload.render_model
         else:
-            profile = load_profile()
+            profile = repo.get_profile()
             active_model = RenderModel.from_profile(profile, theme="classic", lang="es")
 
         # Ensure physical typography matches the requested density

@@ -5,14 +5,16 @@ from __future__ import annotations
 import re
 import unicodedata
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 
+from back.api.auth import UserContext, get_current_user
 from back.engine.models import DesignKnobs, JobSpec, RenderModel
 from back.engine.renderer import render_cv
 from back.engine.snapshot import Snapshot
+from back.engine.storage import StorageRepository, get_repo_for_user
 
 router = APIRouter()
 
@@ -55,7 +57,7 @@ class ExportPdfRequest(BaseModel):
 
 
 class ExportSnapshotRequest(BaseModel):
-    """Payload for saving an immutable snapshot to disk."""
+    """Payload for saving an immutable snapshot to disk or cloud."""
 
     render_model: RenderModel
     job_spec: JobSpec | None = None
@@ -79,7 +81,10 @@ class ExportSnapshotResponse(BaseModel):
 
 
 @router.post("/pdf")
-def export_pdf(payload: ExportPdfRequest) -> Response:
+def export_pdf(
+    payload: ExportPdfRequest,
+    _user: Annotated[UserContext, Depends(get_current_user)],
+) -> Response:
     """Compile RenderModel to binary PDF with WYSIWYG fidelity and trigger attachment download."""
     try:
         model = payload.render_model
@@ -112,12 +117,18 @@ def export_pdf(payload: ExportPdfRequest) -> Response:
 
 
 @router.post("/snapshot", response_model=ExportSnapshotResponse)
-def export_snapshot(payload: ExportSnapshotRequest) -> ExportSnapshotResponse:
-    """Persist an immutable snapshot JSON file in out/snapshots/<id>.json."""
-    if payload.parent_id and not (SNAPSHOTS_DIR / f"{payload.parent_id}.json").is_file():
-        raise HTTPException(
-            status_code=404, detail=f"Parent snapshot not found: {payload.parent_id}"
-        )
+def export_snapshot(
+    payload: ExportSnapshotRequest,
+    repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
+) -> ExportSnapshotResponse:
+    """Persist an immutable snapshot via the active StorageRepository."""
+    if payload.parent_id:
+        try:
+            repo.get_snapshot(payload.parent_id)
+        except FileNotFoundError as exc:
+            raise HTTPException(
+                status_code=404, detail=f"Parent snapshot not found: {payload.parent_id}"
+            ) from exc
 
     try:
         model = payload.render_model
@@ -126,7 +137,7 @@ def export_snapshot(payload: ExportSnapshotRequest) -> ExportSnapshotResponse:
             font_family=model.design.font_family,
         )
 
-        # Compile to obtain the immutable SHA256 of the exact PDF
+        # Compile to obtain the immutable SHA256 and PDF binary
         render_result = render_cv(
             model,
             include_svg=False,
@@ -142,15 +153,13 @@ def export_snapshot(payload: ExportSnapshotRequest) -> ExportSnapshotResponse:
             parent_id=payload.parent_id,
         )
 
-        SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
-        out_file = SNAPSHOTS_DIR / f"{snapshot.id}.json"
-        snapshot.save(out_file)
+        out_path = repo.save_snapshot(snapshot, pdf_bytes=render_result.pdf_bytes)
 
         return ExportSnapshotResponse(
             id=snapshot.id,
             created_at=snapshot.created_at,
             pdf_sha256=snapshot.pdf_sha256,
-            path=str(out_file),
+            path=str(out_path),
             snapshot=snapshot,
         )
     except Exception as exc:

@@ -16,8 +16,10 @@ import {
   GitBranch,
   Target,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import { API_BASE_URL, useCvStore } from "@/store/useCvStore";
+import { apiFetch } from "@/lib/api";
 import { isProfileEmpty, useProfileStore } from "@/store/useProfileStore";
 import { Snapshot, SnapshotSummary } from "@/types/cv";
 import { TailorModal } from "@/components/tailor/TailorModal";
@@ -59,7 +61,7 @@ export default function GalleryPage() {
 
   useEffect(() => {
     let ignore = false;
-    fetch(`${API_BASE_URL}/api/snapshots`)
+    apiFetch(`${API_BASE_URL}/api/snapshots`)
       .then((res) => {
         if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
         return res.json() as Promise<SnapshotSummary[]>;
@@ -126,7 +128,7 @@ export default function GalleryPage() {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/snapshots/${snapSummary.id}`);
+      const res = await apiFetch(`${API_BASE_URL}/api/snapshots/${snapSummary.id}`);
       if (!res.ok) throw new Error("No se pudo obtener el snapshot");
       const fullSnap: Snapshot = await res.json();
       loadSnapshotDraft(fullSnap);
@@ -159,19 +161,41 @@ export default function GalleryPage() {
     setIsTailorOpen(true);
   };
 
+  const handleDeleteSnapshot = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm("¿Seguro que querés archivar esta versión de CV? Podrás seguir consultando el linaje histórico si es necesario.")) {
+      return;
+    }
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/api/snapshots/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}: ${res.statusText}`);
+      }
+      setSnapshots((prev) => prev.filter((s) => s.id !== id));
+      if (previewSnapshot?.id === id) {
+        setPreviewSnapshot(null);
+        setPreviewSvg("");
+      }
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Error al eliminar versión");
+    }
+  };
+
   const handleOpenPreview = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setPreviewLoading(true);
     setPreviewSnapshot(null);
     setPreviewSvg("");
     try {
-      const res = await fetch(`${API_BASE_URL}/api/snapshots/${id}`);
+      const res = await apiFetch(`${API_BASE_URL}/api/snapshots/${id}`);
       if (!res.ok) throw new Error("Error al cargar snapshot");
       const snap: Snapshot = await res.json();
       setPreviewSnapshot(snap);
 
       // Pedir render preview de este snapshot
-      const renderRes = await fetch(`${API_BASE_URL}/api/render/preview`, {
+      const renderRes = await apiFetch(`${API_BASE_URL}/api/render/preview`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ render_model: snap.render_model }),
@@ -370,14 +394,24 @@ export default function GalleryPage() {
 
                   {/* Card Bottom Actions */}
                   <div className="px-5 py-2.5 bg-zinc-900/40 border-t border-zinc-900 flex items-center justify-between text-xs">
-                    <button
-                      onClick={(e) => handleOpenPreview(latest.id, e)}
-                      className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 transition text-[11px]"
-                      title="Previsualizar CV en grande"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>Preview</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={(e) => handleOpenPreview(latest.id, e)}
+                        className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 transition text-[11px]"
+                        title="Previsualizar CV en grande"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Preview</span>
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteSnapshot(latest.id, e)}
+                        className="flex items-center gap-1 text-zinc-500 hover:text-rose-400 transition text-[11px]"
+                        title="Archivar esta versión de CV"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Archivar</span>
+                      </button>
+                    </div>
 
                     {group.history.length > 0 && (
                       <button
@@ -428,6 +462,13 @@ export default function GalleryPage() {
                               title="Previsualizar esta versión"
                             >
                               <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteSnapshot(hSnap.id, e)}
+                              className="p-1 hover:text-rose-400 text-zinc-500 transition"
+                              title="Archivar esta versión histórica"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleOpenDraft(hSnap)}

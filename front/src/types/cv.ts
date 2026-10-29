@@ -234,6 +234,7 @@ export interface Snapshot {
   job_spec: JobSpec | null;
   render_model: RenderModel;
   metadata: Record<string, unknown>;
+  deleted_at?: string | null;
 }
 
 export interface SnapshotSummary {
@@ -247,4 +248,11 @@ export interface SnapshotSummary {
   ats_score: number | null;
   pdf_sha256: string;
   full_name: string;
+  deleted_at?: string | null;
+}
+
+export interface UpsertBulletFactResponse {
+  fact: Fact;
+  created: boolean;
+  profile: Profile;
 }

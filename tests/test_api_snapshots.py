@@ -76,3 +76,34 @@ def test_get_snapshot_not_found_and_invalid_id(snapshots_dir: Path) -> None:
     assert client.get("/api/snapshots/snap_000000000000").status_code == 404
     assert client.get("/api/snapshots/..%2F..%2Fetc").status_code in (400, 404)
     assert client.get("/api/snapshots/not_a_snapshot").status_code == 400
+
+
+def test_soft_delete_snapshot(snapshots_dir: Path) -> None:
+    snap = _save()
+    snap_id = snap["id"]
+
+    # Exists in list
+    assert any(s["id"] == snap_id for s in client.get("/api/snapshots").json())
+
+    # Soft delete
+    del_res = client.delete(f"/api/snapshots/{snap_id}")
+    assert del_res.status_code == 200
+    del_data = del_res.json()
+    assert del_data["id"] == snap_id
+    assert del_data["deleted_at"] is not None
+
+    # Excluded from listing
+    assert not any(s["id"] == snap_id for s in client.get("/api/snapshots").json())
+
+    # File still exists on disk (immutability preserved)
+    raw_file = snapshots_dir / f"{snap_id}.json"
+    assert raw_file.is_file()
+
+    # Still accessible by direct ID with deleted_at populated
+    direct = client.get(f"/api/snapshots/{snap_id}").json()
+    assert direct["id"] == snap_id
+    assert direct["deleted_at"] == del_data["deleted_at"]
+
+    # Deleting non-existent returns 404
+    assert client.delete("/api/snapshots/snap_999999999999").status_code == 404
+

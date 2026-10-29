@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from back.engine import (
@@ -15,7 +17,7 @@ from back.engine import (
     extract_job_spec,
 )
 from back.engine.models import LangCode, ThemeName
-from back.engine.profile_store import load_profile
+from back.engine.storage import StorageRepository, get_repo_for_user
 
 router = APIRouter()
 
@@ -35,7 +37,7 @@ class TailorRequest(BaseModel):
     )
     profile: Profile | None = Field(
         default=None,
-        description="Candidate master profile. Defaults to Juan's master profile fixture.",
+        description="Candidate master profile. Defaults to active master profile.",
     )
 
 
@@ -57,14 +59,17 @@ class TailorResponse(BaseModel):
 
 
 @router.post("", response_model=TailorResponse)
-def tailor_cv(payload: TailorRequest) -> TailorResponse:
+def tailor_cv(
+    payload: TailorRequest,
+    repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
+) -> TailorResponse:
     """Adapt candidate profile to job offer with ATS feedback loop and 1-page fit."""
     try:
         # 1. Resolve master profile
         if payload.profile is not None:
             active_profile = payload.profile
         else:
-            active_profile = load_profile()
+            active_profile = repo.get_profile()
 
         # 2. Configure LLM client if requested
         llm_client: LLMClient | None = None

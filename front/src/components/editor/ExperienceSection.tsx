@@ -191,6 +191,8 @@ export function ExperienceSection({ entries, onChange }: ExperienceSectionProps)
                   {/* Bullet list for this entry */}
                   <BulletList
                     bullets={entry.bullets}
+                    sectionKey="experience"
+                    entryId={entry.entry_id}
                     onChange={(bullets, debounceMs) =>
                       handleBulletsChange(idx, bullets, debounceMs)
                     }

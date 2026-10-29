@@ -1,16 +1,24 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { RenderBullet } from "@/types/cv";
-import { Check, Pin, Trash2, Plus } from "lucide-react";
+import { Check, Pin, Trash2, Plus, BookmarkPlus, Loader2, CheckCheck } from "lucide-react";
 import { BufferedTextarea } from "./BufferedFields";
+import { useCvStore } from "@/store/useCvStore";
 
 interface BulletListProps {
   bullets: RenderBullet[];
   onChange: (bullets: RenderBullet[], debounceMs?: number) => void;
+  sectionKey?: "experience" | "projects" | "education";
+  entryId?: string;
 }
 
-export function BulletList({ bullets, onChange }: BulletListProps) {
+export function BulletList({ bullets, onChange, sectionKey, entryId }: BulletListProps) {
+  const saveBulletToProfile = useCvStore((s) => s.saveBulletToProfile);
+  const [savingIdx, setSavingIdx] = useState<number | null>(null);
+  const [savedIdx, setSavedIdx] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<{ idx: number; message: string } | null>(null);
+
   const handleToggle = (index: number) => {
     const updated = bullets.map((b, i) =>
       i === index ? { ...b, selected: b.selected === false ? true : false } : b
@@ -42,6 +50,27 @@ export function BulletList({ bullets, onChange }: BulletListProps) {
     onChange([...bullets, newBullet], 0);
   };
 
+  const handleSaveToProfile = async (index: number) => {
+    if (!sectionKey || !entryId) return;
+    setSavingIdx(index);
+    setSaveError(null);
+    try {
+      await saveBulletToProfile(sectionKey, entryId, index);
+      setSavedIdx(index);
+      setTimeout(() => {
+        setSavedIdx((cur) => (cur === index ? null : cur));
+      }, 2500);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error al guardar en perfil";
+      setSaveError({ idx: index, message: msg });
+      setTimeout(() => {
+        setSaveError((cur) => (cur?.idx === index ? null : cur));
+      }, 4000);
+    } finally {
+      setSavingIdx(null);
+    }
+  };
+
   return (
     <div className="space-y-2 mt-2">
       <div className="flex items-center justify-between text-[11px] text-zinc-400 font-medium">
@@ -59,6 +88,10 @@ export function BulletList({ bullets, onChange }: BulletListProps) {
       <div className="space-y-2">
         {bullets.map((bullet, idx) => {
           const isSelected = bullet.selected !== false;
+          const isSaving = savingIdx === idx;
+          const isSaved = savedIdx === idx;
+          const err = saveError?.idx === idx ? saveError.message : null;
+
           return (
             <div
               key={idx}
@@ -93,10 +126,40 @@ export function BulletList({ bullets, onChange }: BulletListProps) {
                   }`}
                   placeholder="Texto de la viñeta..."
                 />
+                {err && (
+                  <p className="text-[10px] text-rose-400 mt-1">{err}</p>
+                )}
               </div>
 
               {/* Meta & actions */}
               <div className="flex flex-col items-center gap-1 shrink-0 pt-0.5">
+                {sectionKey && entryId && (
+                  <button
+                    type="button"
+                    onClick={() => handleSaveToProfile(idx)}
+                    disabled={isSaving}
+                    className={`p-1 rounded transition text-xs flex items-center justify-center ${
+                      isSaved
+                        ? "text-emerald-400 bg-emerald-500/10"
+                        : "text-zinc-500 hover:text-emerald-400 hover:bg-zinc-800"
+                    }`}
+                    title={
+                      isSaved
+                        ? "¡Guardado en el Perfil Maestro!"
+                        : bullet.fact_ids && bullet.fact_ids.length > 0
+                        ? "Actualizar este hecho en el Perfil Maestro"
+                        : "Guardar como nuevo hecho en el Perfil Maestro"
+                    }
+                  >
+                    {isSaving ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                    ) : isSaved ? (
+                      <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <BookmarkPlus className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                )}
                 {bullet.pinned && (
                   <span title="Fijada" className="text-amber-400">
                     <Pin className="w-3 h-3 fill-amber-400" />

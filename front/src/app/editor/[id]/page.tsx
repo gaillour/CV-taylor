@@ -3,6 +3,7 @@
 import React, { Suspense, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { API_BASE_URL, useCvStore } from "@/store/useCvStore";
+import { apiFetch } from "@/lib/api";
 import { CvPreview } from "@/components/preview/CvPreview";
 import { FillGauge } from "@/components/preview/FillGauge";
 import { CvEditor } from "@/components/editor/CvEditor";
@@ -49,7 +50,7 @@ function EditorContent() {
         router.replace("/");
         return;
       }
-      fetch(`${API_BASE_URL}/api/snapshots/${id}`)
+      apiFetch(`${API_BASE_URL}/api/snapshots/${id}`)
         .then((res) => {
           if (!res.ok) throw new Error("Snapshot no encontrado");
           return res.json() as Promise<Snapshot>;
@@ -93,7 +94,7 @@ function EditorContent() {
       return;
     }
 
-    fetch(`${API_BASE_URL}/api/snapshots/${id}`)
+    apiFetch(`${API_BASE_URL}/api/snapshots/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error(`Snapshot no encontrado (${res.status})`);
         return res.json() as Promise<Snapshot>;

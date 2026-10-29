@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from back.api.auth import router as auth_router
 from back.api.routes.export import router as export_router
 from back.api.routes.profile import router as profile_router
 from back.api.routes.render import router as render_router
@@ -31,6 +32,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(profile_router, prefix="/api/profile", tags=["profile"])
 app.include_router(render_router, prefix="/api/render", tags=["render"])
 app.include_router(tailor_router, prefix="/api/tailor", tags=["tailor"])
