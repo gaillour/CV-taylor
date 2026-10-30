@@ -109,7 +109,7 @@ class TailorEngine:
             if archetype and archetype in sk.tags:
                 score += 20
 
-            cat = sk.category_label(target_lang)
+            cat = sk.category_label()
             grouped.setdefault(cat, []).append((score, sk))
 
         skill_groups: list[RenderSkillGroup] = []
@@ -120,7 +120,7 @@ class TailorEngine:
             skill_groups.append(
                 RenderSkillGroup(
                     category=cat,
-                    items=", ".join(s.display_label(target_lang) for s in skills),
+                    items=", ".join(s.display_label() for s in skills),
                     skill_ids=[s.id for s in skills],
                 )
             )
@@ -144,13 +144,8 @@ class TailorEngine:
 
         entries_manifest = []
         for e in candidates:
-            title_obj = e.select_title(lang=target_lang, archetype=job_spec.archetype)
-            approved_facts = [f for f in e.facts if f.approved]
-            facts_list = [
-                {"id": f.id, "text": f.text}
-                for f in approved_facts
-                if f.lang == target_lang or not any(f2.lang == target_lang for f2 in approved_facts)
-            ]
+            title_obj = e.select_title(archetype=job_spec.archetype)
+            facts_list = [{"id": f.id, "text": f.text} for f in e.facts if f.approved]
             entries_manifest.append(
                 {
                     "entry_id": e.id,
@@ -320,7 +315,7 @@ class TailorEngine:
             return self._build_deterministic_bullets(selected_facts, keywords_lower=set())
 
         facts_payload = [
-            {"id": f.id, "text": f.get_text(target_lang), "skills": f.skill_ids}
+            {"id": f.id, "text": f.text, "skills": f.skill_ids}
             for f in selected_facts
         ]
 
@@ -393,7 +388,7 @@ class TailorEngine:
                     # Ground firmly into the safest source alternative
                     orig = facts_map[fid]
                     candidate_bullet = RenderBullet(
-                        text=safe_opts[0] if safe_opts else orig.get_text(target_lang),
+                        text=safe_opts[0] if safe_opts else orig.text,
                         fact_ids=[orig.id],
                         skill_ids=list(orig.skill_ids),
                         priority=orig.weight,
@@ -407,23 +402,22 @@ class TailorEngine:
                 rewritten_bullets.append(candidate_bullet)
 
             return rewritten_bullets or self._build_deterministic_bullets(
-                selected_facts, keywords_lower=set(), target_lang=target_lang
+                selected_facts, keywords_lower=set()
             )
         except Exception:
             return self._build_deterministic_bullets(
-                selected_facts, keywords_lower=set(), target_lang=target_lang
+                selected_facts, keywords_lower=set()
             )
 
     def _build_deterministic_bullets(
         self,
         selected_facts: list[Fact],
         keywords_lower: set[str],
-        target_lang: LangCode = "es",
     ) -> list[RenderBullet]:
         """Build bullets deterministically without LLM."""
         return [
             RenderBullet(
-                text=f.get_text(target_lang),
+                text=f.text,
                 fact_ids=[f.id],
                 skill_ids=list(f.skill_ids),
                 priority=f.weight,
@@ -487,10 +481,9 @@ class TailorEngine:
         def process_section(entries: list[Entry]) -> list[RenderEntry]:
             rendered_entries: list[RenderEntry] = []
             for entry in entries:
-                selected_title = entry.select_title(lang=target_lang, archetype=archetype)
+                selected_title = entry.select_title(archetype=archetype)
                 approved_facts = [f for f in entry.facts if f.approved]
-                lang_facts = [f for f in approved_facts if f.lang == target_lang] or approved_facts
-                facts_map = {f.id: f for f in lang_facts}
+                facts_map = {f.id: f for f in approved_facts}
 
                 # Check if curated by LLM
                 curated_fids = curated_map.get(entry.id) if curated_map else None
@@ -502,7 +495,8 @@ class TailorEngine:
                 if not chosen_facts:
                     # Rank facts by relevance
                     scored_facts = [
-                        (_score_fact_relevance(f, keywords_lower, archetype), f) for f in lang_facts
+                        (_score_fact_relevance(f, keywords_lower, archetype), f)
+                        for f in approved_facts
                     ]
                     scored_facts.sort(key=lambda item: (-item[0], item[1].position))
                     facts = [f for _, f in scored_facts]
@@ -517,22 +511,15 @@ class TailorEngine:
                         entry, chosen_facts, job_spec, target_lang
                     )
                 else:
-                    bullets = self._build_deterministic_bullets(
-                        chosen_facts, keywords_lower, target_lang=target_lang
-                    )
+                    bullets = self._build_deterministic_bullets(chosen_facts, keywords_lower)
 
-                loc = (
-                    entry.location_en
-                    if (target_lang == "en" and entry.location_en)
-                    else entry.location
-                )
                 rendered_entries.append(
                     RenderEntry(
                         entry_id=entry.id,
                         title=selected_title.title,
                         title_id=selected_title.id,
                         org=entry.org,
-                        location=loc,
+                        location=entry.location,
                         date_label=entry.format_date_range(target_lang),
                         link=entry.link,
                         bullets=bullets,
@@ -546,11 +533,7 @@ class TailorEngine:
         projects = process_section(proj_entries)
         education = process_section(edu_entries)
 
-        summary_text = (
-            self.profile.summary_en
-            if (target_lang == "en" and self.profile.summary_en)
-            else self.profile.summary
-        )
+        summary_text = self.profile.summary
 
         return RenderModel(
             schema_version="1.0.0",

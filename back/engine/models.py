@@ -73,10 +73,8 @@ class Skill(BaseModel):
     id: str
     name: str
     category: str
-    category_en: str | None = None
     aliases: list[str] = Field(default_factory=list)
     level: str | None = None
-    level_en: str | None = None
     tags: list[str] = Field(default_factory=list)
     source: TitleSource = "user"
     approved: bool = True
@@ -84,25 +82,14 @@ class Skill(BaseModel):
     marked_for_removal: bool = False
     removal_reason: str | None = None
 
-    def display_label(self, lang: LangCode = "es") -> str:
-        """Format skill name with optional proficiency level in target language."""
-        lvl = self.level_en if (lang == "en" and self.level_en) else self.level
-        if lvl and lang == "en" and not self.level_en:
-            lvl_norm = lvl.strip().lower()
-            if lvl_norm in DEFAULT_LEVEL_TRANSLATIONS:
-                lvl = DEFAULT_LEVEL_TRANSLATIONS[lvl_norm]["en"]
-        if lvl:
-            return f"{self.name} ({lvl})"
+    def display_label(self) -> str:
+        """Format skill name with optional proficiency level."""
+        if self.level:
+            return f"{self.name} ({self.level})"
         return self.name
 
-    def category_label(self, lang: LangCode = "es") -> str:
-        """Return localized category header with dictionary fallback."""
-        if lang == "en":
-            if self.category_en:
-                return self.category_en
-            cat_norm = self.category.strip().lower()
-            if cat_norm in DEFAULT_CATEGORY_TRANSLATIONS:
-                return DEFAULT_CATEGORY_TRANSLATIONS[cat_norm]["en"]
+    def category_label(self) -> str:
+        """Return the category header as stored in the profile language."""
         return self.category
 
 
@@ -114,7 +101,6 @@ class EntryTitle(BaseModel):
     id: str
     entry_id: str | None = None
     title: str
-    lang: LangCode = "es"
     archetype: str | None = None
     is_default: bool = False
     source: TitleSource = "user"
@@ -136,8 +122,6 @@ class Fact(BaseModel):
     id: str
     entry_id: str | None = None
     text: str
-    text_en: str | None = None
-    lang: LangCode = "es"
     tags: list[str] = Field(default_factory=list)
     skill_ids: list[str] = Field(default_factory=list)
     position: int = 0
@@ -151,12 +135,6 @@ class Fact(BaseModel):
     marked_for_removal: bool = False
     removal_reason: str | None = None
 
-    def get_text(self, lang: LangCode = "es") -> str:
-        """Return bullet text in requested language with fallback to primary text."""
-        if lang == "en" and self.text_en and self.text_en.strip():
-            return self.text_en.strip()
-        return self.text
-
 
 class Entry(BaseModel):
     """Normalized experience, project, or education record in the Master Profile."""
@@ -167,7 +145,6 @@ class Entry(BaseModel):
     kind: EntryKind
     org: str
     location: str | None = None
-    location_en: str | None = None
     start_date: str
     end_date: str | None = None
     date_precision: DatePrecision = "month"
@@ -196,11 +173,10 @@ class Entry(BaseModel):
 
     def select_title(
         self,
-        lang: LangCode = "es",
         archetype: str | None = None,
         title_id: str | None = None,
     ) -> EntryTitle:
-        """Select an approved title matching id, archetype, or default for the language."""
+        """Select an approved title matching id, archetype, or default."""
         if title_id is not None:
             for t in self.titles:
                 if t.id == title_id:
@@ -215,16 +191,15 @@ class Entry(BaseModel):
         if not approved_titles:
             raise ValueError(f"Entry '{self.id}' has no approved titles.")
 
-        lang_titles = [t for t in approved_titles if t.lang == lang] or approved_titles
         if archetype:
-            arch_titles = [t for t in lang_titles if t.archetype == archetype]
+            arch_titles = [t for t in approved_titles if t.archetype == archetype]
             if arch_titles:
                 return arch_titles[0]
 
-        default_titles = [t for t in lang_titles if t.is_default]
+        default_titles = [t for t in approved_titles if t.is_default]
         if default_titles:
             return default_titles[0]
-        return lang_titles[0]
+        return approved_titles[0]
 
 
 def _format_iso_date(raw: str, precision: DatePrecision) -> str:
@@ -238,20 +213,82 @@ def _format_iso_date(raw: str, precision: DatePrecision) -> str:
     return raw
 
 
+PROFILE_SCHEMA_VERSION = "2.0.0"
+_LEGACY_PROFILE_KEYS = ("default_lang", "summary_en")
+_LEGACY_ENTRY_KEYS = ("location_en",)
+_LEGACY_SKILL_KEYS = ("category_en", "level_en")
+_LEGACY_FACT_KEYS = ("text_en", "lang")
+
+
+def _is_legacy_profile(data: dict) -> bool:
+    return str(data.get("schema_version", "1.0.0")).startswith("1.") or any(
+        k in data for k in _LEGACY_PROFILE_KEYS
+    )
+
+
+def upcast_legacy_profile(data: dict) -> dict:
+    """Convert a v1 profile dict (mixed ES/EN fields) into a monolingual v2 dict.
+
+    Keeps only base-language content: titles tagged with a different language are
+    dropped when the entry has titles in the base language.
+    """
+    out = dict(data)
+    base_lang = out.pop("default_lang", None) or out.get("base_lang") or "es"
+    out["base_lang"] = base_lang
+    out.pop("summary_en", None)
+    out["schema_version"] = PROFILE_SCHEMA_VERSION
+
+    skills = []
+    for sk in out.get("skills", []) or []:
+        sk = dict(sk)
+        for k in _LEGACY_SKILL_KEYS:
+            sk.pop(k, None)
+        skills.append(sk)
+    out["skills"] = skills
+
+    entries = []
+    for entry in out.get("entries", []) or []:
+        entry = dict(entry)
+        for k in _LEGACY_ENTRY_KEYS:
+            entry.pop(k, None)
+        titles = [dict(t) for t in entry.get("titles", []) or []]
+        base_titles = [t for t in titles if t.get("lang", base_lang) == base_lang]
+        kept_titles = base_titles or titles
+        for t in kept_titles:
+            t.pop("lang", None)
+        entry["titles"] = kept_titles
+        facts = []
+        for fact in entry.get("facts", []) or []:
+            fact = dict(fact)
+            for k in _LEGACY_FACT_KEYS:
+                fact.pop(k, None)
+            facts.append(fact)
+        entry["facts"] = facts
+        entries.append(entry)
+    out["entries"] = entries
+    return out
+
 class Profile(BaseModel):
     """Master Profile containing the exhaustive fact bank, skills, and entries."""
 
     model_config = ConfigDict(extra="forbid")
 
     id: str = "default"
-    schema_version: str = "1.0.0"
+    schema_version: str = PROFILE_SCHEMA_VERSION
     full_name: str
     contact: ContactInfo
-    default_lang: LangCode = "es"
+    base_lang: LangCode = "es"
     summary: str | None = None
-    summary_en: str | None = None
     skills: list[Skill] = Field(default_factory=list)
     entries: list[Entry] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _upcast_legacy(cls, data: object) -> object:
+        """Strip v1 bilingual fields (`*_en`, per-row `lang`) and rename default_lang."""
+        if isinstance(data, dict) and _is_legacy_profile(data):
+            return upcast_legacy_profile(data)
+        return data
 
     @classmethod
     def from_json(cls, path: str | Path) -> Profile:
@@ -456,7 +493,7 @@ class RenderModel(BaseModel):
         include_all: bool = False,
     ) -> RenderModel:
         """Build a deterministic RenderModel from a Master Profile respecting ATS slots."""
-        target_lang: LangCode = lang or profile.default_lang
+        target_lang: LangCode = lang or profile.base_lang
         font_family = "Liberation Serif" if theme == "engineering" else "Liberation Sans"
         design = DesignKnobs.from_density(density, font_family=font_family)
 
@@ -468,14 +505,14 @@ class RenderModel(BaseModel):
                 continue
             if not include_all and archetype and sk.tags and archetype not in sk.tags:
                 continue
-            cat = sk.category_label(target_lang)
+            cat = sk.category_label()
             grouped.setdefault(cat, []).append(sk)
 
         for cat, sk_list in grouped.items():
             skill_groups.append(
                 RenderSkillGroup(
                     category=cat,
-                    items=", ".join(s.display_label(target_lang) for s in sk_list),
+                    items=", ".join(s.display_label() for s in sk_list),
                     skill_ids=[s.id for s in sk_list],
                 )
             )
@@ -502,10 +539,9 @@ class RenderModel(BaseModel):
                 if entry.kind == "education" and len(education_entries) >= MAX_EDUCATION_ENTRIES:
                     continue
 
-            selected_title = entry.select_title(lang=target_lang, archetype=archetype)
+            selected_title = entry.select_title(archetype=archetype)
             approved_facts = [f for f in entry.facts if f.approved]
-            lang_facts = [f for f in approved_facts if f.lang == target_lang] or approved_facts
-            sorted_facts = sorted(lang_facts, key=lambda f: f.position)
+            sorted_facts = sorted(approved_facts, key=lambda f: f.position)
 
             if not include_all:
                 if archetype:
@@ -534,16 +570,12 @@ class RenderModel(BaseModel):
                 for f in chosen_facts
             ]
 
-            loc = (
-                entry.location_en if (target_lang == "en" and entry.location_en) else entry.location
-            )
-
             render_entry = RenderEntry(
                 entry_id=entry.id,
                 title=selected_title.title,
                 title_id=selected_title.id,
                 org=entry.org,
-                location=loc,
+                location=entry.location,
                 date_label=entry.format_date_range(target_lang),
                 link=entry.link,
                 bullets=bullets,
@@ -558,13 +590,7 @@ class RenderModel(BaseModel):
             elif entry.kind == "education":
                 education_entries.append(render_entry)
 
-        summary_text: str | None = None
-        if include_summary:
-            summary_text = (
-                profile.summary_en
-                if (target_lang == "en" and profile.summary_en)
-                else profile.summary
-            )
+        summary_text: str | None = profile.summary if include_summary else None
 
         return cls(
             theme=theme,

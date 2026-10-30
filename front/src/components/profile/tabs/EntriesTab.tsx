@@ -15,7 +15,7 @@ export function EntriesTab({
   kind,
   title,
   entries,
-  activeEditLang = "es",
+  readOnly = false,
   onAddEntry,
   onUpdateEntry,
   onRemoveEntry,
@@ -35,15 +35,15 @@ export function EntriesTab({
   kind: EntryKind;
   title: string;
   entries: Entry[];
-  activeEditLang?: "es" | "en";
+  readOnly?: boolean;
   onAddEntry: (e: Entry) => void;
   onUpdateEntry: (id: string, e: Partial<Entry>) => void;
   onRemoveEntry: (id: string) => void;
   onAddTitle: (entryId: string, t: EntryTitle) => void;
   onRemoveTitle: (entryId: string, titleId: string) => void;
-  onUpsertEntryTitle?: (entryId: string, titleText: string, lang?: "es" | "en") => void;
+  onUpsertEntryTitle?: (entryId: string, titleText: string) => void;
   onAddFact: (entryId: string, f: Fact) => void;
-  onUpdateFactText?: (entryId: string, factId: string, text: string, lang?: "es" | "en") => void;
+  onUpdateFactText?: (entryId: string, factId: string, text: string) => void;
   onRemoveFact: (entryId: string, factId: string) => void;
   onApproveTitle: (entryId: string, titleId: string) => void;
   onRejectTitle: (entryId: string, titleId: string) => void;
@@ -52,7 +52,6 @@ export function EntriesTab({
   onConfirmFactRemoval?: (entryId: string, factId: string) => void;
   onDismissFactRemoval?: (entryId: string, factId: string) => void;
 }) {
-  // Por defecto, todas las entradas están siempre cerradas para una vista limpia y compacta
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
   const [highlightedEntryId, setHighlightedEntryId] = useState<string | null>(null);
 
@@ -61,6 +60,7 @@ export function EntriesTab({
   };
 
   const handleCreateEntry = () => {
+    if (readOnly) return;
     const newId = `${kind}_${Date.now()}`;
     const newTitleId = `title_${Date.now()}`;
     const defaultRole =
@@ -99,11 +99,9 @@ export function EntriesTab({
 
     onAddEntry(newEntry);
 
-    // Expandir únicamente la nueva entrada y resaltarla
     setExpandedIds({ [newId]: true });
     setHighlightedEntryId(newId);
 
-    // Scroll suave y autofocus en el primer campo a completar
     setTimeout(() => {
       const el = document.getElementById(`entry-card-${newId}`);
       if (el) {
@@ -116,7 +114,6 @@ export function EntriesTab({
       }
     }, 60);
 
-    // Desvanecer el resaltado sutil después de 1.6s
     setTimeout(() => {
       setHighlightedEntryId((prev) => (prev === newId ? null : prev));
     }, 1600);
@@ -135,13 +132,15 @@ export function EntriesTab({
                 : "Títulos académicos, certificaciones o cursos destacados."}
           </p>
         </div>
-        <button
-          onClick={handleCreateEntry}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition cursor-pointer shrink-0 shadow-sm"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Nueva entrada
-        </button>
+        {!readOnly && (
+          <button
+            onClick={handleCreateEntry}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition cursor-pointer shrink-0 shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Nueva entrada
+          </button>
+        )}
       </div>
 
       <div className="space-y-2.5">
@@ -153,7 +152,7 @@ export function EntriesTab({
             <EntryCardItem
               key={entry.id}
               entry={entry}
-              activeEditLang={activeEditLang}
+              readOnly={readOnly}
               isExpanded={isExpanded}
               isHighlighted={isHighlighted}
               onToggle={() => toggleExpand(entry.id)}
@@ -187,7 +186,7 @@ export function EntriesTab({
 
 function EntryCardItem({
   entry,
-  activeEditLang = "es",
+  readOnly = false,
   isExpanded,
   isHighlighted,
   onToggle,
@@ -207,7 +206,7 @@ function EntryCardItem({
   onDismissFactRemoval,
 }: {
   entry: Entry;
-  activeEditLang?: "es" | "en";
+  readOnly?: boolean;
   isExpanded: boolean;
   isHighlighted: boolean;
   onToggle: () => void;
@@ -215,9 +214,9 @@ function EntryCardItem({
   onRemoveEntry: (id: string) => void;
   onAddTitle: (entryId: string, t: EntryTitle) => void;
   onRemoveTitle: (entryId: string, titleId: string) => void;
-  onUpsertEntryTitle?: (entryId: string, titleText: string, lang?: "es" | "en") => void;
+  onUpsertEntryTitle?: (entryId: string, titleText: string) => void;
   onAddFact: (entryId: string, f: Fact) => void;
-  onUpdateFactText?: (entryId: string, factId: string, text: string, lang?: "es" | "en") => void;
+  onUpdateFactText?: (entryId: string, factId: string, text: string) => void;
   onRemoveFact: (entryId: string, factId: string) => void;
   onApproveTitle: (entryId: string, titleId: string) => void;
   onRejectTitle: (entryId: string, titleId: string) => void;
@@ -234,34 +233,28 @@ function EntryCardItem({
   const [newTitleText, setNewTitleText] = useState("");
   const [newTitleArchetype, setNewTitleArchetype] = useState("");
 
-  const currentLangTitle =
-    entry.titles.find((t) => (t.lang || "es") === activeEditLang)?.title || "";
-  const fallbackTitle =
+  const primaryTitle =
     entry.titles.find((t) => t.is_default)?.title ||
     entry.titles[0]?.title ||
-    "Entrada sin título";
+    "";
+  const displayTitle = primaryTitle || "Entrada sin título";
 
-  const displayTitle =
-    (activeEditLang === "en" ? currentLangTitle : "") ||
-    fallbackTitle ||
-    "Entrada sin título";
-
-  const pendingTitlesCount = entry.titles.filter((t) => t.approved === false).length;
-  const pendingFactsCount = entry.facts.filter(
-    (f) => f.approved === false || Boolean(f.proposed_text)
-  ).length;
+  const pendingTitlesCount = readOnly
+    ? 0
+    : entry.titles.filter((t) => t.approved === false).length;
+  const pendingFactsCount = readOnly
+    ? 0
+    : entry.facts.filter((f) => f.approved === false || Boolean(f.proposed_text)).length;
   const totalPending = pendingTitlesCount + pendingFactsCount;
 
   const handleAddFactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newFactText.trim()) return;
+    if (readOnly || !newFactText.trim()) return;
     const factId = `fact_${Date.now()}`;
     onAddFact(entry.id, {
       id: factId,
       entry_id: entry.id,
       text: newFactText.trim(),
-      text_en: activeEditLang === "en" ? newFactText.trim() : undefined,
-      lang: activeEditLang,
       weight: Number(newFactPriority) || 100,
       tags: [],
       skill_ids: [],
@@ -274,14 +267,13 @@ function EntryCardItem({
 
   const handleAddTitleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitleText.trim()) return;
+    if (readOnly || !newTitleText.trim()) return;
     const titleId = `title_${Date.now()}`;
     onAddTitle(entry.id, {
       id: titleId,
       entry_id: entry.id,
       title: newTitleText.trim(),
       archetype: newTitleArchetype.trim() || undefined,
-      lang: activeEditLang,
       is_default: entry.titles.length === 0,
       source: "user",
       approved: true,
@@ -326,11 +318,6 @@ function EntryCardItem({
               </span>
               <span className="text-xs text-zinc-600">·</span>
               <span className="text-xs text-zinc-400 truncate">{entry.org}</span>
-              {activeEditLang === "en" && !currentLangTitle && (
-                <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  Falta EN
-                </span>
-              )}
             </div>
             <div className="text-[11px] text-zinc-500 flex items-center gap-2 mt-0.5">
               <span>
@@ -351,36 +338,36 @@ function EntryCardItem({
           <span className="text-[10px] text-zinc-500 font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800">
             {entry.facts.length} {entry.facts.length === 1 ? "logro" : "logros"}
           </span>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemoveEntry(entry.id);
-            }}
-            className="text-zinc-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition cursor-pointer"
-            title="Eliminar entrada completa"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveEntry(entry.id);
+              }}
+              className="text-zinc-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition cursor-pointer"
+              title="Eliminar entrada completa"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
       {/* Cuerpo Desplegable */}
       {isExpanded && (
         <div className="px-4 pb-4 pt-2 border-t border-zinc-900 space-y-5 bg-zinc-950/40">
-          {/* Título y Rol en el idioma activo */}
+          {/* Título y Rol */}
           <div className="pt-2">
-            <Field label={`Título / Puesto (${activeEditLang === "en" ? "Inglés" : "Español"})`}>
+            <Field label="Título / Puesto">
               <input
                 type="text"
-                value={currentLangTitle}
-                onChange={(e) => onUpsertEntryTitle?.(entry.id, e.target.value, activeEditLang)}
-                placeholder={
-                  activeEditLang === "en"
-                    ? (fallbackTitle ? `Traducción de "${fallbackTitle}"` : "Software Engineer")
-                    : "Desarrollador Backend"
-                }
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50"
+                value={primaryTitle}
+                readOnly={readOnly}
+                disabled={readOnly}
+                onChange={(e) => onUpsertEntryTitle?.(entry.id, e.target.value)}
+                placeholder="Desarrollador Backend"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 disabled:opacity-70"
               />
             </Field>
           </div>
@@ -392,35 +379,43 @@ function EntryCardItem({
                 id={`entry-input-${entry.id}`}
                 type="text"
                 value={entry.org}
+                readOnly={readOnly}
+                disabled={readOnly}
                 onChange={(e) => onUpdateEntry(entry.id, { org: e.target.value })}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 disabled:opacity-70"
               />
             </Field>
             <Field label="Ubicación">
               <input
                 type="text"
                 value={entry.location || ""}
+                readOnly={readOnly}
+                disabled={readOnly}
                 onChange={(e) => onUpdateEntry(entry.id, { location: e.target.value })}
                 placeholder="Ciudad, País o Remoto"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 disabled:opacity-70"
               />
             </Field>
             <Field label="Fecha Inicio">
               <input
                 type="text"
                 value={entry.start_date}
+                readOnly={readOnly}
+                disabled={readOnly}
                 placeholder="YYYY-MM"
                 onChange={(e) => onUpdateEntry(entry.id, { start_date: e.target.value })}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 disabled:opacity-70"
               />
             </Field>
             <Field label="Fecha Fin">
               <input
                 type="text"
                 value={entry.end_date || ""}
+                readOnly={readOnly}
+                disabled={readOnly}
                 placeholder="YYYY-MM o present"
                 onChange={(e) => onUpdateEntry(entry.id, { end_date: e.target.value })}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 disabled:opacity-70"
               />
             </Field>
           </div>
@@ -431,8 +426,10 @@ function EntryCardItem({
               rows={2}
               placeholder="Describí tus funciones principales, stack o responsabilidades generales..."
               value={entry.context || ""}
+              readOnly={readOnly}
+              disabled={readOnly}
               onChange={(e) => onUpdateEntry(entry.id, { context: e.target.value })}
-              className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500/50 resize-y"
+              className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500/50 resize-y disabled:opacity-70"
             />
           </Field>
 
@@ -442,17 +439,19 @@ function EntryCardItem({
               <span className="text-xs font-medium text-zinc-300">
                 Títulos o roles alternativos
               </span>
-              <button
-                type="button"
-                onClick={() => setShowNewTitle(!showNewTitle)}
-                className="text-xs text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 cursor-pointer"
-              >
-                <Plus className="w-3 h-3" />
-                Agregar variante de título
-              </button>
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={() => setShowNewTitle(!showNewTitle)}
+                  className="text-xs text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  Agregar variante de título
+                </button>
+              )}
             </div>
 
-            {showNewTitle && (
+            {!readOnly && showNewTitle && (
               <form
                 onSubmit={handleAddTitleSubmit}
                 className="flex items-center gap-2 bg-zinc-900/80 p-2 rounded-lg border border-zinc-800"
@@ -482,7 +481,7 @@ function EntryCardItem({
 
             <div className="flex flex-wrap gap-2">
               {entry.titles.map((t) => {
-                const isPending = t.approved === false;
+                const isPending = !readOnly && t.approved === false;
                 return (
                   <div
                     key={t.id}
@@ -495,45 +494,43 @@ function EntryCardItem({
                     }`}
                   >
                     <span>{t.title}</span>
-                    <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-zinc-950/80 border border-zinc-800 text-zinc-400 uppercase">
-                      {t.lang || "es"}
-                    </span>
                     {t.archetype && (
                       <span className="text-[10px] text-zinc-400 font-mono">
                         ({t.archetype})
                       </span>
                     )}
 
-                    {isPending ? (
-                      <div className="flex items-center gap-1 ml-1">
-                        <button
-                          type="button"
-                          onClick={() => onApproveTitle(entry.id, t.id)}
-                          className="text-emerald-400 hover:text-emerald-300 p-0.5 cursor-pointer"
-                          title="Aprobar título"
-                        >
-                          <Check className="w-3 h-3" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onRejectTitle(entry.id, t.id)}
-                          className="text-red-400 hover:text-red-300 p-0.5 cursor-pointer"
-                          title="Descartar título"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      entry.titles.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => onRemoveTitle(entry.id, t.id)}
-                          className="text-zinc-500 hover:text-red-400 ml-1 cursor-pointer"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )
-                    )}
+                    {!readOnly &&
+                      (isPending ? (
+                        <div className="flex items-center gap-1 ml-1">
+                          <button
+                            type="button"
+                            onClick={() => onApproveTitle(entry.id, t.id)}
+                            className="text-emerald-400 hover:text-emerald-300 p-0.5 cursor-pointer"
+                            title="Aprobar título"
+                          >
+                            <Check className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onRejectTitle(entry.id, t.id)}
+                            className="text-red-400 hover:text-red-300 p-0.5 cursor-pointer"
+                            title="Descartar título"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        entry.titles.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => onRemoveTitle(entry.id, t.id)}
+                            className="text-zinc-500 hover:text-red-400 ml-1 cursor-pointer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )
+                      ))}
                   </div>
                 );
               })}
@@ -546,17 +543,19 @@ function EntryCardItem({
               <span className="text-xs font-medium text-zinc-300">
                 Logros y viñetas verificables
               </span>
-              <button
-                type="button"
-                onClick={() => setShowNewFact(!showNewFact)}
-                className="text-xs text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 cursor-pointer"
-              >
-                <Plus className="w-3 h-3" />
-                Agregar logro
-              </button>
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={() => setShowNewFact(!showNewFact)}
+                  className="text-xs text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  Agregar logro
+                </button>
+              )}
             </div>
 
-            {showNewFact && (
+            {!readOnly && showNewFact && (
               <form
                 onSubmit={handleAddFactSubmit}
                 className="space-y-2 bg-zinc-900/60 p-3 rounded-lg border border-zinc-800"
@@ -601,8 +600,8 @@ function EntryCardItem({
 
             <div className="space-y-2">
               {entry.facts.map((fact) => {
-                const isNewAiFact = fact.approved === false;
-                const hasProposal = Boolean(fact.proposed_text);
+                const isNewAiFact = !readOnly && fact.approved === false;
+                const hasProposal = !readOnly && Boolean(fact.proposed_text);
 
                 return (
                   <div
@@ -624,13 +623,15 @@ function EntryCardItem({
                             </span>
                           </div>
                         )}
-                        {fact.marked_for_removal && (
+                        {!readOnly && fact.marked_for_removal && (
                           <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                             <div className="space-y-0.5">
                               <span className="font-semibold text-amber-300 flex items-center gap-1.5 text-[11px]">
                                 ⚠️ Sugerencia IA: Viñeta redundante o repetida
                               </span>
-                              <p className="text-zinc-300 text-[11px]">{fact.removal_reason || "Contenido repetido con otra viñeta."}</p>
+                              <p className="text-zinc-300 text-[11px]">
+                                {fact.removal_reason || "Contenido repetido con otra viñeta."}
+                              </p>
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0">
                               <button
@@ -651,47 +652,21 @@ function EntryCardItem({
                           </div>
                         )}
 
-                        {/* Edición contextual por idioma (ES / EN) */}
-                        <div className="space-y-1">
-                          <textarea
-                            rows={2}
-                            value={activeEditLang === "en" ? (fact.text_en ?? "") : fact.text}
-                            onChange={(e) =>
-                              onUpdateFactText?.(
-                                entry.id,
-                                fact.id,
-                                e.target.value,
-                                activeEditLang
-                              )
-                            }
-                            placeholder={
-                              activeEditLang === "en"
-                                ? (fact.text ? `Traducción al inglés de: "${fact.text.slice(0, 60)}..."` : "Traducí este logro al inglés...")
-                                : "Describí tu impacto, métrica o hito técnico logrado..."
-                            }
-                            className={`w-full bg-zinc-950/80 border rounded-lg p-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 resize-y transition ${
-                              hasProposal ? "line-through text-zinc-400 border-zinc-800" : "border-zinc-800"
-                            }`}
-                          />
-
-                          {activeEditLang === "en" && !fact.text_en && fact.text && (
-                            <div className="flex items-center gap-1.5 text-[11px] text-amber-400/90 pl-1">
-                              <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-300">
-                                Pendiente EN
-                              </span>
-                              <span className="truncate italic">Base ES: "{fact.text}"</span>
-                            </div>
-                          )}
-
-                          {activeEditLang === "es" && fact.text_en && (
-                            <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 pl-1">
-                              <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-zinc-800 text-zinc-400">
-                                EN
-                              </span>
-                              <span className="truncate italic">"{fact.text_en}"</span>
-                            </div>
-                          )}
-                        </div>
+                        <textarea
+                          rows={2}
+                          value={fact.text}
+                          readOnly={readOnly}
+                          disabled={readOnly}
+                          onChange={(e) =>
+                            onUpdateFactText?.(entry.id, fact.id, e.target.value)
+                          }
+                          placeholder="Describí tu impacto, métrica o hito técnico logrado..."
+                          className={`w-full bg-zinc-950/80 border rounded-lg p-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 resize-y transition disabled:opacity-70 ${
+                            hasProposal
+                              ? "line-through text-zinc-400 border-zinc-800"
+                              : "border-zinc-800"
+                          }`}
+                        />
 
                         {hasProposal && (
                           <div className="p-2 rounded bg-zinc-950/90 border border-violet-500/30 space-y-1.5">
@@ -723,36 +698,37 @@ function EntryCardItem({
                         )}
                       </div>
 
-                      {isNewAiFact ? (
-                        <div className="flex items-center gap-1 shrink-0">
+                      {!readOnly &&
+                        (isNewAiFact ? (
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => onApproveFact(entry.id, fact.id)}
+                              className="flex items-center gap-1 px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-medium transition cursor-pointer"
+                              title="Aprobar logro"
+                            >
+                              <Check className="w-3 h-3" />
+                              Aprobar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onRejectFact(entry.id, fact.id)}
+                              className="p-1 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 transition cursor-pointer"
+                              title="Descartar logro"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
                           <button
                             type="button"
-                            onClick={() => onApproveFact(entry.id, fact.id)}
-                            className="flex items-center gap-1 px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-medium transition cursor-pointer"
-                            title="Aprobar logro"
+                            onClick={() => onRemoveFact(entry.id, fact.id)}
+                            className="text-zinc-600 hover:text-red-400 opacity-40 group-hover:opacity-100 transition p-1 cursor-pointer"
+                            title="Eliminar logro"
                           >
-                            <Check className="w-3 h-3" />
-                            Aprobar
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => onRejectFact(entry.id, fact.id)}
-                            className="p-1 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 transition cursor-pointer"
-                            title="Descartar logro"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => onRemoveFact(entry.id, fact.id)}
-                          className="text-zinc-600 hover:text-red-400 opacity-40 group-hover:opacity-100 transition p-1 cursor-pointer"
-                          title="Eliminar logro"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                        ))}
                     </div>
                   </div>
                 );

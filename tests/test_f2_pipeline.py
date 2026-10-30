@@ -546,10 +546,9 @@ def test_tailor_curation_with_llm_curator(monkeypatch: pytest.MonkeyPatch) -> No
 def test_tailor_bilingual_skills_and_harmonize(monkeypatch: pytest.MonkeyPatch) -> None:
     """English tailoring translates skill categories and harmonizes titles and summary."""
     profile = Profile.from_json(PROFILE_PATH)
-    # 1. Skill category fallback
+    # 1. Skill category label
     skill = Skill(id="sk_py", name="Python", category="Lenguajes")
-    assert skill.category_label("es") == "Lenguajes"
-    assert skill.category_label("en") == "Languages"
+    assert skill.category_label() == "Lenguajes"
 
     # 2. Harmonize title and summary in English
     client = LLMClient(LLMConfig(api_key="test-key", base_url="https://api.openai.com/v1"))

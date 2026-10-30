@@ -20,6 +20,7 @@
 - [x] **Editor — Limpieza de jerarquía:** Eliminar contenedor "Editor de Contenido (Slice 4)" en `editor/[id]/page.tsx` para quitar anidamiento cebolla.
 - [x] **Editor — Título editable de CV:** Permitir renombrar el título del CV / target role directamente en la barra superior.
 - [x] **Editor — Importación de Proyectos en Bloque:** Modal para seleccionar e insertar proyectos del perfil directamente en el CV.
+- [ ] **Tailoring — Selección explícita de idioma:** Quitar la detección "auto" de idioma al adaptar CV desde oferta de empleo; forzar selección binaria manual (ES / EN) por parte del usuario.
 - [ ] **Soporte Multilingüe:** Flujo para traducir/adaptar on-the-fly con LLM proyectos o contenido en caso de CVs bilingües.
 - [ ] **IA — Eliminación de bloques completos:** Permitir que la IA recomiende eliminar bloques/entradas completos (actualmente detecta viñetas duplicadas/redundantes y sugiere borrarlas individualmente, pero no remueve el bloque completo).
 

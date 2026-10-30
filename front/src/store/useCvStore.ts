@@ -387,7 +387,6 @@ export const useCvStore = create<CvState>()(
               entry_id: entryId,
               fact_id: existingFactId,
               text: bullet.text,
-              lang: model.lang,
               skill_ids: bullet.skill_ids || [],
             }),
           });

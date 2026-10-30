@@ -313,11 +313,7 @@ def _augment_from_profile(
 
     # 1. Restore summary if absent in model but available in profile
     if not current_model.summary:
-        summary_text = (
-            profile.summary_en
-            if (current_model.lang == "en" and profile.summary_en)
-            else profile.summary
-        )
+        summary_text = profile.summary
         if summary_text:
             trial_model = current_model.model_copy(update={"summary": summary_text})
             trial_fit = measure_fit(trial_model)
@@ -342,8 +338,7 @@ def _augment_from_profile(
             p_entry = profile_entries_by_id.get(r_entry.entry_id)
             if p_entry is None:
                 continue
-            lang_facts = [f for f in p_entry.facts if f.lang == current_model.lang] or p_entry.facts
-            for f in lang_facts:
+            for f in p_entry.facts:
                 if f.id not in used_fact_ids:
                     sort_key = (-f.weight, f.position, sec_rank, entry_idx)
                     extra_candidates.append((sort_key, sec_name, r_entry.entry_id, f))
@@ -407,9 +402,8 @@ def _augment_from_profile(
         current_sec_entries: list[RenderEntry] = getattr(current_model, sec_name)
         if max_sec_entries is not None and len(current_sec_entries) >= max_sec_entries:
             continue
-        selected_title = p_entry.select_title(lang=current_model.lang)
-        lang_facts = [f for f in p_entry.facts if f.lang == current_model.lang] or p_entry.facts
-        sorted_facts = sorted(lang_facts, key=lambda f: f.position)
+        selected_title = p_entry.select_title()
+        sorted_facts = sorted(p_entry.facts, key=lambda f: f.position)
         chosen_facts = [f for f in sorted_facts if f.default_selected or f.pinned] or sorted_facts[
             : max(p_entry.min_bullets, 1)
         ]
@@ -426,17 +420,12 @@ def _augment_from_profile(
             )
             for f in chosen_facts
         ]
-        loc = (
-            p_entry.location_en
-            if (current_model.lang == "en" and p_entry.location_en)
-            else p_entry.location
-        )
         new_render_entry = RenderEntry(
             entry_id=p_entry.id,
             title=selected_title.title,
             title_id=selected_title.id,
             org=p_entry.org,
-            location=loc,
+            location=p_entry.location,
             date_label=p_entry.format_date_range(current_model.lang),
             link=p_entry.link,
             bullets=bullets,

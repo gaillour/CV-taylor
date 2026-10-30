@@ -6,7 +6,7 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-from back.engine.models import ContactInfo, Fact, LangCode, Profile
+from back.engine.models import ContactInfo, Fact, Profile
 
 DEFAULT_SEED_PATH = Path("fixtures/profile_juan.json")
 DEFAULT_OUT_DIR = Path("out")
@@ -19,7 +19,7 @@ def create_empty_profile() -> Profile:
         id="default",
         full_name="",
         contact=ContactInfo(email="", phone="", location=""),
-        default_lang="es",
+        base_lang="es",
         skills=[],
         entries=[],
     )
@@ -73,7 +73,6 @@ def upsert_fact_in_profile(
     *,
     entry_id: str,
     text: str,
-    lang: LangCode = "es",
     fact_id: str | None = None,
     skill_ids: list[str] | None = None,
 ) -> tuple[Profile, Fact, bool]:
@@ -108,7 +107,6 @@ def upsert_fact_in_profile(
 
     if matched_fact is not None:
         matched_fact.text = clean_text
-        matched_fact.lang = lang
         matched_fact.approved = True
         matched_fact.approved_at = now_iso
         matched_fact.source = "user"
@@ -123,7 +121,6 @@ def upsert_fact_in_profile(
         id=new_fact_id,
         entry_id=entry_id,
         text=clean_text,
-        lang=lang,
         tags=[],
         skill_ids=skill_ids or [],
         position=new_position,

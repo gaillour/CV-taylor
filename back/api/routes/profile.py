@@ -14,12 +14,17 @@ from back.engine.importer import (
     parse_profile_from_text,
 )
 from back.engine.llm import LLMClient
-from back.engine.models import Fact, LangCode, Profile
+from back.engine.mirror import (
+    MirrorStatus,
+    get_or_sync_mirror,
+    swap_base,
+    sync_mirror,
+)
+from back.engine.models import Fact, Profile
 from back.engine.profile_assistant import (
     EnhanceProfileResponse,
     clean_and_deduplicate_profile,
     enhance_profile,
-    mirror_bilingual_fields,
 )
 from back.engine.storage import StorageRepository, get_repo_for_user
 
@@ -41,18 +46,73 @@ def get_master_profile(
         ) from exc
 
 
+class MirrorResponse(BaseModel):
+    """Response payload containing the derived mirror profile and its status."""
+
+    profile: Profile
+    mirror_status: MirrorStatus
+
+
+class SwapBaseResponse(BaseModel):
+    """Response payload after swapping base and mirror profiles."""
+
+    profile: Profile
+    mirror: Profile
+    mirror_status: MirrorStatus
+
+
 @router.put("", response_model=Profile)
 def update_master_profile(
     profile: Profile,
     repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
 ) -> Profile:
-    """Update and persist the Master Profile to storage."""
+    """Update and persist the Master Profile to storage, and sync the derived mirror."""
     try:
-        return repo.save_profile(profile)
+        saved = repo.save_profile(profile)
+        sync_mirror(repo, saved)
+        return saved
     except Exception as exc:
         raise HTTPException(
             status_code=500,
             detail=f"Error al guardar el perfil maestro: {exc}",
+        ) from exc
+
+
+@router.get("/mirror", response_model=MirrorResponse)
+def get_mirror_profile(
+    repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
+) -> MirrorResponse:
+    """Get the derived mirror profile in the opposite language."""
+    try:
+        mirror_doc, status = get_or_sync_mirror(repo)
+        return MirrorResponse(profile=mirror_doc.profile, mirror_status=status)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener el perfil espejo: {exc}",
+        ) from exc
+
+
+@router.post("/swap-base", response_model=SwapBaseResponse)
+def swap_base_language(
+    repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
+) -> SwapBaseResponse:
+    """Swap the base profile and its mirror so the mirror becomes the editable SSOT."""
+    try:
+        base = repo.get_profile()
+        mirror_doc, status = get_or_sync_mirror(repo)
+        new_base, new_mirror = swap_base(base, mirror_doc)
+        repo.save_profile(new_base)
+        repo.save_mirror(new_mirror)
+        return SwapBaseResponse(
+            profile=new_base,
+            mirror=new_mirror.profile,
+            mirror_status=status,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al intercambiar el idioma base: {exc}",
         ) from exc
 
 
@@ -64,7 +124,6 @@ class UpsertBulletFactRequest(BaseModel):
     entry_id: str
     fact_id: str | None = None
     text: str = Field(min_length=1)
-    lang: LangCode = "es"
     skill_ids: list[str] = Field(default_factory=list)
 
 
@@ -86,10 +145,10 @@ def upsert_bullet_fact(
         updated_profile, fact, created = repo.upsert_fact(
             entry_id=payload.entry_id,
             text=payload.text,
-            lang=payload.lang,
             fact_id=payload.fact_id,
             skill_ids=payload.skill_ids,
         )
+        sync_mirror(repo, updated_profile)
         return UpsertBulletFactResponse(
             fact=fact,
             created=created,
@@ -171,7 +230,6 @@ async def import_master_profile(
         )
         merged = merge_profiles(current_profile, extracted)
         merged = clean_and_deduplicate_profile(merged)
-        merged = mirror_bilingual_fields(merged, llm=active_llm)
         return merged
     except Exception as exc:
         raise HTTPException(

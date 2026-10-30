@@ -3,8 +3,10 @@
 import React, { useEffect, useState } from "react";
 import {
   AlertCircle,
+  ArrowLeftRight,
   Briefcase,
   Check,
+  Eye,
   FolderGit2,
   GraduationCap,
   Layers,
@@ -31,8 +33,12 @@ type SectionTab = "general" | "skills" | "experience" | "project" | "education";
 export default function ProfilePage() {
   const {
     profile,
-    activeEditLang,
-    setActiveEditLang,
+    mirror,
+    mirrorLoading,
+    swappingBase,
+    viewLang,
+    setViewLang,
+    swapBaseLang,
     loading,
     saving,
     enhancing,
@@ -93,6 +99,14 @@ export default function ProfilePage() {
     if (ok) {
       setSaveToast("Sugerencias IA generadas. Revisá y aprobá las que quieras conservar.");
       setTimeout(() => setSaveToast(null), 4500);
+    }
+  };
+
+  const handleSwapBase = async () => {
+    const ok = await swapBaseLang();
+    if (ok) {
+      setSaveToast("Idioma base actualizado");
+      setTimeout(() => setSaveToast(null), 3000);
     }
   };
 
@@ -160,6 +174,10 @@ export default function ProfilePage() {
     );
   }
 
+  const baseLang = profile.base_lang || "es";
+  const isViewingMirror = viewLang !== baseLang;
+  const displayedProfile = isViewingMirror ? mirror || profile : profile;
+
   const pendingCount = countPendingSuggestions(profile);
   const pendingSkillsCount = profile.skills.filter((s) => s.approved === false).length;
   const countEntryPending = (kind: EntryKind) =>
@@ -186,8 +204,8 @@ export default function ProfilePage() {
             <h1 className="text-base font-semibold tracking-tight text-zinc-100">
               Perfil
             </h1>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">
-              v{profile.schema_version}
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800 uppercase">
+              Base: {baseLang}
             </span>
             {dirty ? (
               <span className="flex items-center gap-1.5 text-[11px] font-medium text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full">
@@ -207,29 +225,29 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Switch de Idioma de Edición (ES / EN) */}
+          {/* Switch de Vista (Base vs Espejo ES / EN) */}
           <div className="flex items-center bg-zinc-900 border border-zinc-800 p-0.5 rounded-lg">
             <button
               type="button"
-              onClick={() => setActiveEditLang("es")}
+              onClick={() => setViewLang("es")}
               className={`px-2.5 py-1 text-xs font-medium rounded-md transition cursor-pointer flex items-center gap-1.5 ${
-                activeEditLang === "es"
+                viewLang === "es"
                   ? "bg-zinc-800 text-zinc-100 shadow-sm border border-zinc-700/60"
                   : "text-zinc-400 hover:text-zinc-200"
               }`}
-              title="Editar contenido en español"
+              title={baseLang === "es" ? "Idioma base (editable)" : "Espejo derivado (solo lectura)"}
             >
               <span>ES</span>
             </button>
             <button
               type="button"
-              onClick={() => setActiveEditLang("en")}
+              onClick={() => setViewLang("en")}
               className={`px-2.5 py-1 text-xs font-medium rounded-md transition cursor-pointer flex items-center gap-1.5 ${
-                activeEditLang === "en"
+                viewLang === "en"
                   ? "bg-zinc-800 text-zinc-100 shadow-sm border border-zinc-700/60"
                   : "text-zinc-400 hover:text-zinc-200"
               }`}
-              title="Editar contenido en inglés"
+              title={baseLang === "en" ? "Idioma base (editable)" : "Espejo derivado (solo lectura)"}
             >
               <span>EN</span>
             </button>
@@ -256,9 +274,9 @@ export default function ProfilePage() {
           </button>
           <button
             onClick={handleEnhance}
-            disabled={enhancing}
-            className="flex items-center gap-1.5 px-3 py-2 bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/30 text-violet-300 text-xs font-medium rounded-lg transition cursor-pointer"
-            title="Pule viñetas, genera textos en inglés y detecta redundancias con IA"
+            disabled={enhancing || isViewingMirror}
+            className="flex items-center gap-1.5 px-3 py-2 bg-violet-600/20 hover:bg-violet-600/30 disabled:opacity-40 border border-violet-500/30 text-violet-300 text-xs font-medium rounded-lg transition cursor-pointer"
+            title="Pule viñetas y detecta redundancias con IA"
           >
             {enhancing ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -284,7 +302,39 @@ export default function ProfilePage() {
 
       {/* Banners Guiados */}
       <div className="max-w-6xl w-full mx-auto px-6 pt-5 space-y-3">
-        {canEnhanceAfterImport && (
+        {isViewingMirror && (
+          <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 text-xs text-zinc-300">
+              <Eye className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>
+                Vista espejo en <strong className="uppercase">{viewLang}</strong> (solo lectura). Se actualiza automáticamente al guardar tu perfil base (<strong className="uppercase">{baseLang}</strong>).
+              </span>
+              {mirrorLoading && (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-400 ml-1" />
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleSwapBase}
+              disabled={swappingBase || dirty}
+              title={
+                dirty
+                  ? "Guardá los cambios antes de cambiar el idioma base"
+                  : `Convertir ${viewLang.toUpperCase()} en tu idioma base editable`
+              }
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 border border-zinc-700 text-xs text-zinc-200 font-medium transition cursor-pointer shrink-0"
+            >
+              {swappingBase ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <ArrowLeftRight className="w-3.5 h-3.5 text-emerald-400" />
+              )}
+              <span>Usar {viewLang.toUpperCase()} como idioma base</span>
+            </button>
+          </div>
+        )}
+
+        {!isViewingMirror && canEnhanceAfterImport && (
           <div className="bg-violet-500/10 border border-violet-500/30 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-violet-500/20 text-violet-300 shrink-0 mt-0.5">
@@ -322,7 +372,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {pendingCount > 0 && (
+        {!isViewingMirror && pendingCount > 0 && (
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-amber-500/20 text-amber-300 shrink-0 mt-0.5">
@@ -372,32 +422,32 @@ export default function ProfilePage() {
             onClick={() => setActiveTab("skills")}
             icon={<Layers className="w-4 h-4" />}
             label="Habilidades"
-            badge={`${profile.skills.length}`}
-            pendingCount={pendingSkillsCount}
+            badge={`${displayedProfile.skills.length}`}
+            pendingCount={isViewingMirror ? 0 : pendingSkillsCount}
           />
           <TabButton
             active={activeTab === "experience"}
             onClick={() => setActiveTab("experience")}
             icon={<Briefcase className="w-4 h-4" />}
             label="Experiencia"
-            badge={`${profile.entries.filter((e) => e.kind === "experience").length}`}
-            pendingCount={countEntryPending("experience")}
+            badge={`${displayedProfile.entries.filter((e) => e.kind === "experience").length}`}
+            pendingCount={isViewingMirror ? 0 : countEntryPending("experience")}
           />
           <TabButton
             active={activeTab === "project"}
             onClick={() => setActiveTab("project")}
             icon={<FolderGit2 className="w-4 h-4" />}
             label="Proyectos"
-            badge={`${profile.entries.filter((e) => e.kind === "project" || e.kind === ("projects" as EntryKind)).length}`}
-            pendingCount={countEntryPending("project")}
+            badge={`${displayedProfile.entries.filter((e) => e.kind === "project" || e.kind === ("projects" as EntryKind)).length}`}
+            pendingCount={isViewingMirror ? 0 : countEntryPending("project")}
           />
           <TabButton
             active={activeTab === "education"}
             onClick={() => setActiveTab("education")}
             icon={<GraduationCap className="w-4 h-4" />}
             label="Educación"
-            badge={`${profile.entries.filter((e) => e.kind === "education").length}`}
-            pendingCount={countEntryPending("education")}
+            badge={`${displayedProfile.entries.filter((e) => e.kind === "education").length}`}
+            pendingCount={isViewingMirror ? 0 : countEntryPending("education")}
           />
         </aside>
 
@@ -405,11 +455,10 @@ export default function ProfilePage() {
         <main className="flex-1 min-w-0 bg-zinc-900/40 border border-zinc-800/80 rounded-xl p-6">
           {activeTab === "general" && (
             <GeneralTab
-              fullName={profile.full_name}
-              contact={profile.contact}
-              summary={profile.summary || ""}
-              summaryEn={profile.summary_en || ""}
-              activeEditLang={activeEditLang}
+              fullName={displayedProfile.full_name}
+              contact={displayedProfile.contact}
+              summary={displayedProfile.summary || ""}
+              readOnly={isViewingMirror}
               onUpdateFullName={updateFullName}
               onUpdateContact={updateContact}
               onUpdateSummary={updateSummary}
@@ -418,7 +467,8 @@ export default function ProfilePage() {
 
           {activeTab === "skills" && (
             <SkillsTab
-              skills={profile.skills}
+              skills={displayedProfile.skills}
+              readOnly={isViewingMirror}
               onAddSkill={addSkill}
               onRemoveSkill={removeSkill}
               onApproveSkill={approveSkill}
@@ -432,8 +482,8 @@ export default function ProfilePage() {
             <EntriesTab
               kind="experience"
               title="Experiencia Laboral"
-              entries={profile.entries.filter((e) => e.kind === "experience")}
-              activeEditLang={activeEditLang}
+              entries={displayedProfile.entries.filter((e) => e.kind === "experience")}
+              readOnly={isViewingMirror}
               onAddEntry={addEntry}
               onUpdateEntry={updateEntry}
               onRemoveEntry={removeEntry}
@@ -456,10 +506,10 @@ export default function ProfilePage() {
             <EntriesTab
               kind="project"
               title="Proyectos Destacados"
-              entries={profile.entries.filter(
+              entries={displayedProfile.entries.filter(
                 (e) => e.kind === "project" || e.kind === ("projects" as EntryKind)
               )}
-              activeEditLang={activeEditLang}
+              readOnly={isViewingMirror}
               onAddEntry={addEntry}
               onUpdateEntry={updateEntry}
               onRemoveEntry={removeEntry}
@@ -482,8 +532,8 @@ export default function ProfilePage() {
             <EntriesTab
               kind="education"
               title="Formación y Educación"
-              entries={profile.entries.filter((e) => e.kind === "education")}
-              activeEditLang={activeEditLang}
+              entries={displayedProfile.entries.filter((e) => e.kind === "education")}
+              readOnly={isViewingMirror}
               onAddEntry={addEntry}
               onUpdateEntry={updateEntry}
               onRemoveEntry={removeEntry}
@@ -514,7 +564,7 @@ export default function ProfilePage() {
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-zinc-100">Procesando perfil con IA</h3>
               <p className="text-xs text-zinc-400">
-                Puliendo viñetas, traduciendo al inglés y chequeando consistencia y redundancias...
+                Puliendo viñetas y chequeando consistencia y redundancias...
               </p>
             </div>
             <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">

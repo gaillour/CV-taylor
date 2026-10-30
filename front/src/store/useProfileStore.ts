@@ -6,8 +6,12 @@ import {
   Entry,
   EntryTitle,
   Fact,
+  LangCode,
+  MirrorResponse,
+  MirrorStatus,
   Profile,
   Skill,
+  SwapBaseResponse,
 } from "@/types/cv";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
@@ -42,7 +46,11 @@ export function countPendingSuggestions(profile: Profile | null): number {
 
 interface ProfileState {
   profile: Profile | null;
-  activeEditLang: "es" | "en";
+  mirror: Profile | null;
+  mirrorStatus: MirrorStatus | null;
+  mirrorLoading: boolean;
+  swappingBase: boolean;
+  viewLang: LangCode;
   loading: boolean;
   initialized: boolean;
   saving: boolean;
@@ -53,7 +61,9 @@ interface ProfileState {
   dirty: boolean;
   error: string | null;
 
-  setActiveEditLang: (lang: "es" | "en") => void;
+  setViewLang: (lang: LangCode) => Promise<void>;
+  loadMirror: () => Promise<void>;
+  swapBaseLang: () => Promise<boolean>;
   fetchProfile: () => Promise<void>;
   saveProfile: () => Promise<boolean>;
   importProfile: (file: File) => Promise<boolean>;
@@ -62,7 +72,7 @@ interface ProfileState {
   setProfile: (updater: (prev: Profile) => Profile) => void;
 
   updateContact: (contact: Partial<ContactInfo>) => void;
-  updateSummary: (text: string, lang?: "es" | "en") => void;
+  updateSummary: (text: string) => void;
   updateFullName: (name: string) => void;
 
   addSkill: (skill: Skill) => void;
@@ -75,12 +85,12 @@ interface ProfileState {
 
   addTitle: (entryId: string, title: EntryTitle) => void;
   updateTitle: (entryId: string, titleId: string, title: Partial<EntryTitle>) => void;
-  upsertEntryTitle: (entryId: string, titleText: string, lang?: "es" | "en") => void;
+  upsertEntryTitle: (entryId: string, titleText: string) => void;
   removeTitle: (entryId: string, titleId: string) => void;
 
   addFact: (entryId: string, fact: Fact) => void;
   updateFact: (entryId: string, factId: string, fact: Partial<Fact>) => void;
-  updateFactText: (entryId: string, factId: string, text: string, lang?: "es" | "en") => void;
+  updateFactText: (entryId: string, factId: string, text: string) => void;
   removeFact: (entryId: string, factId: string) => void;
 
   approveSkill: (skillId: string) => void;
@@ -99,7 +109,11 @@ interface ProfileState {
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
   profile: null,
-  activeEditLang: "es",
+  mirror: null,
+  mirrorStatus: null,
+  mirrorLoading: false,
+  swappingBase: false,
+  viewLang: "es",
   loading: false,
   initialized: false,
   saving: false,
@@ -110,7 +124,55 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   dirty: false,
   error: null,
 
-  setActiveEditLang: (lang) => set({ activeEditLang: lang }),
+  setViewLang: async (lang) => {
+    set({ viewLang: lang });
+    const { profile, mirror } = get();
+    if (profile && lang !== profile.base_lang && !mirror) {
+      await get().loadMirror();
+    }
+  },
+
+  loadMirror: async () => {
+    set({ mirrorLoading: true });
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/api/profile/mirror`);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      }
+      const data = (await res.json()) as MirrorResponse;
+      set({ mirror: data.profile, mirrorStatus: data.mirror_status, mirrorLoading: false });
+    } catch {
+      set({ mirrorLoading: false });
+    }
+  },
+
+  swapBaseLang: async () => {
+    set({ swappingBase: true, error: null });
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/api/profile/swap-base`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      }
+      const data = (await res.json()) as SwapBaseResponse;
+      set({
+        profile: data.profile,
+        mirror: data.mirror,
+        mirrorStatus: data.mirror_status,
+        viewLang: data.profile.base_lang,
+        swappingBase: false,
+        dirty: false,
+      });
+      return true;
+    } catch (err: unknown) {
+      set({
+        swappingBase: false,
+        error: err instanceof Error ? err.message : "Error al cambiar idioma base",
+      });
+      return false;
+    }
+  },
 
   fetchProfile: async () => {
     set({ loading: true, error: null });
@@ -120,7 +182,13 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         throw new Error(`HTTP ${res.status}: ${await res.text()}`);
       }
       const data = (await res.json()) as Profile;
-      set({ profile: data, loading: false, initialized: true, dirty: false });
+      set({
+        profile: data,
+        viewLang: data.base_lang || "es",
+        loading: false,
+        initialized: true,
+        dirty: false,
+      });
     } catch (err: unknown) {
       set({
         loading: false,
@@ -156,6 +224,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const imported = (await res.json()) as Profile;
       set({
         profile: imported,
+        viewLang: imported.base_lang || "es",
+        mirror: null,
         importing: false,
         canEnhanceAfterImport: true,
         dirty: true,
@@ -230,7 +300,10 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         throw new Error(`HTTP ${res.status}: ${await res.text()}`);
       }
       const updated = (await res.json()) as Profile;
-      set({ profile: updated, saving: false, dirty: false });
+      set({ profile: updated, mirror: null, saving: false, dirty: false });
+      if (get().viewLang !== updated.base_lang) {
+        await get().loadMirror();
+      }
       return true;
     } catch (err: unknown) {
       set({
@@ -258,10 +331,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }));
   },
 
-  updateSummary: (text, lang = "es") => {
-    get().setProfile((p) =>
-      lang === "en" ? { ...p, summary_en: text } : { ...p, summary: text }
-    );
+  updateSummary: (text) => {
+    get().setProfile((p) => ({ ...p, summary: text }));
   },
 
   addSkill: (skill) => {
@@ -328,13 +399,13 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }));
   },
 
-  upsertEntryTitle: (entryId, titleText, lang) => {
-    const targetLang = lang ?? get().activeEditLang;
+  upsertEntryTitle: (entryId, titleText) => {
     get().setProfile((p) => ({
       ...p,
       entries: p.entries.map((e) => {
         if (e.id !== entryId) return e;
-        const existingIdx = e.titles.findIndex((t) => (t.lang || "es") === targetLang);
+        const defaultIdx = e.titles.findIndex((t) => t.is_default);
+        const existingIdx = defaultIdx >= 0 ? defaultIdx : (e.titles.length > 0 ? 0 : -1);
         if (existingIdx >= 0) {
           const updatedTitles = [...e.titles];
           updatedTitles[existingIdx] = {
@@ -344,14 +415,13 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
           return { ...e, titles: updatedTitles };
         }
         const newTitle: EntryTitle = {
-          id: `title_${targetLang}_${Date.now()}`,
+          id: `title_${Date.now()}`,
           entry_id: entryId,
           title: titleText,
-          lang: targetLang,
-          is_default: targetLang === "es",
+          is_default: true,
           approved: true,
         };
-        return { ...e, titles: [...e.titles, newTitle] };
+        return { ...e, titles: [newTitle] };
       }),
     }));
   },
@@ -387,21 +457,14 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }));
   },
 
-  updateFactText: (entryId, factId, text, lang) => {
-    const targetLang = lang ?? get().activeEditLang;
+  updateFactText: (entryId, factId, text) => {
     get().setProfile((p) => ({
       ...p,
       entries: p.entries.map((e) => {
         if (e.id !== entryId) return e;
         return {
           ...e,
-          facts: e.facts.map((f) => {
-            if (f.id !== factId) return f;
-            if (targetLang === "en") {
-              return { ...f, text_en: text };
-            }
-            return { ...f, text };
-          }),
+          facts: e.facts.map((f) => (f.id === factId ? { ...f, text } : f)),
         };
       }),
     }));

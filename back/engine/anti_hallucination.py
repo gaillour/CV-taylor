@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .models import Fact, Profile, RenderBullet, RenderEntry, RenderModel
+from .models import Fact, LangCode, Profile, RenderBullet, RenderEntry, RenderModel
 
 # Common tech tokens to detect additions not in profile
 TECH_REGEX = re.compile(
@@ -70,9 +70,6 @@ class AntiHallucinationValidator:
         for fact in self._facts_by_id.values():
             for m in TECH_REGEX.finditer(fact.text):
                 self.whitelist.add(m.group(0).lower())
-            if fact.text_en:
-                for m in TECH_REGEX.finditer(fact.text_en):
-                    self.whitelist.add(m.group(0).lower())
 
     @staticmethod
     def extract_numbers(text: str) -> set[str]:
@@ -96,7 +93,7 @@ class AntiHallucinationValidator:
 
         primary_fact = cited_facts[0]
         # Option 1: Exact source fact text in requested language
-        source_text = primary_fact.get_text(lang).strip()
+        source_text = primary_fact.text.strip()
         options.append(source_text)
 
         # Option 2: Cleaned version removing unverified numbers or unauthorized tech
@@ -171,8 +168,6 @@ class AntiHallucinationValidator:
             original_numbers: set[str] = set()
             for fact in cited_facts:
                 original_numbers.update(self.extract_numbers(fact.text))
-                if fact.text_en:
-                    original_numbers.update(self.extract_numbers(fact.text_en))
                 parent_entry = self._entries_by_fact_id.get(fact.id)
                 if parent_entry:
                     original_numbers.update(self.extract_numbers(parent_entry.org))

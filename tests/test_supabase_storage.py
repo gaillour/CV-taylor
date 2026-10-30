@@ -157,7 +157,6 @@ def test_supabase_storage_repository_crud_and_immutability() -> None:
     updated_prof, fact, created = repo.upsert_fact(
         entry_id=first_entry_id,
         text="Nueva viñeta persistida en Supabase Cloud.",
-        lang="es",
     )
     assert created is True
     assert any(

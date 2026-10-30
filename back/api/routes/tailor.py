@@ -16,8 +16,10 @@ from back.engine import (
     TailoringPipeline,
     extract_job_spec,
 )
+from back.engine.mirror import build_mirror, resolve_profile
 from back.engine.models import LangCode, ThemeName
 from back.engine.storage import StorageRepository, get_repo_for_user
+from back.engine.translator import LLMTranslator
 
 router = APIRouter()
 
@@ -65,28 +67,39 @@ def tailor_cv(
 ) -> TailorResponse:
     """Adapt candidate profile to job offer with ATS feedback loop and 1-page fit."""
     try:
-        # 1. Resolve master profile
-        if payload.profile is not None:
-            active_profile = payload.profile
-        else:
-            active_profile = repo.get_profile()
-
-        # 2. Configure LLM client if requested
+        # 1. Configure LLM client if requested
         llm_client: LLMClient | None = None
         if not payload.no_llm:
             client_candidate = LLMClient()
             if client_candidate.is_configured:
                 llm_client = client_candidate
 
-        # 3. Extract JobSpec from offer text
+        # 2. Extract JobSpec from offer text
         job_spec = extract_job_spec(payload.offer_text, client=llm_client)
         if payload.lang is not None:
             job_spec = job_spec.model_copy(update={"lang": payload.lang})
 
         target_lang = payload.lang or job_spec.lang
+        translator = LLMTranslator(llm_client) if llm_client else None
+
+        # 3. Resolve master profile (base or derived mirror for target_lang)
+        if payload.profile is not None:
+            base_lang = payload.profile.base_lang
+            if target_lang == base_lang:
+                active_profile = payload.profile
+            else:
+                mirror_doc, _ = build_mirror(payload.profile, repo.get_mirror(), translator)
+                active_profile = mirror_doc.profile
+        else:
+            base_lang = repo.get_profile().base_lang
+            active_profile = resolve_profile(repo, target_lang, translator=translator)
 
         # 4. Run tailoring pipeline with Typst compilation
-        pipeline = TailoringPipeline(active_profile, client=llm_client)
+        pipeline = TailoringPipeline(
+            active_profile,
+            client=llm_client,
+            is_translated=(target_lang != base_lang),
+        )
         result = pipeline.run(
             job_spec,
             theme=payload.theme,

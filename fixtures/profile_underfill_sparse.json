@@ -1,8 +1,7 @@
 {
   "id": "underfill_sparse_fixture",
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "full_name": "Lucía Valentina Quiroga",
-  "default_lang": "es",
   "contact": {
     "email": "lucia.quiroga@example.com",
     "phone": "+54 223 511-4090",
@@ -10,6 +9,7 @@
     "github": "github.com/lquiroga",
     "linkedin": "linkedin.com/in/lquiroga"
   },
+  "base_lang": "es",
   "summary": "Desarrolladora Backend Python y estudiante avanzada de Ingeniería Informática con experiencia en diseño de APIs REST con FastAPI, modelado relacional en PostgreSQL y automatización en Linux.",
   "skills": [
     {
@@ -21,7 +21,10 @@
       ],
       "tags": [
         "dev"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "sk_sql",
@@ -32,7 +35,10 @@
       ],
       "tags": [
         "dev"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "sk_ts",
@@ -43,7 +49,10 @@
       ],
       "tags": [
         "dev"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "sk_fastapi",
@@ -54,7 +63,10 @@
       ],
       "tags": [
         "dev"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "sk_pg",
@@ -65,7 +77,10 @@
       ],
       "tags": [
         "dev"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "sk_docker",
@@ -77,25 +92,36 @@
       ],
       "tags": [
         "dev"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "sk_es",
       "name": "Español",
       "category": "Idiomas",
+      "aliases": [],
       "level": "Nativo",
       "tags": [
         "dev"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "sk_en",
       "name": "Inglés",
       "category": "Idiomas",
+      "aliases": [],
       "level": "Avanzado",
       "tags": [
         "dev"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     }
   ],
   "entries": [
@@ -107,26 +133,29 @@
       "start_date": "2025-04",
       "end_date": "present",
       "date_precision": "month",
+      "context": "",
       "position": 1,
+      "archived": false,
       "default_selected": true,
       "archetypes": [
         "dev"
       ],
       "min_bullets": 1,
+      "max_bullets": 4,
       "titles": [
         {
           "id": "t_austral_es",
           "title": "Desarrolladora Backend Python",
-          "lang": "es",
           "archetype": "dev",
-          "is_default": true
+          "is_default": true,
+          "source": "user",
+          "approved": true
         }
       ],
       "facts": [
         {
           "id": "f_aus_1",
           "text": "Desarrollo de servicios backend en FastAPI y PostgreSQL para gestión de inventario y facturación electrónica con validación estricta mediante Pydantic.",
-          "lang": "es",
           "tags": [
             "dev"
           ],
@@ -138,12 +167,14 @@
           "position": 1,
           "pinned": true,
           "weight": 100,
-          "default_selected": true
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "f_aus_2",
           "text": "Implementación de migraciones relacionales versionadas, índices de búsqueda y pruebas automatizadas con pytest en entornos contenerizados Docker.",
-          "lang": "es",
           "tags": [
             "dev"
           ],
@@ -155,12 +186,14 @@
           "position": 2,
           "pinned": false,
           "weight": 90,
-          "default_selected": true
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "f_aus_3",
           "text": "Optimización de tareas programadas de sincronización de catálogos y monitoreo de errores operativos en servidores Linux.",
-          "lang": "es",
           "tags": [
             "dev"
           ],
@@ -171,9 +204,13 @@
           "position": 3,
           "pinned": false,
           "weight": 85,
-          "default_selected": false
+          "default_selected": false,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         }
-      ]
+      ],
+      "skill_ids": []
     },
     {
       "id": "exp_unmdp_lab",
@@ -183,26 +220,29 @@
       "start_date": "2024-03",
       "end_date": "2025-03",
       "date_precision": "month",
+      "context": "",
       "position": 2,
+      "archived": false,
       "default_selected": true,
       "archetypes": [
         "dev"
       ],
       "min_bullets": 1,
+      "max_bullets": 4,
       "titles": [
         {
           "id": "t_lab_es",
           "title": "Ayudante de Segunda y Desarrolladora de Herramientas Internas",
-          "lang": "es",
           "archetype": "dev",
-          "is_default": true
+          "is_default": true,
+          "source": "user",
+          "approved": true
         }
       ],
       "facts": [
         {
           "id": "f_lab_1",
           "text": "Automatización de corrección de entregas prácticas mediante scripts en Python y entornos aislados en contenedores Docker.",
-          "lang": "es",
           "tags": [
             "dev"
           ],
@@ -213,12 +253,14 @@
           "position": 1,
           "pinned": true,
           "weight": 92,
-          "default_selected": true
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "f_lab_2",
           "text": "Asistencia técnica en consultas de programación estructurada, estructuras de datos y administración básica de Linux.",
-          "lang": "es",
           "tags": [
             "dev"
           ],
@@ -229,9 +271,13 @@
           "position": 2,
           "pinned": false,
           "weight": 82,
-          "default_selected": true
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         }
-      ]
+      ],
+      "skill_ids": []
     },
     {
       "id": "proj_turnos_api",
@@ -240,26 +286,29 @@
       "start_date": "2025",
       "date_precision": "year",
       "link": "github.com/lquiroga/turnosmed",
+      "context": "",
       "position": 10,
+      "archived": false,
       "default_selected": true,
       "archetypes": [
         "dev"
       ],
       "min_bullets": 1,
+      "max_bullets": 4,
       "titles": [
         {
           "id": "t_tmed_es",
           "title": "TurnosMed — Sistema de Gestión de Turnos Clínicos",
-          "lang": "es",
           "archetype": "dev",
-          "is_default": true
+          "is_default": true,
+          "source": "user",
+          "approved": true
         }
       ],
       "facts": [
         {
           "id": "f_tmed_1",
           "text": "API RESTful en FastAPI y PostgreSQL con control de concurrencia pesimista para evitar solapamientos en reservas de consultorios.",
-          "lang": "es",
           "tags": [
             "dev"
           ],
@@ -270,12 +319,14 @@
           "position": 1,
           "pinned": true,
           "weight": 95,
-          "default_selected": true
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "f_tmed_2",
           "text": "Panel web en TypeScript para administración de agendas profesionales y envío automatizado de recordatorios.",
-          "lang": "es",
           "tags": [
             "dev"
           ],
@@ -285,9 +336,13 @@
           "position": 2,
           "pinned": false,
           "weight": 80,
-          "default_selected": true
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         }
-      ]
+      ],
+      "skill_ids": []
     },
     {
       "id": "proj_log_analyzer",
@@ -296,26 +351,29 @@
       "start_date": "2024",
       "date_precision": "year",
       "link": "github.com/lquiroga/logmetrics",
+      "context": "",
       "position": 11,
+      "archived": false,
       "default_selected": true,
       "archetypes": [
         "dev"
       ],
       "min_bullets": 1,
+      "max_bullets": 4,
       "titles": [
         {
           "id": "t_logm_es",
           "title": "LogMetrics — Herramienta CLI de Análisis de Logs HTTP",
-          "lang": "es",
           "archetype": "dev",
-          "is_default": true
+          "is_default": true,
+          "source": "user",
+          "approved": true
         }
       ],
       "facts": [
         {
           "id": "f_logm_1",
           "text": "Procesador streaming en Python para agregación de percentiles de latencia, códigos de estado y detección de picos de tráfico en archivos de log masivos.",
-          "lang": "es",
           "tags": [
             "dev"
           ],
@@ -325,12 +383,14 @@
           "position": 1,
           "pinned": false,
           "weight": 88,
-          "default_selected": true
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "f_logm_2",
           "text": "Exportación de reportes estructurados en JSON y tablas Markdown para diagnóstico rápido de cuellos de botella en servidores web.",
-          "lang": "es",
           "tags": [
             "dev"
           ],
@@ -340,9 +400,13 @@
           "position": 2,
           "pinned": false,
           "weight": 76,
-          "default_selected": false
+          "default_selected": false,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         }
-      ]
+      ],
+      "skill_ids": []
     },
     {
       "id": "edu_unmdp_lq",
@@ -352,21 +416,26 @@
       "start_date": "2022-03",
       "end_date": "present",
       "date_precision": "month",
+      "context": "",
       "position": 20,
+      "archived": false,
       "default_selected": true,
       "archetypes": [
         "dev"
       ],
       "min_bullets": 0,
+      "max_bullets": 4,
       "titles": [
         {
           "id": "t_edu_lq",
           "title": "Ingeniería Informática",
-          "lang": "es",
-          "is_default": true
+          "is_default": true,
+          "source": "user",
+          "approved": true
         }
       ],
-      "facts": []
+      "facts": [],
+      "skill_ids": []
     }
   ]
 }

@@ -1,8 +1,7 @@
 {
   "id": "martin_soler",
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "full_name": "Martín Soler",
-  "default_lang": "es",
   "contact": {
     "email": "martin.soler.hpc@gmail.com",
     "phone": "+54 223 555-8492",
@@ -10,14 +9,13 @@
     "github": "github.com/martinsoler",
     "linkedin": "linkedin.com/in/martinsoler"
   },
+  "base_lang": "es",
   "summary": "Ingeniero de Infraestructura y Cómputo de Alto Rendimiento con más de 6 años de experiencia optimizando clusters de servidores Linux, compilación de kernels y bases de datos distribuidas. Especialista en automatización de cómputo paralelo, redes de baja latencia y monitoreo de hardware.",
-  "summary_en": "High-Performance Infrastructure and Computing Engineer with 6+ years of experience optimizing Linux server clusters, kernel compilation, and distributed databases. Specialist in parallel computing automation, low-latency networks, and hardware monitoring.",
   "skills": [
     {
       "id": "skill_linux",
       "name": "Linux Kernel",
       "category": "Sistemas",
-      "category_en": "Systems",
       "aliases": [
         "linux",
         "kernel",
@@ -27,13 +25,15 @@
       "tags": [
         "infra",
         "dev"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "skill_c",
       "name": "C / C++",
       "category": "Lenguajes",
-      "category_en": "Languages",
       "aliases": [
         "c",
         "cpp",
@@ -42,13 +42,15 @@
       "tags": [
         "infra",
         "dev"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "skill_networking",
       "name": "Redes y Ruteo",
       "category": "Infraestructura",
-      "category_en": "Infrastructure",
       "aliases": [
         "bgp",
         "tcp/ip",
@@ -57,39 +59,45 @@
       ],
       "tags": [
         "infra"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "skill_ansible",
       "name": "Ansible",
       "category": "Automatización",
-      "category_en": "Automation",
       "aliases": [
         "ansible",
         "playbooks"
       ],
       "tags": [
         "infra"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "skill_docker",
       "name": "Docker",
       "category": "Infraestructura",
-      "category_en": "Infrastructure",
       "aliases": [
         "docker",
         "containers"
       ],
       "tags": [
         "infra"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     },
     {
       "id": "skill_atencion",
       "name": "Atención a Usuarios",
       "category": "Habilidades Blandas",
-      "category_en": "Soft Skills",
       "aliases": [
         "atencion",
         "soporte",
@@ -97,7 +105,10 @@
       ],
       "tags": [
         "soporte"
-      ]
+      ],
+      "source": "user",
+      "approved": true,
+      "marked_for_removal": false
     }
   ],
   "entries": [
@@ -111,14 +122,17 @@
       "date_precision": "month",
       "context": "Administración integral de clúster con 64 nodos de cálculo.",
       "position": 1,
+      "archived": false,
+      "default_selected": true,
+      "archetypes": [],
       "min_bullets": 1,
       "max_bullets": 3,
       "titles": [
         {
           "id": "title_hpc_lead",
           "title": "Ingeniero Principal de Cómputo de Alto Rendimiento",
-          "lang": "es",
           "is_default": true,
+          "source": "user",
           "approved": true
         }
       ],
@@ -126,36 +140,52 @@
         {
           "id": "fact_hpc_slurm",
           "text": "Configuración y mantenimiento de clústeres Slurm administrando 64 nodos de cómputo paralelo.",
-          "lang": "es",
-          "weight": 90,
-          "default_selected": true,
+          "tags": [],
           "skill_ids": [
             "skill_linux"
-          ]
+          ],
+          "position": 0,
+          "pinned": false,
+          "weight": 90,
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "fact_hpc_storage",
           "text": "Despliegue de sistemas de almacenamiento masivo Ceph gestionando 1.2 Petabytes de datos brutos.",
-          "lang": "es",
-          "weight": 85,
-          "default_selected": true,
+          "tags": [],
           "skill_ids": [
             "skill_linux",
             "skill_networking"
-          ]
+          ],
+          "position": 0,
+          "pinned": false,
+          "weight": 85,
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "fact_hpc_kernel",
           "text": "Parcheo y compilación de módulos del kernel de Linux para aceleración por GPU sobre InfiniBand.",
-          "lang": "es",
-          "weight": 80,
-          "default_selected": true,
+          "tags": [],
           "skill_ids": [
             "skill_c",
             "skill_linux"
-          ]
+          ],
+          "position": 0,
+          "pinned": false,
+          "weight": 80,
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         }
-      ]
+      ],
+      "skill_ids": []
     },
     {
       "id": "exp_datacenter_sysadmin",
@@ -167,14 +197,17 @@
       "date_precision": "month",
       "context": "Gestión de servidores físicos y cableado en rack.",
       "position": 2,
+      "archived": false,
+      "default_selected": true,
+      "archetypes": [],
       "min_bullets": 1,
       "max_bullets": 3,
       "titles": [
         {
           "id": "title_sysadmin",
           "title": "Administrador de Sistemas de Datacenter",
-          "lang": "es",
           "is_default": true,
+          "source": "user",
           "approved": true
         }
       ],
@@ -182,34 +215,50 @@
         {
           "id": "fact_dc_racks",
           "text": "Montaje, inventario físico y cableado de más de 40 racks de servidores bajo estrictas normas térmicas.",
-          "lang": "es",
-          "weight": 85,
-          "default_selected": true,
+          "tags": [],
           "skill_ids": [
             "skill_networking"
-          ]
+          ],
+          "position": 0,
+          "pinned": false,
+          "weight": 85,
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "fact_dc_automation",
           "text": "Automatización del aprovisionamiento de 200 máquinas virtuales con Ansible y PXE boot.",
-          "lang": "es",
-          "weight": 80,
-          "default_selected": true,
+          "tags": [],
           "skill_ids": [
             "skill_ansible"
-          ]
+          ],
+          "position": 0,
+          "pinned": false,
+          "weight": 80,
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "fact_dc_hardware",
           "text": "Inspección periódica de fuentes de alimentación, control de temperatura y mantenimiento preventivo de hardware.",
-          "lang": "es",
-          "weight": 75,
-          "default_selected": true,
+          "tags": [],
           "skill_ids": [
             "skill_linux"
-          ]
+          ],
+          "position": 0,
+          "pinned": false,
+          "weight": 75,
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         }
-      ]
+      ],
+      "skill_ids": []
     },
     {
       "id": "exp_support_past",
@@ -221,14 +270,17 @@
       "date_precision": "month",
       "context": "Soporte técnico y despacho de componentes en local comercial.",
       "position": 3,
+      "archived": false,
+      "default_selected": true,
+      "archetypes": [],
       "min_bullets": 1,
       "max_bullets": 3,
       "titles": [
         {
           "id": "title_support_sales",
           "title": "Técnico de Soporte y Mostrador",
-          "lang": "es",
           "is_default": true,
+          "source": "user",
           "approved": true
         }
       ],
@@ -236,34 +288,50 @@
         {
           "id": "fact_support_clients",
           "text": "Atención personalizada a más de 30 clientes diarios asesorando sobre compatibilidad de partes y garantías.",
-          "lang": "es",
-          "weight": 95,
-          "default_selected": true,
+          "tags": [],
           "skill_ids": [
             "skill_atencion"
-          ]
+          ],
+          "position": 0,
+          "pinned": false,
+          "weight": 95,
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "fact_support_inventory",
           "text": "Recepción, control de stock y etiquetado semanal de mercadería e insumos de hardware en depósito.",
-          "lang": "es",
-          "weight": 95,
-          "default_selected": true,
+          "tags": [],
           "skill_ids": [
             "skill_atencion"
-          ]
+          ],
+          "position": 0,
+          "pinned": false,
+          "weight": 95,
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "fact_support_diagnostics",
           "text": "Diagnóstico técnico y reparación express de 15 equipos por semana en el taller del local.",
-          "lang": "es",
-          "weight": 70,
-          "default_selected": false,
+          "tags": [],
           "skill_ids": [
             "skill_linux"
-          ]
+          ],
+          "position": 0,
+          "pinned": false,
+          "weight": 70,
+          "default_selected": false,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         }
-      ]
+      ],
+      "skill_ids": []
     },
     {
       "id": "proj_iot_sensor",
@@ -272,15 +340,19 @@
       "start_date": "2023-01",
       "end_date": "2023-08",
       "date_precision": "month",
+      "context": "",
       "position": 1,
+      "archived": false,
+      "default_selected": true,
+      "archetypes": [],
       "min_bullets": 1,
       "max_bullets": 2,
       "titles": [
         {
           "id": "title_iot",
           "title": "Monitoreo Ambiental IoT para Servidores",
-          "lang": "es",
           "is_default": true,
+          "source": "user",
           "approved": true
         }
       ],
@@ -288,24 +360,35 @@
         {
           "id": "fact_iot_firmware",
           "text": "Desarrollo de firmware en C para microcontroladores ESP32 con lectura de temperatura y humedad en tiempo real.",
-          "lang": "es",
-          "weight": 85,
-          "default_selected": true,
+          "tags": [],
           "skill_ids": [
             "skill_c"
-          ]
+          ],
+          "position": 0,
+          "pinned": false,
+          "weight": 85,
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         },
         {
           "id": "fact_iot_telemetry",
           "text": "Transmisión de telemetría vía protocolo MQTT con almacenamiento de métricas en InfluxDB.",
-          "lang": "es",
-          "weight": 75,
-          "default_selected": true,
+          "tags": [],
           "skill_ids": [
             "skill_linux"
-          ]
+          ],
+          "position": 0,
+          "pinned": false,
+          "weight": 75,
+          "default_selected": true,
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         }
-      ]
+      ],
+      "skill_ids": []
     },
     {
       "id": "edu_unmdp_fisica",
@@ -315,15 +398,19 @@
       "start_date": "2014-03",
       "end_date": "2019-12",
       "date_precision": "year",
+      "context": "",
       "position": 1,
+      "archived": false,
+      "default_selected": true,
+      "archetypes": [],
       "min_bullets": 1,
       "max_bullets": 1,
       "titles": [
         {
           "id": "title_lic_fisica",
           "title": "Licenciatura en Ciencias Físicas",
-          "lang": "es",
           "is_default": true,
+          "source": "user",
           "approved": true
         }
       ],
@@ -331,12 +418,18 @@
         {
           "id": "fact_edu_fisica",
           "text": "Formación en métodos cuantitativos, modelado matemático y análisis experimental riguroso.",
-          "lang": "es",
+          "tags": [],
+          "skill_ids": [],
+          "position": 0,
+          "pinned": false,
           "weight": 80,
           "default_selected": true,
-          "skill_ids": []
+          "source": "user",
+          "approved": true,
+          "marked_for_removal": false
         }
-      ]
+      ],
+      "skill_ids": []
     }
   ]
 }

@@ -17,10 +17,8 @@ export interface Skill {
   id: string;
   name: string;
   category: string;
-  category_en?: string | null;
   aliases?: string[];
   level?: string | null;
-  level_en?: string | null;
   tags?: string[];
   source?: TitleSource;
   approved?: boolean;
@@ -33,7 +31,6 @@ export interface EntryTitle {
   id: string;
   entry_id?: string | null;
   title: string;
-  lang?: LangCode;
   archetype?: string | null;
   is_default?: boolean;
   source?: TitleSource;
@@ -45,8 +42,6 @@ export interface Fact {
   id: string;
   entry_id?: string | null;
   text: string;
-  text_en?: string | null;
-  lang?: LangCode;
   tags?: string[];
   skill_ids?: string[];
   position?: number;
@@ -81,7 +76,6 @@ export interface Entry {
   kind: EntryKind;
   org: string;
   location?: string | null;
-  location_en?: string | null;
   start_date: string;
   end_date?: string | null;
   date_precision?: DatePrecision;
@@ -98,16 +92,28 @@ export interface Entry {
   skill_ids?: string[];
 }
 
+export type MirrorStatus = "ok" | "partial";
+
 export interface Profile {
   id: string;
   schema_version: string;
   full_name: string;
   contact: ContactInfo;
-  default_lang: LangCode;
+  base_lang: LangCode;
   summary?: string | null;
-  summary_en?: string | null;
   skills: Skill[];
   entries: Entry[];
+}
+
+export interface MirrorResponse {
+  profile: Profile;
+  mirror_status: MirrorStatus;
+}
+
+export interface SwapBaseResponse {
+  profile: Profile;
+  mirror: Profile;
+  mirror_status: MirrorStatus;
 }
 
 export interface RenderSkillGroup {

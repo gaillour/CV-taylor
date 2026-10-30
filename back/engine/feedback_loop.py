@@ -42,8 +42,11 @@ class TailoringPipeline:
         self,
         profile: Profile,
         client: LLMClient | None = None,
+        *,
+        is_translated: bool = False,
     ) -> None:
         self.profile = profile
+        self.is_translated = is_translated
         self.client = client or LLMClient()
         self.tailor_engine = TailorEngine(profile, client=self.client)
         self.validator = AntiHallucinationValidator(profile)
@@ -160,12 +163,12 @@ class TailoringPipeline:
                     )
                     if not already_in:
                         # Append to matching or first skill group
-                        cat_label = sk.category_label(current_model.lang)
+                        cat_label = sk.category_label()
                         matched_group = next(
                             (g for g in current_model.skills if g.category == cat_label), None
                         )
                         if matched_group:
-                            sk_label = sk.display_label(current_model.lang)
+                            sk_label = sk.display_label()
                             matched_group.items = f"{matched_group.items}, {sk_label}"
                             matched_group.skill_ids.append(sk.id)
                             remedied = True
@@ -178,9 +181,7 @@ class TailoringPipeline:
         fitted_model, fit_report = fit_render_model(current_model, candidate_pool=self.profile)
 
         # 4b. Single editorial consistency pass if pruning occurred or language differs
-        needs_harmonize = bool(fit_report.pruned_fact_ids) or (
-            current_model.lang != self.profile.default_lang
-        )
+        needs_harmonize = bool(fit_report.pruned_fact_ids) or self.is_translated
         if use_llm and self.client.is_configured and needs_harmonize:
             harmonized_model = self.tailor_engine.harmonize_resume(fitted_model, job_spec)
             second_model, second_fit = fit_render_model(

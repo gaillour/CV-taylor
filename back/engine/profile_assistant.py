@@ -175,7 +175,7 @@ def _is_valid_rewrite(
 def _detect_missing_skills_deterministic(profile: Profile) -> list[Skill]:
     """Scan all entry contexts, titles, and facts for canonical skills absent from profile."""
     known = _known_skill_tokens(profile.skills)
-    corpus_parts: list[str] = [profile.summary or "", profile.summary_en or ""]
+    corpus_parts: list[str] = [profile.summary or ""]
     for entry in profile.entries:
         corpus_parts.append(entry.org)
         corpus_parts.append(entry.context)
@@ -199,8 +199,7 @@ def _detect_missing_skills_deterministic(profile: Profile) -> list[Skill]:
                 Skill(
                     id=_short_id("skill_ai"),
                     name=kw,
-                    category=cat_es,
-                    category_en=cat_en,
+                    category=cat_en if profile.base_lang == "en" else cat_es,
                     aliases=[kw.lower()],
                     tags=["dev"],
                     source="ai",
@@ -238,7 +237,6 @@ def _distill_context_deterministic(entry: Entry, lang: LangCode) -> list[Fact]:
                 id=_short_id("fact_ai"),
                 entry_id=entry.id,
                 text=polished,
-                lang=lang,
                 tags=list(entry.archetypes) or ["dev"],
                 skill_ids=[],
                 position=next_pos,
@@ -324,7 +322,6 @@ def _suggest_titles_deterministic(entry: Entry, lang: LangCode) -> list[EntryTit
                 id=_short_id("title_ai"),
                 entry_id=entry.id,
                 title=title_str,
-                lang=lang,
                 archetype=arch,
                 is_default=False,
                 source="ai",
@@ -362,7 +359,7 @@ def _enhance_with_llm(
         )
 
     existing_skills = [s.name for s in profile.skills]
-    lang = profile.default_lang
+    lang = profile.base_lang
 
     system_prompt = (
         "You are an elite technical resume editor and ATS specialist.\n"
@@ -510,7 +507,6 @@ def _enhance_with_llm(
                             id=_short_id("fact_ai"),
                             entry_id=entry.id,
                             text=clean_d,
-                            lang=lang,
                             tags=list(entry.archetypes) or ["dev"],
                             skill_ids=[],
                             position=next_pos,
@@ -557,7 +553,6 @@ def _enhance_with_llm(
                         id=_short_id("title_ai"),
                         entry_id=entry.id,
                         title=t_str,
-                        lang=lang,
                         archetype=arch,
                         is_default=False,
                         source="ai",
@@ -660,146 +655,7 @@ def clean_and_deduplicate_profile(profile: Profile) -> Profile:
             if norm_fact not in seen_facts:
                 seen_facts.append(norm_fact)
                 unique_facts.append(fact)
-            else:
-                idx = seen_facts.index(norm_fact)
-                if not unique_facts[idx].text_en and fact.text_en:
-                    unique_facts[idx].text_en = fact.text_en
         entry.facts = unique_facts
-
-    return profile
-
-
-def mirror_bilingual_fields(profile: Profile, llm: LLMClient | None = None) -> Profile:
-    """Ensure every Entry has English titles and every Fact has English text."""
-    needs_summary_en = bool(profile.summary and not profile.summary_en)
-
-    entries_needing_title_en: list[Entry] = []
-    facts_needing_text_en: list[Fact] = []
-
-    for entry in profile.entries:
-        has_en_title = any(t.lang == "en" and t.approved for t in entry.titles)
-        if not has_en_title and entry.titles:
-            entries_needing_title_en.append(entry)
-        for fact in entry.facts:
-            if not fact.text_en and fact.text:
-                facts_needing_text_en.append(fact)
-
-    if not needs_summary_en and not entries_needing_title_en and not facts_needing_text_en:
-        return profile
-
-    if llm is not None and llm.is_configured:
-        titles_payload = [
-            {"entry_id": e.id, "title": e.select_title().title}
-            for e in entries_needing_title_en
-        ]
-        facts_payload = [
-            {"fact_id": f.id, "text": f.text}
-            for f in facts_needing_text_en
-        ]
-
-        system_prompt = (
-            "You are a professional technical translator for engineering CVs.\n"
-            "Translate the provided Spanish CV fields into executive English.\n"
-            "STRICT INVARIANTS:\n"
-            "1. NEVER alter, invent, or omit numbers, percentages, latencies, or dates. Every single metric must match verbatim.\n"
-            "2. Preserve all technology names exactly (e.g. FastAPI, PostgreSQL, Docker, AWS).\n"
-            "3. Use strong action verbs in past tense (e.g. 'Developed', 'Designed', 'Architected').\n"
-            "Return ONLY a JSON object matching:\n"
-            "{\n"
-            '  "summary_en": "..." or null,\n'
-            '  "titles": [{"entry_id": "...", "title_en": "..."}],\n'
-            '  "facts": [{"fact_id": "...", "text_en": "..."}]\n'
-            "}"
-        )
-        user_prompt = (
-            f"Summary to translate: {profile.summary or ''}\n"
-            f"Titles to translate:\n{titles_payload}\n"
-            f"Facts to translate:\n{facts_payload}"
-        )
-
-        try:
-            res = llm.parse_json_completion(
-                [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=0.1,
-            )
-            if isinstance(res, dict):
-                if needs_summary_en and res.get("summary_en"):
-                    profile.summary_en = str(res["summary_en"]).strip()
-
-                raw_titles = res.get("titles") or []
-                if isinstance(raw_titles, list):
-                    titles_by_eid = {
-                        str(item.get("entry_id")): str(item.get("title_en")).strip()
-                        for item in raw_titles
-                        if isinstance(item, dict) and item.get("entry_id") and item.get("title_en")
-                    }
-                    for entry in entries_needing_title_en:
-                        if entry.id in titles_by_eid:
-                            t_en = titles_by_eid[entry.id]
-                            entry.titles.append(
-                                EntryTitle(
-                                    id=f"title_{entry.id}_en",
-                                    entry_id=entry.id,
-                                    title=t_en,
-                                    lang="en",
-                                    is_default=False,
-                                    source="user",
-                                    approved=True,
-                                )
-                            )
-
-                raw_facts = res.get("facts") or []
-                if isinstance(raw_facts, list):
-                    facts_by_fid = {
-                        str(item.get("fact_id")): str(item.get("text_en")).strip()
-                        for item in raw_facts
-                        if isinstance(item, dict) and item.get("fact_id") and item.get("text_en")
-                    }
-                    for fact in facts_needing_text_en:
-                        if fact.id in facts_by_fid:
-                            fact.text_en = facts_by_fid[fact.id]
-                return profile
-        except Exception:
-            pass
-
-    # Deterministic fallback when no LLM or LLM fails
-    for entry in entries_needing_title_en:
-        orig_t = entry.select_title().title
-        t_en = orig_t
-        for es_term, en_term in [
-            ("Desarrollador Backend", "Backend Developer"),
-            ("Desarrollador Frontend", "Frontend Developer"),
-            ("Desarrollador Fullstack", "Fullstack Developer"),
-            ("Desarrollador de Software", "Software Developer"),
-            ("Desarrollador", "Developer"),
-            ("Ingeniero de Software", "Software Engineer"),
-            ("Ingeniero", "Engineer"),
-            ("Líder Técnico", "Tech Lead"),
-            ("Arquitecto", "Architect"),
-            ("Pasantía", "Internship"),
-            ("Pasante", "Intern"),
-            ("Tutor", "Teaching Assistant"),
-            ("Profesor", "Professor"),
-        ]:
-            t_en = t_en.replace(es_term, en_term)
-        entry.titles.append(
-            EntryTitle(
-                id=f"title_{entry.id}_en",
-                entry_id=entry.id,
-                title=t_en,
-                lang="en",
-                is_default=False,
-                source="user",
-                approved=True,
-            )
-        )
-
-    for fact in facts_needing_text_en:
-        if not fact.text_en:
-            fact.text_en = fact.text
 
     return profile
 
@@ -820,7 +676,7 @@ def enhance_profile(profile: Profile, llm: LLMClient | None = None) -> EnhancePr
             f.proposed_text = None
 
     stats = EnhanceStats()
-    lang = working.default_lang
+    lang = working.base_lang
     used_llm = False
 
     if llm is not None and llm.is_configured:
@@ -859,8 +715,6 @@ def enhance_profile(profile: Profile, llm: LLMClient | None = None) -> EnhancePr
             if sug_titles:
                 entry.titles.extend(sug_titles)
                 stats.suggested_titles += len(sug_titles)
-
-    mirror_bilingual_fields(working, llm=llm if used_llm else None)
 
     return EnhanceProfileResponse(
         profile=working,

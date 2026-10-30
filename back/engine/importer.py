@@ -76,9 +76,8 @@ SYSTEM_PROMPT = """You are an expert ATS curriculum vitae parser.
 Extract the candidate's profile into structured JSON matching this exact schema:
 {
   "full_name": "Full Name",
-  "default_lang": "es" or "en",
+  "base_lang": "es" or "en",
   "summary": "Professional summary in original resume language or null",
-  "summary_en": "Professional summary translated into English (or Spanish if original resume was in English) or null",
   "contact": {
     "email": "candidate email",
     "phone": "candidate phone",
@@ -99,15 +98,11 @@ Extract the candidate's profile into structured JSON matching this exact schema:
       "kind": "experience" | "project" | "education",
       "org": "Organization, Company, Institution, or Project name",
       "title": "Role title or degree obtained in original language",
-      "title_en": "Role title translated into English (or Spanish if original was in English)",
       "location": "Location or Remote or null",
       "start_date": "YYYY-MM or YYYY",
       "end_date": "YYYY-MM or YYYY or Presente or null",
       "bullets": [
         "Measurable accomplishment or atomic fact in original language..."
-      ],
-      "bullets_en": [
-        "Exact English translation of accomplishment preserving identical numbers, metrics, and tools..."
       ]
     }
   ]
@@ -381,7 +376,7 @@ def _build_profile_from_dict(
     default_lang: LangCode | None = None,
 ) -> Profile:
     """Build and validate a Profile from structured dictionary, applying deterministic rules."""
-    lang: LangCode = default_lang or data.get("default_lang") or "es"
+    lang: LangCode = default_lang or data.get("base_lang") or data.get("default_lang") or "es"
     if lang not in {"es", "en"}:
         lang = "es"
 
@@ -476,7 +471,6 @@ def _build_profile_from_dict(
                 id=f"title_{entry_id}_default",
                 entry_id=entry_id,
                 title=title_text,
-                lang=lang,
                 is_default=True,
                 source="user",
                 approved=True,
@@ -493,7 +487,6 @@ def _build_profile_from_dict(
                         id=f"fact_{entry_id}_{b_idx + 1}",
                         entry_id=entry_id,
                         text=bullet_str,
-                        lang=lang,
                         position=b_idx,
                         pinned=False,
                         weight=100,
@@ -562,7 +555,7 @@ def _build_profile_from_dict(
         schema_version="1.0.0",
         full_name=full_name,
         contact=contact,
-        default_lang=lang,
+        base_lang=lang,
         summary=str(data.get("summary")).strip() if data.get("summary") else None,
         skills=skills,
         entries=all_entries,
@@ -720,7 +713,7 @@ def _parse_profile_heuristic(
 
     raw_profile = {
         "full_name": full_name,
-        "default_lang": lang,
+        "base_lang": lang,
         "summary": summary_text,
         "contact": {
             "email": email,
@@ -745,7 +738,7 @@ def _parse_profile_heuristic(
                 phone=phone or "+00 000 0000",
                 location="Remoto",
             ),
-            default_lang=lang,
+            base_lang=lang,
             summary=summary_text,
             skills=[],
             entries=[],
@@ -906,9 +899,6 @@ def merge_profiles(base: Profile, incoming: Profile) -> Profile:
     )
 
     summary = base.summary if (base.summary and base.summary.strip()) else incoming.summary
-    summary_en = (
-        base.summary_en if (base.summary_en and base.summary_en.strip()) else incoming.summary_en
-    )
 
     # 2. Skills (additive union)
     merged_skills: list[Skill] = [s.model_copy(deep=True) for s in base.skills]
@@ -982,7 +972,6 @@ def merge_profiles(base: Profile, incoming: Profile) -> Profile:
                         id=title_id,
                         entry_id=target.id,
                         title=inc_t.title.strip(),
-                        lang=inc_t.lang,
                         archetype=inc_t.archetype,
                         is_default=not has_default,
                         source="user",
@@ -1089,9 +1078,14 @@ def merge_profiles(base: Profile, incoming: Profile) -> Profile:
         schema_version=base.schema_version or "1.0.0",
         full_name=full_name,
         contact=contact,
-        default_lang=base.default_lang or incoming.default_lang,
+        base_lang=(
+            incoming.base_lang
+            if (not base_name_clean or base_name_clean.lower() in _DUMMY_NAMES)
+            and len(base.entries) == 0
+            else base.base_lang
+        )
+        or incoming.base_lang,
         summary=summary,
-        summary_en=summary_en,
         skills=merged_skills,
         entries=sorted_entries,
     )

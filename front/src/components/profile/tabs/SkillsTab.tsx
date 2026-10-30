@@ -4,6 +4,7 @@ import { Skill } from "@/types/cv";
 
 export function SkillsTab({
   skills,
+  readOnly = false,
   onAddSkill,
   onRemoveSkill,
   onApproveSkill,
@@ -12,6 +13,7 @@ export function SkillsTab({
   onDismissSkillRemoval,
 }: {
   skills: Skill[];
+  readOnly?: boolean;
   onAddSkill: (s: Skill) => void;
   onRemoveSkill: (id: string) => void;
   onApproveSkill: (id: string) => void;
@@ -29,7 +31,7 @@ export function SkillsTab({
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSkillName.trim()) return;
+    if (readOnly || !newSkillName.trim()) return;
     const cleanId = `skill_${newSkillName.toLowerCase().replace(/[^a-z0-9]/g, "_")}_${Date.now()}`;
     onAddSkill({
       id: cleanId,
@@ -55,39 +57,41 @@ export function SkillsTab({
       </div>
 
       {/* Agregar rápida */}
-      <form
-        onSubmit={handleAdd}
-        className="flex flex-wrap items-center gap-2 bg-zinc-950 border border-zinc-800 p-2.5 rounded-lg"
-      >
-        <input
-          type="text"
-          placeholder="Habilidad (ej: FastAPI, Docker)"
-          value={newSkillName}
-          onChange={(e) => setNewSkillName(e.target.value)}
-          className="flex-1 min-w-[150px] bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50"
-        />
-        <input
-          type="text"
-          placeholder="Categoría (ej: Lenguajes, DevOps)"
-          value={newSkillCat}
-          onChange={(e) => setNewSkillCat(e.target.value)}
-          className="w-36 bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50"
-        />
-        <input
-          type="text"
-          placeholder="Nivel (opcional)"
-          value={newSkillLevel}
-          onChange={(e) => setNewSkillLevel(e.target.value)}
-          className="w-28 bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50"
-        />
-        <button
-          type="submit"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-md transition cursor-pointer shrink-0"
+      {!readOnly && (
+        <form
+          onSubmit={handleAdd}
+          className="flex flex-wrap items-center gap-2 bg-zinc-950 border border-zinc-800 p-2.5 rounded-lg"
         >
-          <Plus className="w-3.5 h-3.5" />
-          Agregar
-        </button>
-      </form>
+          <input
+            type="text"
+            placeholder="Habilidad (ej: FastAPI, Docker)"
+            value={newSkillName}
+            onChange={(e) => setNewSkillName(e.target.value)}
+            className="flex-1 min-w-[150px] bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50"
+          />
+          <input
+            type="text"
+            placeholder="Categoría (ej: Lenguajes, DevOps)"
+            value={newSkillCat}
+            onChange={(e) => setNewSkillCat(e.target.value)}
+            className="w-36 bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50"
+          />
+          <input
+            type="text"
+            placeholder="Nivel (opcional)"
+            value={newSkillLevel}
+            onChange={(e) => setNewSkillLevel(e.target.value)}
+            className="w-28 bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50"
+          />
+          <button
+            type="submit"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-md transition cursor-pointer shrink-0"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Agregar
+          </button>
+        </form>
+      )}
 
       {/* Categorías y Pills */}
       <div className="space-y-5">
@@ -102,8 +106,8 @@ export function SkillsTab({
 
               <div className="flex flex-wrap gap-2">
                 {catSkills.map((skill) => {
-                  const isPending = skill.approved === false;
-                  const isRemoval = Boolean(skill.marked_for_removal);
+                  const isPending = !readOnly && skill.approved === false;
+                  const isRemoval = !readOnly && Boolean(skill.marked_for_removal);
                   return (
                     <div
                       key={skill.id}
@@ -128,54 +132,55 @@ export function SkillsTab({
                         </span>
                       )}
 
-                      {isRemoval ? (
-                        <div className="inline-flex items-center gap-1 ml-1">
+                      {!readOnly &&
+                        (isRemoval ? (
+                          <div className="inline-flex items-center gap-1 ml-1">
+                            <button
+                              type="button"
+                              onClick={() => onConfirmSkillRemoval?.(skill.id)}
+                              className="p-0.5 rounded text-red-400 hover:text-red-300 hover:bg-red-500/20 cursor-pointer"
+                              title="Eliminar habilidad duplicada"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onDismissSkillRemoval?.(skill.id)}
+                              className="p-0.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer"
+                              title="Conservar habilidad"
+                            >
+                              <Check className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : isPending ? (
+                          <div className="inline-flex items-center gap-1 ml-1">
+                            <button
+                              type="button"
+                              onClick={() => onApproveSkill(skill.id)}
+                              className="p-0.5 rounded text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 cursor-pointer"
+                              title="Aprobar habilidad sugerida"
+                            >
+                              <Check className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onRejectSkill(skill.id)}
+                              className="p-0.5 rounded text-red-400 hover:text-red-300 hover:bg-red-500/20 cursor-pointer"
+                              title="Descartar sugerencia"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
                           <button
                             type="button"
-                            onClick={() => onConfirmSkillRemoval?.(skill.id)}
-                            className="p-0.5 rounded text-red-400 hover:text-red-300 hover:bg-red-500/20 cursor-pointer"
-                            title="Eliminar habilidad duplicada"
+                            onClick={() => onRemoveSkill(skill.id)}
+                            className="text-zinc-600 hover:text-red-400 opacity-60 group-hover:opacity-100 transition ml-0.5 cursor-pointer"
+                            title="Eliminar habilidad"
                           >
                             <X className="w-3 h-3" />
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => onDismissSkillRemoval?.(skill.id)}
-                            className="p-0.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer"
-                            title="Conservar habilidad"
-                          >
-                            <Check className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ) : isPending ? (
-                        <div className="inline-flex items-center gap-1 ml-1">
-                          <button
-                            type="button"
-                            onClick={() => onApproveSkill(skill.id)}
-                            className="p-0.5 rounded text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 cursor-pointer"
-                            title="Aprobar habilidad sugerida"
-                          >
-                            <Check className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onRejectSkill(skill.id)}
-                            className="p-0.5 rounded text-red-400 hover:text-red-300 hover:bg-red-500/20 cursor-pointer"
-                            title="Descartar sugerencia"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => onRemoveSkill(skill.id)}
-                          className="text-zinc-600 hover:text-red-400 opacity-60 group-hover:opacity-100 transition ml-0.5 cursor-pointer"
-                          title="Eliminar habilidad"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
+                        ))}
                     </div>
                   );
                 })}

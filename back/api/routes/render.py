@@ -42,7 +42,9 @@ def preview_cv(
             active_model = payload.render_model
         else:
             profile = repo.get_profile()
-            active_model = RenderModel.from_profile(profile, theme="classic", lang="es")
+            active_model = RenderModel.from_profile(
+                profile, theme="classic", lang=profile.base_lang
+            )
 
         # Ensure physical typography matches the requested density
         active_model.design = DesignKnobs.from_density(

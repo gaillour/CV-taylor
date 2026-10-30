@@ -48,7 +48,6 @@ def test_update_profile_success(isolated_profile: Path) -> None:
             "id": "skill_rust",
             "name": "Rust",
             "category": "Lenguajes",
-            "category_en": "Languages",
             "aliases": ["rust", "rs"],
             "tags": ["systems"],
         }
@@ -225,7 +224,7 @@ def test_enhance_profile_endpoint_deterministic(isolated_profile: Path, monkeypa
         "id": "default",
         "schema_version": "1.0.0",
         "full_name": "Juan Dev",
-        "default_lang": "es",
+        "base_lang": "es",
         "contact": {
             "email": "juan@example.com",
             "phone": "+54 223 555",
@@ -505,7 +504,6 @@ def test_upsert_bullet_fact_updates_existing_and_creates_new(isolated_profile: P
                 "entry_id": entry_id,
                 "fact_id": first_fact_id,
                 "text": "Texto editado desde el CV y sincronizado al perfil maestro.",
-                "lang": "es",
             },
         )
         assert update_res.status_code == 200, update_res.text
@@ -523,7 +521,6 @@ def test_upsert_bullet_fact_updates_existing_and_creates_new(isolated_profile: P
             "entry_id": entry_id,
             "fact_id": None,
             "text": "Nuevo logro añadido desde el editor de CV.",
-            "lang": "es",
             "skill_ids": ["python"],
         },
     )

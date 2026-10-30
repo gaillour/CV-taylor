@@ -33,10 +33,15 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
   const [collapsedEntries, setCollapsedEntries] = useState<Record<string, boolean>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const profile = useProfileStore((s) => s.profile);
+  const mirror = useProfileStore((s) => s.mirror);
+  const loadMirror = useProfileStore((s) => s.loadMirror);
   const cvLang = (useCvStore((s) => s.renderModel?.lang) as "es" | "en") || "es";
   const [importLang, setImportLang] = useState<"es" | "en">(cvLang);
 
-  const availableProfileProjects = (profile?.entries || []).filter(
+  const sourceProfile =
+    profile && importLang !== profile.base_lang ? mirror || profile : profile;
+
+  const availableProfileProjects = (sourceProfile?.entries || []).filter(
     (e): e is Entry => e.kind === "project" || (e.kind as string) === "projects"
   );
 
@@ -46,7 +51,17 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
 
   const handleOpenModal = () => {
     setImportLang(cvLang);
+    if (profile && cvLang !== profile.base_lang && !mirror) {
+      loadMirror();
+    }
     setIsModalOpen(true);
+  };
+
+  const handleSelectImportLang = (lang: "es" | "en") => {
+    setImportLang(lang);
+    if (profile && lang !== profile.base_lang && !mirror) {
+      loadMirror();
+    }
   };
 
   const handleToggleEntry = (index: number) => {
@@ -85,32 +100,25 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
     }, 60);
   };
 
-  const handleAddFromProfile = (proj: Entry, langChoice?: "es" | "en") => {
-    const chosenLang = langChoice || importLang;
+  const handleAddFromProfile = (proj: Entry) => {
     const title =
-      proj.titles?.find((t) => (t.lang || "es") === chosenLang)?.title ||
+      proj.titles?.find((t) => t.is_default)?.title ||
       proj.titles?.[0]?.title ||
       proj.org ||
       "Proyecto";
     const dateLabel = proj.end_date
       ? `${proj.start_date} - ${proj.end_date}`
       : proj.start_date || "";
-    const bullets: RenderBullet[] = (proj.facts || []).map((f, i) => {
-      const bulletText =
-        chosenLang === "en" && f.text_en && f.text_en.trim()
-          ? f.text_en.trim()
-          : f.text;
-      return {
-        text: bulletText,
-        selected: true,
-        priority: f.weight || 100,
-        pinned: f.pinned || false,
-        position: f.position ?? (i + 1),
-        fact_ids: [f.id],
-        skill_ids: f.skill_ids || [],
-        suggested_alternatives: [],
-      };
-    });
+    const bullets: RenderBullet[] = (proj.facts || []).map((f, i) => ({
+      text: f.text,
+      selected: true,
+      priority: f.weight || 100,
+      pinned: f.pinned || false,
+      position: f.position ?? (i + 1),
+      fact_ids: [f.id],
+      skill_ids: f.skill_ids || [],
+      suggested_alternatives: [],
+    }));
 
     const newId = createProjectId();
     const newEntry: RenderEntry = {
@@ -223,7 +231,7 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
               <div className="flex items-center bg-zinc-950 border border-zinc-800 p-0.5 rounded-lg">
                 <button
                   type="button"
-                  onClick={() => setImportLang("es")}
+                  onClick={() => handleSelectImportLang("es")}
                   className={`px-2.5 py-1 text-xs font-medium rounded-md transition cursor-pointer ${
                     importLang === "es"
                       ? "bg-zinc-800 text-zinc-100 shadow-sm border border-zinc-700/60"
@@ -234,7 +242,7 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setImportLang("en")}
+                  onClick={() => handleSelectImportLang("en")}
                   className={`px-2.5 py-1 text-xs font-medium rounded-md transition cursor-pointer ${
                     importLang === "en"
                       ? "bg-zinc-800 text-zinc-100 shadow-sm border border-zinc-700/60"
@@ -255,7 +263,7 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
               <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                 {availableProfileProjects.map((proj) => {
                   const projTitle =
-                    proj.titles?.find((t) => (t.lang || "es") === importLang)?.title ||
+                    proj.titles?.find((t) => t.is_default)?.title ||
                     proj.titles?.[0]?.title ||
                     proj.org;
                   const alreadyInCv = entries.some(
@@ -286,7 +294,7 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
                       </div>
                       <button
                         type="button"
-                        onClick={() => handleAddFromProfile(proj, importLang)}
+                        onClick={() => handleAddFromProfile(proj)}
                         className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition cursor-pointer shrink-0"
                       >
                         + Insertar ({importLang.toUpperCase()})

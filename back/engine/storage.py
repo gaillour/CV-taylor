@@ -12,9 +12,11 @@ from fastapi import Depends
 
 from back.api.auth import UserContext, get_current_user, get_supabase_config
 from back.api.routes import export as export_routes
-from back.engine.models import Fact, LangCode, Profile
+from back.engine.mirror import ProfileMirror
+from back.engine.models import Fact, Profile
 from back.engine.profile_store import (
     create_empty_profile,
+    get_profile_path,
     load_profile,
     save_profile,
     upsert_fact_in_profile,
@@ -36,12 +38,15 @@ class StorageRepository(Protocol):
 
     def save_profile(self, profile: Profile) -> Profile: ...
 
+    def get_mirror(self) -> ProfileMirror | None: ...
+
+    def save_mirror(self, mirror: ProfileMirror) -> None: ...
+
     def upsert_fact(
         self,
         *,
         entry_id: str,
         text: str,
-        lang: LangCode,
         fact_id: str | None = None,
         skill_ids: list[str] | None = None,
     ) -> tuple[Profile, Fact, bool]: ...
@@ -102,12 +107,29 @@ class LocalStorageRepository:
     def save_profile(self, profile: Profile) -> Profile:
         return save_profile(profile, self.profile_path)
 
+    def _mirror_path(self) -> Path:
+        target = self.profile_path or get_profile_path()
+        return target.with_name(f"{target.stem}.mirror.json")
+
+    def get_mirror(self) -> ProfileMirror | None:
+        path = self._mirror_path()
+        if not path.is_file():
+            return None
+        try:
+            return ProfileMirror.model_validate_json(path.read_text(encoding="utf-8"))
+        except Exception:
+            return None
+
+    def save_mirror(self, mirror: ProfileMirror) -> None:
+        path = self._mirror_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(mirror.model_dump_json(indent=2, exclude_none=True), encoding="utf-8")
+
     def upsert_fact(
         self,
         *,
         entry_id: str,
         text: str,
-        lang: LangCode,
         fact_id: str | None = None,
         skill_ids: list[str] | None = None,
     ) -> tuple[Profile, Fact, bool]:
@@ -116,7 +138,6 @@ class LocalStorageRepository:
             prof,
             entry_id=entry_id,
             text=text,
-            lang=lang,
             fact_id=fact_id,
             skill_ids=skill_ids,
         )
@@ -246,12 +267,49 @@ class SupabaseStorageRepository:
             )
         return profile
 
+    def get_mirror(self) -> ProfileMirror | None:
+        with httpx.Client(timeout=15.0, transport=self.transport) as client:
+            res = client.get(
+                f"{self.url}/rest/v1/profiles",
+                params={"user_id": f"eq.{self.user_id}", "select": "mirror"},
+                headers=self._headers(),
+            )
+        if res.status_code == 400 and "42703" in res.text:
+            # Columna mirror no existe aún en la base de datos (migración pendiente)
+            return None
+        if res.status_code != 200:
+            raise RuntimeError(
+                f"Error al cargar espejo de Supabase ({res.status_code}): {res.text}"
+            )
+        rows = res.json()
+        if not rows or not rows[0].get("mirror"):
+            return None
+        try:
+            return ProfileMirror.model_validate(rows[0]["mirror"])
+        except Exception:
+            return None
+
+    def save_mirror(self, mirror: ProfileMirror) -> None:
+        with httpx.Client(timeout=15.0, transport=self.transport) as client:
+            res = client.patch(
+                f"{self.url}/rest/v1/profiles",
+                params={"user_id": f"eq.{self.user_id}"},
+                headers=self._headers({"Prefer": "return=minimal"}),
+                json={"mirror": mirror.model_dump(mode="json")},
+            )
+        if res.status_code in (400, 404) and "42703" in res.text:
+            # Columna mirror no existe aún en la base de datos (migración pendiente)
+            return
+        if res.status_code not in (200, 204):
+            raise RuntimeError(
+                f"Error al guardar espejo en Supabase ({res.status_code}): {res.text}"
+            )
+
     def upsert_fact(
         self,
         *,
         entry_id: str,
         text: str,
-        lang: LangCode,
         fact_id: str | None = None,
         skill_ids: list[str] | None = None,
     ) -> tuple[Profile, Fact, bool]:
@@ -260,7 +318,6 @@ class SupabaseStorageRepository:
             prof,
             entry_id=entry_id,
             text=text,
-            lang=lang,
             fact_id=fact_id,
             skill_ids=skill_ids,
         )

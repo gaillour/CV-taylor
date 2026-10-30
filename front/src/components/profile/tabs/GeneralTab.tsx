@@ -6,8 +6,7 @@ export function GeneralTab({
   fullName,
   contact,
   summary,
-  summaryEn,
-  activeEditLang = "es",
+  readOnly = false,
   onUpdateFullName,
   onUpdateContact,
   onUpdateSummary,
@@ -15,11 +14,10 @@ export function GeneralTab({
   fullName: string;
   contact: Profile["contact"];
   summary: string;
-  summaryEn: string;
-  activeEditLang?: "es" | "en";
+  readOnly?: boolean;
   onUpdateFullName: (name: string) => void;
   onUpdateContact: (c: Partial<Profile["contact"]>) => void;
-  onUpdateSummary: (s: string, lang?: "es" | "en") => void;
+  onUpdateSummary: (s: string) => void;
 }) {
   return (
     <div className="space-y-8">
@@ -37,8 +35,10 @@ export function GeneralTab({
             <input
               type="text"
               value={fullName}
+              readOnly={readOnly}
+              disabled={readOnly}
               onChange={(e) => onUpdateFullName(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
               placeholder="Juan Pérez"
             />
           </Field>
@@ -47,8 +47,10 @@ export function GeneralTab({
             <input
               type="email"
               value={contact.email}
+              readOnly={readOnly}
+              disabled={readOnly}
               onChange={(e) => onUpdateContact({ email: e.target.value })}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
               placeholder="juan@ejemplo.com"
             />
           </Field>
@@ -57,8 +59,10 @@ export function GeneralTab({
             <input
               type="text"
               value={contact.phone}
+              readOnly={readOnly}
+              disabled={readOnly}
               onChange={(e) => onUpdateContact({ phone: e.target.value })}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
               placeholder="+54 9 11 1234-5678"
             />
           </Field>
@@ -67,8 +71,10 @@ export function GeneralTab({
             <input
               type="text"
               value={contact.location}
+              readOnly={readOnly}
+              disabled={readOnly}
               onChange={(e) => onUpdateContact({ location: e.target.value })}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
               placeholder="Buenos Aires, Argentina"
             />
           </Field>
@@ -77,9 +83,11 @@ export function GeneralTab({
             <input
               type="text"
               value={contact.github || ""}
+              readOnly={readOnly}
+              disabled={readOnly}
               onChange={(e) => onUpdateContact({ github: e.target.value })}
               placeholder="github.com/usuario"
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
             />
           </Field>
 
@@ -87,9 +95,11 @@ export function GeneralTab({
             <input
               type="text"
               value={contact.linkedin || ""}
+              readOnly={readOnly}
+              disabled={readOnly}
               onChange={(e) => onUpdateContact({ linkedin: e.target.value })}
               placeholder="linkedin.com/in/usuario"
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
             />
           </Field>
         </div>
@@ -97,41 +107,24 @@ export function GeneralTab({
 
       {/* Resumen Profesional */}
       <section className="pt-6 border-t border-zinc-800/80 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-zinc-100">Resumen Profesional</h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Párrafo de introducción profesional ({activeEditLang === "en" ? "Versión en Inglés" : "Versión en Español"}).
-            </p>
-          </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 uppercase">
-            Editando: {activeEditLang}
-          </span>
+        <div>
+          <h2 className="text-sm font-semibold text-zinc-100">Resumen Profesional</h2>
+          <p className="text-xs text-zinc-400 mt-0.5">
+            Párrafo de introducción profesional para tus CVs.
+          </p>
         </div>
 
-        <div className="space-y-4">
-          {activeEditLang === "es" ? (
-            <Field label="Resumen (Español)">
-              <textarea
-                rows={3}
-                value={summary}
-                onChange={(e) => onUpdateSummary(e.target.value, "es")}
-                placeholder="Desarrollador de software con experiencia en..."
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 resize-y transition"
-              />
-            </Field>
-          ) : (
-            <Field label="Resumen (Inglés)">
-              <textarea
-                rows={3}
-                value={summaryEn}
-                onChange={(e) => onUpdateSummary(e.target.value, "en")}
-                placeholder={summary ? `Traducción al inglés de: "${summary.slice(0, 70)}..."` : "Software Engineer with experience in..."}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 resize-y transition"
-              />
-            </Field>
-          )}
-        </div>
+        <Field label="Resumen">
+          <textarea
+            rows={3}
+            value={summary}
+            readOnly={readOnly}
+            disabled={readOnly}
+            onChange={(e) => onUpdateSummary(e.target.value)}
+            placeholder="Desarrollador de software con experiencia en..."
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 resize-y transition disabled:opacity-70"
+          />
+        </Field>
       </section>
     </div>
   );
