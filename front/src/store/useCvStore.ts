@@ -53,6 +53,7 @@ interface CvState {
   saveSnapshot: () => Promise<ExportSnapshotResponse>;
   loadSnapshotDraft: (snapshot: Snapshot) => void;
   startBaseDraft: () => Promise<void>;
+  setDraftRole: (role: string) => void;
   discardDraft: () => void;
   revertDraft: () => Promise<void>;
   saveBulletToProfile: (
@@ -304,6 +305,26 @@ export const useCvStore = create<CvState>()(
           // Null model makes the backend render the master profile
           await get().fetchPreview();
           if (get().renderModel) set({ dirty: true });
+        },
+
+        setDraftRole: (role: string) => {
+          const currentSpec = get().lastJobSpec;
+          const currentModel = get().renderModel;
+          const trimmedRole = role.trim();
+
+          const updatedSpec: JobSpec = currentSpec
+            ? { ...currentSpec, role: trimmedRole || null }
+            : {
+                lang: currentModel?.lang || "es",
+                role: trimmedRole || null,
+                company: null,
+                keywords: [],
+                must_have: [],
+                nice_to_have: [],
+                responsibilities: [],
+              };
+
+          set({ lastJobSpec: updatedSpec, dirty: true });
         },
 
         discardDraft: () => {

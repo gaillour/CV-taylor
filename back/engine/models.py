@@ -81,6 +81,8 @@ class Skill(BaseModel):
     source: TitleSource = "user"
     approved: bool = True
     approved_at: datetime | str | None = None
+    marked_for_removal: bool = False
+    removal_reason: str | None = None
 
     def display_label(self, lang: LangCode = "es") -> str:
         """Format skill name with optional proficiency level in target language."""
@@ -134,6 +136,7 @@ class Fact(BaseModel):
     id: str
     entry_id: str | None = None
     text: str
+    text_en: str | None = None
     lang: LangCode = "es"
     tags: list[str] = Field(default_factory=list)
     skill_ids: list[str] = Field(default_factory=list)
@@ -145,6 +148,14 @@ class Fact(BaseModel):
     approved: bool = True
     approved_at: datetime | str | None = None
     proposed_text: str | None = None
+    marked_for_removal: bool = False
+    removal_reason: str | None = None
+
+    def get_text(self, lang: LangCode = "es") -> str:
+        """Return bullet text in requested language with fallback to primary text."""
+        if lang == "en" and self.text_en and self.text_en.strip():
+            return self.text_en.strip()
+        return self.text
 
 
 class Entry(BaseModel):

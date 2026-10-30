@@ -15,7 +15,12 @@ from back.engine.importer import (
 )
 from back.engine.llm import LLMClient
 from back.engine.models import Fact, LangCode, Profile
-from back.engine.profile_assistant import EnhanceProfileResponse, enhance_profile
+from back.engine.profile_assistant import (
+    EnhanceProfileResponse,
+    clean_and_deduplicate_profile,
+    enhance_profile,
+    mirror_bilingual_fields,
+)
 from back.engine.storage import StorageRepository, get_repo_for_user
 
 router = APIRouter()
@@ -164,7 +169,10 @@ async def import_master_profile(
         current_profile = (
             Profile.model_validate_json(base_profile) if base_profile else repo.get_profile()
         )
-        return merge_profiles(current_profile, extracted)
+        merged = merge_profiles(current_profile, extracted)
+        merged = clean_and_deduplicate_profile(merged)
+        merged = mirror_bilingual_fields(merged, llm=active_llm)
+        return merged
     except Exception as exc:
         raise HTTPException(
             status_code=500,

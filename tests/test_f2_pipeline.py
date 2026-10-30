@@ -385,6 +385,56 @@ def test_harmonize_resume_rejects_hallucinated_metrics_and_skills(
     assert harmonized.experience[0].bullets[0].fact_ids == orig_bullet.fact_ids
 
 
+def test_anti_hallucination_rejects_unauthorized_skills_in_summary() -> None:
+    profile = Profile.from_json(PROFILE_PATH)
+    validator = AntiHallucinationValidator(profile)
+
+    # Candidate profile doesn't have Angular or Spring Boot
+    hallucinated_summary = (
+        "Software Engineer specializing in Java, Spring Boot, Angular and PostgreSQL."
+    )
+    violations = validator.validate_summary(hallucinated_summary)
+    assert len(violations) > 0
+    assert any("angular" in v.details.get("unauthorized_skills", []) for v in violations)
+
+    # Valid summary with candidate's actual skills passes
+    valid_summary = "Software Engineer with experience in Python, FastAPI and PostgreSQL."
+    assert len(validator.validate_summary(valid_summary)) == 0
+
+
+def test_harmonize_resume_rejects_hallucinated_summary_skills(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    profile = Profile.from_json(PROFILE_PATH)
+    client = LLMClient(LLMConfig(api_key="test-key", base_url="https://api.openai.com/v1"))
+    engine = TailorEngine(profile, client=client)
+
+    job_spec = JobSpec(
+        company="TechCorp",
+        role="Frontend Engineer",
+        keywords=["Angular", "TypeScript"],
+    )
+
+    base_model = RenderModel.from_profile(profile, lang="es", theme="classic")
+    orig_summary = base_model.summary
+
+    # LLM attempts to hallucinate Angular into the summary
+    mock_hallucinated_response = {
+        "summary": "Senior developer specializing in Angular, Vue and Spring Boot.",
+        "experience": [],
+        "projects": [],
+        "education": [],
+    }
+
+    monkeypatch.setattr(
+        client, "parse_json_completion", lambda *args, **kwargs: mock_hallucinated_response
+    )
+
+    harmonized = engine.harmonize_resume(base_model, job_spec)
+    # Must reject the hallucinated summary and preserve original
+    assert harmonized.summary == orig_summary
+
+
 def test_tailor_curation_excludes_secondary_and_irrelevant_jobs_deterministic() -> None:
     """Deterministic selection excludes secondary school with university and irrelevant jobs."""
     profile_data = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))

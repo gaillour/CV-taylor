@@ -205,7 +205,7 @@ class TailoringPipeline:
                         b_violations = self.validator.validate_bullet(b)
                         if b_violations:
                             safe_opts = self.validator.suggest_alternatives(
-                                b, violations=b_violations
+                                b, violations=b_violations, lang=fitted_model.lang
                             )
                             primary_text = safe_opts[0] if safe_opts else b.text
                             entry.bullets[idx] = RenderBullet(

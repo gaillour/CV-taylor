@@ -77,7 +77,8 @@ Extract the candidate's profile into structured JSON matching this exact schema:
 {
   "full_name": "Full Name",
   "default_lang": "es" or "en",
-  "summary": "Professional summary or null",
+  "summary": "Professional summary in original resume language or null",
+  "summary_en": "Professional summary translated into English (or Spanish if original resume was in English) or null",
   "contact": {
     "email": "candidate email",
     "phone": "candidate phone",
@@ -88,7 +89,7 @@ Extract the candidate's profile into structured JSON matching this exact schema:
   },
   "skills": [
     {
-      "name": "Skill Name",
+      "name": "Skill Name (canonical casing, e.g. PostgreSQL, React, Docker)",
       "category": "Category name (e.g. Lenguajes, Backend, Frontend, Cloud & DevOps, Herramientas)",
       "level": "Avanzado / Intermedio / null"
     }
@@ -97,12 +98,16 @@ Extract the candidate's profile into structured JSON matching this exact schema:
     {
       "kind": "experience" | "project" | "education",
       "org": "Organization, Company, Institution, or Project name",
-      "title": "Role title or degree obtained",
+      "title": "Role title or degree obtained in original language",
+      "title_en": "Role title translated into English (or Spanish if original was in English)",
       "location": "Location or Remote or null",
       "start_date": "YYYY-MM or YYYY",
       "end_date": "YYYY-MM or YYYY or Presente or null",
       "bullets": [
-        "Measurable accomplishment or atomic fact..."
+        "Measurable accomplishment or atomic fact in original language..."
+      ],
+      "bullets_en": [
+        "Exact English translation of accomplishment preserving identical numbers, metrics, and tools..."
       ]
     }
   ]

@@ -23,10 +23,10 @@ import {
 export function CvEditor() {
   const { renderModel, updateModel } = useCvStore();
 
-  // Accordion open/close state
+  // Accordion open/close state (collapsed by default for clean initial view)
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    experience: true,
-    projects: true,
+    experience: false,
+    projects: false,
     skills: false,
     summary: false,
     header: false,

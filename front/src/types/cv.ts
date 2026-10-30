@@ -25,6 +25,8 @@ export interface Skill {
   source?: TitleSource;
   approved?: boolean;
   approved_at?: string | null;
+  marked_for_removal?: boolean;
+  removal_reason?: string | null;
 }
 
 export interface EntryTitle {
@@ -43,6 +45,7 @@ export interface Fact {
   id: string;
   entry_id?: string | null;
   text: string;
+  text_en?: string | null;
   lang?: LangCode;
   tags?: string[];
   skill_ids?: string[];
@@ -54,6 +57,8 @@ export interface Fact {
   approved?: boolean;
   approved_at?: string | null;
   proposed_text?: string | null;
+  marked_for_removal?: boolean;
+  removal_reason?: string | null;
 }
 
 export interface EnhanceStats {
@@ -61,6 +66,8 @@ export interface EnhanceStats {
   improved_facts: number;
   suggested_titles: number;
   detected_skills: number;
+  redundant_facts_marked?: number;
+  redundant_skills_marked?: number;
 }
 
 export interface EnhanceProfileResponse {

@@ -100,7 +100,7 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
                 Procesando currículum...
               </p>
               <p className="text-xs text-zinc-400">
-                Extrayendo experiencia, hechos atómicos y catálogo de habilidades.
+                Extrayendo experiencia, logros y habilidades.
               </p>
             </div>
           </div>

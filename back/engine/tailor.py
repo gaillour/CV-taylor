@@ -320,7 +320,8 @@ class TailorEngine:
             return self._build_deterministic_bullets(selected_facts, keywords_lower=set())
 
         facts_payload = [
-            {"id": f.id, "text": f.text, "skills": f.skill_ids} for f in selected_facts
+            {"id": f.id, "text": f.get_text(target_lang), "skills": f.skill_ids}
+            for f in selected_facts
         ]
 
         lang_rule = (
@@ -386,13 +387,13 @@ class TailorEngine:
                 # Validate against hallucinations
                 violations = self.validator.validate_bullet(candidate_bullet)
                 safe_opts = self.validator.suggest_alternatives(
-                    candidate_bullet, violations=violations
+                    candidate_bullet, violations=violations, lang=target_lang
                 )
                 if violations:
                     # Ground firmly into the safest source alternative
                     orig = facts_map[fid]
                     candidate_bullet = RenderBullet(
-                        text=safe_opts[0] if safe_opts else orig.text,
+                        text=safe_opts[0] if safe_opts else orig.get_text(target_lang),
                         fact_ids=[orig.id],
                         skill_ids=list(orig.skill_ids),
                         priority=orig.weight,
@@ -406,20 +407,23 @@ class TailorEngine:
                 rewritten_bullets.append(candidate_bullet)
 
             return rewritten_bullets or self._build_deterministic_bullets(
-                selected_facts, keywords_lower=set()
+                selected_facts, keywords_lower=set(), target_lang=target_lang
             )
         except Exception:
-            return self._build_deterministic_bullets(selected_facts, keywords_lower=set())
+            return self._build_deterministic_bullets(
+                selected_facts, keywords_lower=set(), target_lang=target_lang
+            )
 
     def _build_deterministic_bullets(
         self,
         selected_facts: list[Fact],
         keywords_lower: set[str],
+        target_lang: LangCode = "es",
     ) -> list[RenderBullet]:
         """Build bullets deterministically without LLM."""
         return [
             RenderBullet(
-                text=f.text,
+                text=f.get_text(target_lang),
                 fact_ids=[f.id],
                 skill_ids=list(f.skill_ids),
                 priority=f.weight,
@@ -513,7 +517,9 @@ class TailorEngine:
                         entry, chosen_facts, job_spec, target_lang
                     )
                 else:
-                    bullets = self._build_deterministic_bullets(chosen_facts, keywords_lower)
+                    bullets = self._build_deterministic_bullets(
+                        chosen_facts, keywords_lower, target_lang=target_lang
+                    )
 
                 loc = (
                     entry.location_en
@@ -644,10 +650,14 @@ class TailorEngine:
             "}"
         )
 
+        allowed_skills = sorted(self.validator.whitelist)
+        allowed_skills_str = ", ".join(allowed_skills) if allowed_skills else "None specified"
+
         user_prompt = (
             f"Target Role: {job_spec.role or 'Software Engineer'}\n"
             f"Target Language: {model.lang}\n"
             f"Target Keywords: {', '.join(job_spec.keywords)}\n"
+            f"Candidate Allowed Technologies (STRICT WHITELIST - DO NOT claim knowledge/specialization outside this list): {allowed_skills_str}\n"
             f"Original Summary:\n{model.summary or ''}\n\n"
             f"Surviving Experience Entries:\n{experience_payload}\n\n"
             f"Surviving Project Entries:\n{projects_payload}\n\n"

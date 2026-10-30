@@ -51,13 +51,19 @@ export default function GalleryPage() {
   const [previewLoading, setPreviewLoading] = useState(false);
 
   const { loadSnapshotDraft, startBaseDraft, dirty } = useCvStore();
-  const { profile, fetchProfile } = useProfileStore();
+  const { profile, fetchProfile, initialized: profileInitialized } = useProfileStore();
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
-  const profileEmpty = isProfileEmpty(profile);
+  const profileEmpty = profileInitialized && isProfileEmpty(profile);
+
+  useEffect(() => {
+    if (profileInitialized && !loading && isProfileEmpty(profile) && snapshots.length === 0) {
+      router.replace("/perfil");
+    }
+  }, [profileInitialized, loading, profile, snapshots.length, router]);
 
   useEffect(() => {
     let ignore = false;
@@ -226,6 +232,24 @@ export default function GalleryPage() {
     }
   };
 
+  if (!profileInitialized || loading) {
+    return (
+      <div className="flex-1 flex flex-col min-h-0 bg-black text-zinc-100 items-center justify-center py-24 gap-3">
+        <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
+        <p className="text-xs text-zinc-400 font-medium">Cargando tus CVs...</p>
+      </div>
+    );
+  }
+
+  if (profileEmpty && snapshots.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col min-h-0 bg-black text-zinc-100 items-center justify-center py-24 gap-3">
+        <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
+        <p className="text-xs text-zinc-400 font-medium">Redirigiendo a tu perfil para cargar tu CV...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-black text-zinc-100 overflow-y-auto">
       {/* Header bar */}
@@ -242,21 +266,22 @@ export default function GalleryPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={handleNewBaseCv}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 rounded-lg text-xs font-medium transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800 hover:border-zinc-700 rounded-lg text-xs font-medium transition cursor-pointer"
+            title="Crear un borrador de CV en blanco"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Nuevo CV Base</span>
+            <span>CV en blanco</span>
           </button>
 
           <button
             onClick={handleTailorClick}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition cursor-pointer shadow-sm shadow-emerald-950/40"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs sm:text-sm font-semibold transition cursor-pointer shadow-sm shadow-emerald-950/40"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Adaptar con IA</span>
+            <Sparkles className="w-4 h-4 text-emerald-200" />
+            <span>Generar CV para una oferta</span>
           </button>
         </div>
       </div>
@@ -271,10 +296,10 @@ export default function GalleryPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-zinc-100">
-                  Configurá tu Perfil Maestro para empezar
+                  Completá tu perfil para empezar
                 </p>
                 <p className="text-[11px] text-zinc-400">
-                  Subí tu CV actual en PDF o TXT para desbloquear la adaptación quirúrgica a ofertas de trabajo.
+                  Cargá tu experiencia y habilidades para adaptar automáticamente tu CV a cualquier oferta.
                 </p>
               </div>
             </div>
@@ -419,10 +444,14 @@ export default function GalleryPage() {
                           e.stopPropagation();
                           toggleGroup(group.key);
                         }}
-                        className="flex items-center gap-1 text-zinc-400 hover:text-zinc-200 transition text-[11px] font-mono"
+                        className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 transition text-[11px] font-mono"
                       >
                         <GitBranch className="w-3 h-3 text-zinc-500" />
-                        <span>{group.history.length + 1} v.</span>
+                        <span>
+                          {group.history.length === 1
+                            ? "1 versión anterior"
+                            : `${group.history.length} versiones anteriores`}
+                        </span>
                         {isExpanded ? (
                           <ChevronDown className="w-3 h-3" />
                         ) : (

@@ -29,13 +29,13 @@
 #set par(justify: true, leading: leading_val)
 #set list(spacing: bullet_space, marker: text(fill: accent)[•])
 
-#show heading.where(level: 1): it => block(below: 5pt, width: 100%)[
+#show heading.where(level: 1): it => block(below: 8pt, width: 100%)[
   #text(size: font_size + 6.8pt, weight: "bold", fill: accent)[#it.body]
 ]
 
-#show heading.where(level: 2): it => block(above: sec_space, below: 5.5pt, sticky: true, width: 100%)[
+#show heading.where(level: 2): it => block(above: sec_space, below: 4.5pt, sticky: true, width: 100%)[
   #text(size: font_size + 1.0pt, weight: "bold", fill: accent, tracking: 0.3pt)[#upper(it.body)]
-  #v(-2.5pt)
+  #v(-5.5pt)
   #line(length: 100%, stroke: 0.6pt + accent.lighten(40%))
 ]
 
@@ -89,7 +89,7 @@
     } else {
       exp.date_label
     }
-    #block(below: 4.5pt, sticky: true)[*#exp.title* — #emph(exp.org) | #text(size: font_size - 0.5pt, fill: luma(75))[#exp_meta]]
+    #block(above: 3.5pt, below: 4.5pt, sticky: true)[*#exp.title* — #emph(exp.org) | #text(size: font_size - 0.5pt, fill: luma(75))[#exp_meta]]
     #for b in exp.bullets [
       - #b.text
     ]
@@ -100,7 +100,7 @@
 #if data.projects.len() > 0 [
   == #labels.projects
   #for proj in data.projects [
-    #block(below: 4.5pt, sticky: true)[*#proj.title*#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#text(fill: accent)[#proj.link]]] | #text(size: font_size - 0.5pt, fill: luma(75))[#proj.date_label]]
+    #block(above: 3.5pt, below: 4.5pt, sticky: true)[*#proj.title*#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#text(fill: accent)[#proj.link]]] | #text(size: font_size - 0.5pt, fill: luma(75))[#proj.date_label]]
     #for b in proj.bullets [
       - #b.text
     ]
@@ -116,7 +116,7 @@
     } else {
       edu.date_label
     }
-    #block(below: 4.5pt, sticky: true)[*#edu.title* — #emph(edu.org) | #text(size: font_size - 0.5pt, fill: luma(75))[#edu_meta]]
+    #block(above: 3.5pt, below: 4.5pt, sticky: true)[*#edu.title* — #emph(edu.org) | #text(size: font_size - 0.5pt, fill: luma(75))[#edu_meta]]
     #if edu.bullets.len() > 0 [
       #for b in edu.bullets [
         - #b.text

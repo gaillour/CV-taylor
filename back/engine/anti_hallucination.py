@@ -26,6 +26,7 @@ class Violation(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    section: str = ""
     kind: str  # "uncited_fact", "invented_metric", "unauthorized_skill", "unapproved_title"
     bullet_text: str
     message: str
@@ -69,6 +70,9 @@ class AntiHallucinationValidator:
         for fact in self._facts_by_id.values():
             for m in TECH_REGEX.finditer(fact.text):
                 self.whitelist.add(m.group(0).lower())
+            if fact.text_en:
+                for m in TECH_REGEX.finditer(fact.text_en):
+                    self.whitelist.add(m.group(0).lower())
 
     @staticmethod
     def extract_numbers(text: str) -> set[str]:
@@ -80,6 +84,7 @@ class AntiHallucinationValidator:
         self,
         bullet: RenderBullet,
         violations: list[Violation] | None = None,
+        lang: LangCode = "es",
     ) -> list[str]:
         """Generate 2-3 safe alternatives strictly grounded in source facts."""
         options: list[str] = []
@@ -90,8 +95,9 @@ class AntiHallucinationValidator:
             return options
 
         primary_fact = cited_facts[0]
-        # Option 1: Exact source fact text
-        options.append(primary_fact.text.strip())
+        # Option 1: Exact source fact text in requested language
+        source_text = primary_fact.get_text(lang).strip()
+        options.append(source_text)
 
         # Option 2: Cleaned version removing unverified numbers or unauthorized tech
         cleaned = bullet.text
@@ -108,18 +114,18 @@ class AntiHallucinationValidator:
             cleaned = re.sub(r"\s+", " ", cleaned).strip()
             cleaned = re.sub(r"\s+([,.;])", r"\1", cleaned)
 
-        if cleaned and cleaned != primary_fact.text and cleaned != bullet.text:
+        if cleaned and cleaned != source_text and cleaned != bullet.text:
             options.append(cleaned)
 
         # Option 3: Concise source version or parent entry context
         parent = self._entries_by_fact_id.get(primary_fact.id)
         if parent:
-            variant = f"{primary_fact.text.rstrip('.')} ({parent.org})."
+            variant = f"{source_text.rstrip('.')} ({parent.org})."
             if variant not in options:
                 options.append(variant)
 
-        while len(options) < 2 and primary_fact.text not in options:
-            options.append(primary_fact.text)
+        while len(options) < 2 and source_text not in options:
+            options.append(source_text)
 
         # De-duplicate preserving order
         deduped: list[str] = []
@@ -165,6 +171,8 @@ class AntiHallucinationValidator:
             original_numbers: set[str] = set()
             for fact in cited_facts:
                 original_numbers.update(self.extract_numbers(fact.text))
+                if fact.text_en:
+                    original_numbers.update(self.extract_numbers(fact.text_en))
                 parent_entry = self._entries_by_fact_id.get(fact.id)
                 if parent_entry:
                     original_numbers.update(self.extract_numbers(parent_entry.org))
@@ -227,11 +235,44 @@ class AntiHallucinationValidator:
             violations.extend(self.validate_bullet(bullet))
         return violations
 
+    def validate_summary(self, summary: str) -> list[Violation]:
+        """Validate candidate summary against the Master Profile technology whitelist."""
+        if not summary or not summary.strip():
+            return []
+
+        summary_techs = {m.group(0).lower() for m in TECH_REGEX.finditer(summary)}
+        normalized_whitelist = {w.replace(".", "").replace(" ", "") for w in self.whitelist}
+
+        unauthorized_techs = {
+            t
+            for t in summary_techs
+            if t.replace(".", "").replace(" ", "") not in normalized_whitelist
+        }
+
+        violations: list[Violation] = []
+        if unauthorized_techs:
+            violations.append(
+                Violation(
+                    section="summary",
+                    kind="unauthorized_skill",
+                    bullet_text=summary,
+                    message=(
+                        f"Tecnología en el resumen no declarada en el perfil del usuario: "
+                        f"{sorted(unauthorized_techs)}"
+                    ),
+                    details={"unauthorized_skills": list(unauthorized_techs)},
+                )
+            )
+        return violations
+
     def validate_model(self, model: RenderModel) -> ValidationReport:
         """Validate entire RenderModel against the Master Profile."""
         all_violations: list[Violation] = []
         total_bullets = 0
         total_entries = 0
+
+        if model.summary:
+            all_violations.extend(self.validate_summary(model.summary))
 
         for section_entries in (model.experience, model.projects, model.education):
             for entry in section_entries:

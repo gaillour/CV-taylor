@@ -95,6 +95,8 @@ class EnhanceStats(BaseModel):
     improved_facts: int = 0
     suggested_titles: int = 0
     detected_skills: int = 0
+    redundant_facts_marked: int = 0
+    redundant_skills_marked: int = 0
 
     @property
     def total(self) -> int:
@@ -103,6 +105,8 @@ class EnhanceStats(BaseModel):
             + self.improved_facts
             + self.suggested_titles
             + self.detected_skills
+            + self.redundant_facts_marked
+            + self.redundant_skills_marked
         )
 
 
@@ -365,7 +369,13 @@ def _enhance_with_llm(
         "Analyze the Master Profile and return a single JSON object with AI suggestions:\n"
         "1. `detected_skills`: Canonical technical skills mentioned in entries/context/facts "
         "missing from `existing_skills`.\n"
-        "2. `entries`: For each entry:\n"
+        "2. `redundant_skills`: Technical skills in `existing_skills` that are redundant, "
+        "duplicates, or obsolete aliases of other skills (e.g. both 'Postgres' and 'PostgreSQL'). "
+        "Include `name` and a concise `reason` in the profile's language.\n"
+        "3. `redundant_facts`: Bullets that are duplicates, near-duplicates, or redundant "
+        "with another bullet in the candidate's profile. Include `fact_id` and a concise "
+        "`reason` in the profile's language explaining why it should be removed.\n"
+        "4. `entries`: For each entry:\n"
         "   - `distilled_facts`: If `context` contains achievements not yet in `facts`, "
         "extract 1-3 atomic bullets (16-24 words, nominal/action style).\n"
         "   - `improved_facts`: For existing `facts` that can be phrased with stronger ATS "
@@ -379,6 +389,8 @@ def _enhance_with_llm(
         "Return ONLY valid JSON matching:\n"
         "{\n"
         '  "detected_skills": [{"name": "...", "category": "Backend"}],\n'
+        '  "redundant_skills": [{"name": "...", "reason": "..."}],\n'
+        '  "redundant_facts": [{"fact_id": "...", "reason": "..."}],\n'
         '  "entries": [\n'
         "    {\n"
         '      "entry_id": "...",\n'
@@ -437,6 +449,36 @@ def _enhance_with_llm(
                 )
             )
             stats.detected_skills += 1
+
+    # Mark redundant skills recommended for removal
+    raw_redundant_skills = data.get("redundant_skills", [])
+    if isinstance(raw_redundant_skills, list):
+        skill_reasons = {
+            str(item.get("name", "")).strip().lower(): str(item.get("reason", "Habilidad redundante o duplicada")).strip()
+            for item in raw_redundant_skills
+            if isinstance(item, dict) and item.get("name")
+        }
+        for skill in profile.skills:
+            norm_sk = skill.name.strip().lower()
+            if norm_sk in skill_reasons:
+                skill.marked_for_removal = True
+                skill.removal_reason = skill_reasons[norm_sk]
+                stats.redundant_skills_marked += 1
+
+    # Mark redundant facts recommended for removal
+    raw_redundant_facts = data.get("redundant_facts", [])
+    if isinstance(raw_redundant_facts, list):
+        fact_reasons = {
+            str(item.get("fact_id", "")): str(item.get("reason", "Viñeta redundante o duplicada")).strip()
+            for item in raw_redundant_facts
+            if isinstance(item, dict) and item.get("fact_id")
+        }
+        for entry in profile.entries:
+            for fact in entry.facts:
+                if fact.id in fact_reasons:
+                    fact.marked_for_removal = True
+                    fact.removal_reason = fact_reasons[fact.id]
+                    stats.redundant_facts_marked += 1
 
     entries_by_id = {e.id: e for e in profile.entries}
     raw_entries = data.get("entries", [])
@@ -528,13 +570,247 @@ def _enhance_with_llm(
     return True
 
 
+CANONICAL_SKILL_MAP: dict[str, str] = {
+    "postgres": "PostgreSQL",
+    "postgresql": "PostgreSQL",
+    "react": "React",
+    "reactjs": "React",
+    "react.js": "React",
+    "node": "Node.js",
+    "nodejs": "Node.js",
+    "node.js": "Node.js",
+    "ts": "TypeScript",
+    "typescript": "TypeScript",
+    "js": "JavaScript",
+    "javascript": "JavaScript",
+    "fastapi": "FastAPI",
+    "next": "Next.js",
+    "nextjs": "Next.js",
+    "next.js": "Next.js",
+    "vue": "Vue.js",
+    "vuejs": "Vue.js",
+    "vue.js": "Vue.js",
+    "docker": "Docker",
+    "aws": "AWS",
+    "amazon web services": "AWS",
+    "git": "Git",
+    "github": "GitHub",
+    "graphql": "GraphQL",
+    "mongo": "MongoDB",
+    "mongodb": "MongoDB",
+    "k8s": "Kubernetes",
+    "kubernetes": "Kubernetes",
+    "linux": "Linux",
+    "tailwind": "Tailwind CSS",
+    "tailwindcss": "Tailwind CSS",
+    "python": "Python",
+    "java": "Java",
+    "c": "C",
+    "cpp": "C++",
+    "c++": "C++",
+    "c#": "C#",
+    "csharp": "C#",
+    "golang": "Go",
+    "go": "Go",
+    "rust": "Rust",
+    "html": "HTML5",
+    "html5": "HTML5",
+    "css": "CSS3",
+    "css3": "CSS3",
+    "sql": "SQL",
+    "redis": "Redis",
+    "django": "Django",
+    "flask": "Flask",
+    "express": "Express",
+    "expressjs": "Express",
+    "express.js": "Express",
+    "supabase": "Supabase",
+}
+
+
+def clean_and_deduplicate_profile(profile: Profile) -> Profile:
+    """Normalize canonical skills, merge duplicates, and deduplicate identical facts."""
+    canonical_skills: dict[str, Skill] = {}
+    for skill in profile.skills:
+        norm_name = skill.name.strip().lower()
+        canon_name = CANONICAL_SKILL_MAP.get(norm_name, skill.name.strip())
+        key = canon_name.lower().replace(" ", "").replace(".", "")
+
+        if key in canonical_skills:
+            target = canonical_skills[key]
+            if skill.name != target.name and skill.name not in target.aliases:
+                target.aliases.append(skill.name)
+            for a in skill.aliases:
+                if a not in target.aliases and a != target.name:
+                    target.aliases.append(a)
+            if skill.approved and not target.approved:
+                target.approved = True
+                target.source = skill.source
+        else:
+            updated_skill = skill.model_copy(deep=True, update={"name": canon_name})
+            canonical_skills[key] = updated_skill
+
+    profile.skills = list(canonical_skills.values())
+
+    for entry in profile.entries:
+        seen_facts: list[str] = []
+        unique_facts: list[Fact] = []
+        for fact in entry.facts:
+            norm_fact = fact.text.strip().lower()
+            if norm_fact not in seen_facts:
+                seen_facts.append(norm_fact)
+                unique_facts.append(fact)
+            else:
+                idx = seen_facts.index(norm_fact)
+                if not unique_facts[idx].text_en and fact.text_en:
+                    unique_facts[idx].text_en = fact.text_en
+        entry.facts = unique_facts
+
+    return profile
+
+
+def mirror_bilingual_fields(profile: Profile, llm: LLMClient | None = None) -> Profile:
+    """Ensure every Entry has English titles and every Fact has English text."""
+    needs_summary_en = bool(profile.summary and not profile.summary_en)
+
+    entries_needing_title_en: list[Entry] = []
+    facts_needing_text_en: list[Fact] = []
+
+    for entry in profile.entries:
+        has_en_title = any(t.lang == "en" and t.approved for t in entry.titles)
+        if not has_en_title and entry.titles:
+            entries_needing_title_en.append(entry)
+        for fact in entry.facts:
+            if not fact.text_en and fact.text:
+                facts_needing_text_en.append(fact)
+
+    if not needs_summary_en and not entries_needing_title_en and not facts_needing_text_en:
+        return profile
+
+    if llm is not None and llm.is_configured:
+        titles_payload = [
+            {"entry_id": e.id, "title": e.select_title().title}
+            for e in entries_needing_title_en
+        ]
+        facts_payload = [
+            {"fact_id": f.id, "text": f.text}
+            for f in facts_needing_text_en
+        ]
+
+        system_prompt = (
+            "You are a professional technical translator for engineering CVs.\n"
+            "Translate the provided Spanish CV fields into executive English.\n"
+            "STRICT INVARIANTS:\n"
+            "1. NEVER alter, invent, or omit numbers, percentages, latencies, or dates. Every single metric must match verbatim.\n"
+            "2. Preserve all technology names exactly (e.g. FastAPI, PostgreSQL, Docker, AWS).\n"
+            "3. Use strong action verbs in past tense (e.g. 'Developed', 'Designed', 'Architected').\n"
+            "Return ONLY a JSON object matching:\n"
+            "{\n"
+            '  "summary_en": "..." or null,\n'
+            '  "titles": [{"entry_id": "...", "title_en": "..."}],\n'
+            '  "facts": [{"fact_id": "...", "text_en": "..."}]\n'
+            "}"
+        )
+        user_prompt = (
+            f"Summary to translate: {profile.summary or ''}\n"
+            f"Titles to translate:\n{titles_payload}\n"
+            f"Facts to translate:\n{facts_payload}"
+        )
+
+        try:
+            res = llm.parse_json_completion(
+                [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.1,
+            )
+            if isinstance(res, dict):
+                if needs_summary_en and res.get("summary_en"):
+                    profile.summary_en = str(res["summary_en"]).strip()
+
+                raw_titles = res.get("titles") or []
+                if isinstance(raw_titles, list):
+                    titles_by_eid = {
+                        str(item.get("entry_id")): str(item.get("title_en")).strip()
+                        for item in raw_titles
+                        if isinstance(item, dict) and item.get("entry_id") and item.get("title_en")
+                    }
+                    for entry in entries_needing_title_en:
+                        if entry.id in titles_by_eid:
+                            t_en = titles_by_eid[entry.id]
+                            entry.titles.append(
+                                EntryTitle(
+                                    id=f"title_{entry.id}_en",
+                                    entry_id=entry.id,
+                                    title=t_en,
+                                    lang="en",
+                                    is_default=False,
+                                    source="user",
+                                    approved=True,
+                                )
+                            )
+
+                raw_facts = res.get("facts") or []
+                if isinstance(raw_facts, list):
+                    facts_by_fid = {
+                        str(item.get("fact_id")): str(item.get("text_en")).strip()
+                        for item in raw_facts
+                        if isinstance(item, dict) and item.get("fact_id") and item.get("text_en")
+                    }
+                    for fact in facts_needing_text_en:
+                        if fact.id in facts_by_fid:
+                            fact.text_en = facts_by_fid[fact.id]
+                return profile
+        except Exception:
+            pass
+
+    # Deterministic fallback when no LLM or LLM fails
+    for entry in entries_needing_title_en:
+        orig_t = entry.select_title().title
+        t_en = orig_t
+        for es_term, en_term in [
+            ("Desarrollador Backend", "Backend Developer"),
+            ("Desarrollador Frontend", "Frontend Developer"),
+            ("Desarrollador Fullstack", "Fullstack Developer"),
+            ("Desarrollador de Software", "Software Developer"),
+            ("Desarrollador", "Developer"),
+            ("Ingeniero de Software", "Software Engineer"),
+            ("Ingeniero", "Engineer"),
+            ("Líder Técnico", "Tech Lead"),
+            ("Arquitecto", "Architect"),
+            ("Pasantía", "Internship"),
+            ("Pasante", "Intern"),
+            ("Tutor", "Teaching Assistant"),
+            ("Profesor", "Professor"),
+        ]:
+            t_en = t_en.replace(es_term, en_term)
+        entry.titles.append(
+            EntryTitle(
+                id=f"title_{entry.id}_en",
+                entry_id=entry.id,
+                title=t_en,
+                lang="en",
+                is_default=False,
+                source="user",
+                approved=True,
+            )
+        )
+
+    for fact in facts_needing_text_en:
+        if not fact.text_en:
+            fact.text_en = fact.text
+
+    return profile
+
+
 def enhance_profile(profile: Profile, llm: LLMClient | None = None) -> EnhanceProfileResponse:
     """Run a unified AI + deterministic enrichment pass on the Master Profile.
 
     All generated items enter with `source="ai", approved=False` (or `proposed_text` on Facts)
     so the candidate can review, approve, or discard them in one step.
     """
-    working = profile.model_copy(deep=True)
+    working = clean_and_deduplicate_profile(profile.model_copy(deep=True))
 
     working.skills = [s for s in working.skills if s.approved]
     for entry in working.entries:
@@ -583,6 +859,8 @@ def enhance_profile(profile: Profile, llm: LLMClient | None = None) -> EnhancePr
             if sug_titles:
                 entry.titles.extend(sug_titles)
                 stats.suggested_titles += len(sug_titles)
+
+    mirror_bilingual_fields(working, llm=llm if used_llm else None)
 
     return EnhanceProfileResponse(
         profile=working,
