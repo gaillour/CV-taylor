@@ -71,3 +71,4 @@ class ATSReport:
     keyword_matches: list[str] = field(default_factory=list)
     keyword_gaps: list[str] = field(default_factory=list)
     parsed_resume: ParsedResume | None = None
+    breakdown: dict[str, int] = field(default_factory=dict)

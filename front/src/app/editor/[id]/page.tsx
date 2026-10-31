@@ -6,6 +6,7 @@ import { API_BASE_URL, useCvStore } from "@/store/useCvStore";
 import { apiFetch } from "@/lib/api";
 import { CvPreview } from "@/components/preview/CvPreview";
 import { FillGauge } from "@/components/preview/FillGauge";
+import { AtsGauge } from "@/components/editor/AtsGauge";
 import { CvEditor } from "@/components/editor/CvEditor";
 import { ExportActions } from "@/components/toolbar/ExportActions";
 import { Snapshot, ThemeName } from "@/types/cv";
@@ -182,20 +183,8 @@ function EditorContent() {
 
         {/* Global Toolbar */}
         <div className="flex items-center gap-3">
-          {/* Active Adaptation / ATS Score Badge */}
-          {lastAts && (
-            <div
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-mono transition ${
-                lastAts.score >= 85
-                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                  : "bg-amber-500/10 border-amber-500/20 text-amber-400"
-              }`}
-              title={`Score ATS: ${lastAts.score}%`}
-            >
-              <Target className="w-3.5 h-3.5" />
-              <span>ATS {lastAts.score}%</span>
-            </div>
-          )}
+          {/* Active Adaptation / Reactive ATS Gauge */}
+          <AtsGauge />
 
           {/* A4 Fill Gauge Indicator */}
           <FillGauge fitReport={fitReport} loading={loading} />

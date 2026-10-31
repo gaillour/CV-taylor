@@ -279,3 +279,28 @@ export interface UpsertBulletFactResponse {
   created: boolean;
   profile: Profile;
 }
+
+export interface ATSBreakdown {
+  structure: number;
+  experience: number;
+  education: number;
+  skills: number;
+}
+
+export interface ATSEvaluateRequest {
+  render_model: RenderModel;
+  target_keywords?: string[] | null;
+}
+
+export interface ATSEvaluateResponse {
+  total_score: number;
+  structure_score: number;
+  experience_score: number;
+  education_score: number;
+  skills_score: number;
+  breakdown: ATSBreakdown;
+  passed: boolean;
+  issues: string[];
+  keyword_matches: string[];
+  keyword_gaps: string[];
+}

@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import {
+  ATSBreakdown,
+  ATSEvaluateResponse,
   ExportSnapshotResponse,
   FitReport,
   JobSpec,
@@ -22,6 +24,7 @@ export interface AtsSummary {
   matches: string[];
   gaps: string[];
   issues: string[];
+  breakdown?: ATSBreakdown;
 }
 
 interface CvState {
@@ -36,6 +39,7 @@ interface CvState {
   tailorError: string | null;
   lastJobSpec: JobSpec | null;
   lastAts: AtsSummary | null;
+  evaluatingAts: boolean;
 
   // Export state
   exportingPdf: boolean;
@@ -47,6 +51,7 @@ interface CvState {
   hydrated: boolean;
 
   fetchPreview: (model?: RenderModel) => Promise<void>;
+  evaluateAts: (model?: RenderModel) => Promise<void>;
   updateModel: (updater: (prev: RenderModel) => RenderModel, debounceMs?: number) => void;
   tailorCv: (req: TailorRequest) => Promise<TailorResponse>;
   exportPdf: () => Promise<void>;
@@ -65,9 +70,11 @@ interface CvState {
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let previewSeq = 0;
+let atsSeq = 0;
 
 function clearPendingPreview() {
   previewSeq++;
+  atsSeq++;
   if (debounceTimer) {
     clearTimeout(debounceTimer);
     debounceTimer = null;
@@ -87,6 +94,7 @@ export const useCvStore = create<CvState>()(
         tailorError: null,
         lastJobSpec: null,
         lastAts: null,
+        evaluatingAts: false,
 
         exportingPdf: false,
         savingSnapshot: false,
@@ -94,6 +102,47 @@ export const useCvStore = create<CvState>()(
         draftParentId: null,
         dirty: false,
         hydrated: false,
+
+        evaluateAts: async (model?: RenderModel) => {
+          const seq = ++atsSeq;
+          const targetModel = model ?? get().renderModel;
+          if (!targetModel) return;
+
+          set({ evaluatingAts: true });
+          try {
+            const targetKeywords = get().lastJobSpec?.keywords || null;
+            const res = await apiFetch(`${API_BASE_URL}/api/ats/evaluate`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                render_model: targetModel,
+                target_keywords: targetKeywords,
+              }),
+            });
+
+            if (!res.ok) {
+              throw new Error(`ATS API error: ${res.status}`);
+            }
+
+            const data: ATSEvaluateResponse = await res.json();
+            if (seq !== atsSeq) return;
+
+            set({
+              lastAts: {
+                score: data.total_score,
+                passed: data.passed,
+                matches: data.keyword_matches,
+                gaps: data.keyword_gaps,
+                issues: data.issues,
+                breakdown: data.breakdown,
+              },
+              evaluatingAts: false,
+            });
+          } catch {
+            if (seq !== atsSeq) return;
+            set({ evaluatingAts: false });
+          }
+        },
 
         fetchPreview: async (model?: RenderModel) => {
           const seq = ++previewSeq;
@@ -122,6 +171,9 @@ export const useCvStore = create<CvState>()(
               ...(model ? {} : { renderModel: data.render_model }),
               loading: false,
             });
+            if (!model) {
+              get().evaluateAts(data.render_model);
+            }
           } catch (err: unknown) {
             if (seq !== previewSeq) return;
             const message = err instanceof Error ? err.message : "Error al conectar con el servidor";
@@ -143,9 +195,11 @@ export const useCvStore = create<CvState>()(
           if (debounceMs > 0) {
             debounceTimer = setTimeout(() => {
               get().fetchPreview(next);
+              get().evaluateAts(next);
             }, debounceMs);
           } else {
             get().fetchPreview(next);
+            get().evaluateAts(next);
           }
         },
 
@@ -298,6 +352,7 @@ export const useCvStore = create<CvState>()(
             draftParentId: snapshot.id,
             dirty: false,
           });
+          get().evaluateAts(snapshot.render_model);
         },
 
         startBaseDraft: async () => {
