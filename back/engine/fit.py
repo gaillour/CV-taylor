@@ -512,6 +512,29 @@ def fit_render_model(
         current_model = _with_density(current_model, MAX_COMFORTABLE_DENSITY)
         current_fit = measure_fit(current_model)
 
+        # Step 1b: Enforce max_bullets cap per entry if exceeded
+        while True:
+            slot_cand = _select_next_prune_candidate(
+                current_model,
+                respect_min_bullets=True,
+                only_above_max_bullets=True,
+            )
+            if slot_cand is None:
+                break
+            sec_name, entry_idx, bullet_idx, bullet = slot_cand
+            entry_obj = getattr(current_model, sec_name)[entry_idx]
+            pruned_records.append(
+                _PrunedBulletRecord(
+                    section_name=sec_name,
+                    entry_id=entry_obj.entry_id,
+                    original_index=bullet_idx,
+                    bullet=bullet,
+                )
+            )
+            pruned_fact_ids.extend(bullet.fact_ids)
+            current_model = _remove_bullet(current_model, sec_name, entry_idx, bullet_idx)
+            current_fit = measure_fit(current_model)
+
         # Step 2: Prune non-pinned bullets by priority respecting entry.min_bullets
         # (`summary` is strictly immutable and never pruned)
         while not current_fit.fits_one_page or current_fit.fill_pct > MAX_SAFE_FILL_PCT:
@@ -522,7 +545,7 @@ def fit_render_model(
             if candidate is None:
                 break
             sec_name, entry_idx, bullet_idx, bullet = candidate
-            entry_obj: RenderEntry = getattr(current_model, sec_name)[entry_idx]
+            entry_obj = getattr(current_model, sec_name)[entry_idx]
             pruned_records.append(
                 _PrunedBulletRecord(
                     section_name=sec_name,
@@ -563,9 +586,28 @@ def fit_render_model(
             )
             current_fit = measure_fit(current_model)
 
-        # Step 3b: Post-pruning compensation — re-add shorter bullets if they fit safely
-        if len(pruned_records) >= 2:
-            for rec in list(reversed(pruned_records[:-1])):
+        # Step 4: Relax density from MAX_COMFORTABLE_DENSITY down towards 0.0 to restore base typography
+        if current_fit.fill_pct <= MAX_SAFE_FILL_PCT:
+            current_model, current_fit = binary_search_density_underfill(
+                current_model,
+                low_density=0.0,
+                high_density=current_model.design.density,
+                min_fill_pct=min_fill_pct,
+                steps=density_steps,
+            )
+
+        # Step 5: Post-pruning compensation — re-add bullets bottom-up if underfilled or space permits
+        if pruned_records:
+            for rec in list(reversed(pruned_records)):
+                sec_entries = getattr(current_model, rec.section_name)
+                target = next((e for e in sec_entries if e.entry_id == rec.entry_id), None)
+                if (
+                    target is not None
+                    and target.max_bullets > 0
+                    and len(target.bullets) >= target.max_bullets
+                ):
+                    continue
+
                 trial_model = _try_reinsert_bullet(current_model, rec)
                 if trial_model is None:
                     continue
@@ -578,42 +620,17 @@ def fit_render_model(
                         if fid in pruned_fact_ids:
                             pruned_fact_ids.remove(fid)
 
-        # Step 4: Trim bullets exceeding entry.max_bullets or tightly packed (> 94%)
-        # at MAX_COMFORTABLE_DENSITY so Step 5 can relax density back towards 0.0.
-        while current_fit.fits_one_page:
-            slot_cand = _select_next_prune_candidate(
+        # Step 5b: If still underfilled (< min_fill_pct) and candidate_pool is available, augment from profile
+        if current_fit.fill_pct < min_fill_pct and candidate_pool is not None:
+            current_model, current_fit = _augment_from_profile(
                 current_model,
-                respect_min_bullets=True,
-                only_above_max_bullets=True,
+                candidate_pool,
+                min_fill_pct=min_fill_pct,
+                allow_new_entries=False,
             )
-            if slot_cand is None and current_fit.fill_pct > MAX_SAFE_FILL_PCT:
-                slot_cand = _select_next_prune_candidate(
-                    current_model,
-                    respect_min_bullets=True,
-                )
-            if slot_cand is None:
-                break
-            sec_name, entry_idx, bullet_idx, bullet = slot_cand
-            trial_model = _remove_bullet(current_model, sec_name, entry_idx, bullet_idx)
-            trial_fit = measure_fit(trial_model)
-            if trial_fit.fits_one_page and trial_fit.fill_pct >= 72.0:
-                entry_obj = getattr(current_model, sec_name)[entry_idx]
-                pruned_records.append(
-                    _PrunedBulletRecord(
-                        section_name=sec_name,
-                        entry_id=entry_obj.entry_id,
-                        original_index=bullet_idx,
-                        bullet=bullet,
-                    )
-                )
-                pruned_fact_ids.extend(bullet.fact_ids)
-                current_model = trial_model
-                current_fit = trial_fit
-            else:
-                break
 
-        # Step 5: Relax density from 1.0 down towards 0.0 to restore base typography
-        if current_fit.fill_pct <= MAX_SAFE_FILL_PCT:
+        # Step 5c: If still underfilled and density > 0.0, relax density towards 0.0
+        if current_fit.fill_pct < min_fill_pct and current_model.design.density > 0.0:
             current_model, current_fit = binary_search_density_underfill(
                 current_model,
                 low_density=0.0,
@@ -621,6 +638,9 @@ def fit_render_model(
                 min_fill_pct=min_fill_pct,
                 steps=density_steps,
             )
+
+        # Step 5d: If still underfilled (< min_fill_pct) at density=0.0 after reincorporation,
+        # apply controlled relaxation of spacing to guarantee the 85% threshold without overflowing
         if current_fit.fill_pct < min_fill_pct and current_model.design.density == 0.0:
             current_model, current_fit = _binary_search_relaxed_underfill(
                 current_model,

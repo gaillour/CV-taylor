@@ -1,28 +1,48 @@
 # TODO.md — Roadmap Operativo (`cv-tailor`)
 
-## Fase Activa: F4 — Pulido de Perfil, Templates Typst y Validación ATS
+## Fase Activa: F4 — Pulido de Fitting, ATS Reactivo y Usabilidad
 
-### Tareas en Curso
-- [x] **Rediseño y alivio visual de `/perfil`:**
-  - [x] Modularizar el monolito de `perfil/page.tsx` en subcomponentes por tab (`GeneralTab`, `SkillsTab`, `EntriesTab`).
-  - [x] Aligerar tarjetas de experiencia, proyectos y educación con acordeones limpios y vista resumida por defecto.
-  - [x] Eliminar jerga técnica interna ("hechos atómicos", "perfil maestro") y explicaciones redundantes de la interfaz.
+### P0 — Crítico / Bloqueante
+
+- [x] **Motor de Fitting — Rango 85%-100% de llenado garantizado:**
+  - [x] Ajustar algoritmo de convergencia en `back/engine/fit.py` y `renderer.py`: evitar que el CV quede underfilled (<85%) tras poda de viñetas.
+  - [x] Implementar reincorporación bottom-up de hechos o relajación controlada de espaciados si el fill ratio queda por debajo del umbral mínimo sin romper el límite de 1 página A4.
+- [ ] **Asistente de Perfil — Títulos contextuales en Proyectos:**
+  - [ ] En `back/engine/profile_assistant.py`, filtrar sugerencias según `entry.kind == 'project'`.
+  - [ ] Prohibir cargos de empleo (ej. sugerir "Software Developer" a un simulador de físicas) y orientar a nombres descriptivos del artefacto/producto.
+
+---
+
+### P1 — Core UX & Adaptación
+
+- [ ] **ATS Reactivo en Editor:**
+  - [ ] Crear endpoint liviano `POST /api/ats/evaluate` en backend para evaluar puntaje, keywords presentes y ausentes sobre `CurriculumData` sin compilar PDF/Typst.
+  - [ ] Conectar `useCvStore.ts` y gauge visual en `CvEditor.tsx` con debounce de 500ms al alternar viñetas o editar textos.
+- [ ] **Tailoring — Selección binaria obligatoria de idioma:**
+  - [ ] Eliminar detección "auto" en `front/src/components/tailor/TailorModal.tsx`.
+  - [ ] Forzar selección binaria manual explícita (`Español` / `English`) por parte del usuario antes de disparar el pipeline.
+- [ ] **IA — Poda de bloques completos irrelevantes:**
+  - [ ] Permitir que el curador IA / heurística descarte un bloque/entrada completo (`experience` o `project`) si su relevancia frente a la oferta es nula, evitando dejar títulos aislados sin viñetas.
+
+---
+
+### P2 — Usabilidad en Editor y Perfil
+
+- [ ] **Editor — Reordenamiento de Secciones e Items:**
+  - [ ] Permitir alterar el orden de secciones (ej. ubicar Proyectos antes de Experiencia) mediante `section_order` en `CurriculumData`.
+  - [ ] Controles para subir/bajar la posición relativa de experiencias y proyectos dentro de sus secciones.
+- [ ] **Perfil — Visibilidad contextual de "Mejorar con IA":**
+  - [ ] Ocultar o condicionar el botón/banner fijo de optimización para que aparezca únicamente tras importar un CV o cuando haya viñetas/skills pendientes de normalizar.
+
+---
+
+### P3 — Plantillas y Validación Externa
+
 - [ ] **Nuevas plantillas Typst:**
   - [ ] Diseños editoriales modernos y versátiles (roles de producto, diseño o consultoría) más allá del estilo estrictamente ingenieril.
   - [ ] Soporte opcional para foto de perfil / avatar en plantillas compatibles.
 - [ ] **Validación en ATS:**
   - [ ] Pruebas de compatibilidad y parsing con plataformas ATS de reclutamiento (Lever, Greenhouse, Workday).
-
----
-
-## Deuda Técnica & Backlog UI
-- [x] **Editor — Acordeones colapsados por defecto:** Inicializar secciones de `CvEditor.tsx` cerradas al abrir un borrador.
-- [x] **Editor — Limpieza de jerarquía:** Eliminar contenedor "Editor de Contenido (Slice 4)" en `editor/[id]/page.tsx` para quitar anidamiento cebolla.
-- [x] **Editor — Título editable de CV:** Permitir renombrar el título del CV / target role directamente en la barra superior.
-- [x] **Editor — Importación de Proyectos en Bloque:** Modal para seleccionar e insertar proyectos del perfil directamente en el CV.
-- [ ] **Tailoring — Selección explícita de idioma:** Quitar la detección "auto" de idioma al adaptar CV desde oferta de empleo; forzar selección binaria manual (ES / EN) por parte del usuario.
-- [ ] **Soporte Multilingüe:** Flujo para traducir/adaptar on-the-fly con LLM proyectos o contenido en caso de CVs bilingües.
-- [ ] **IA — Eliminación de bloques completos:** Permitir que la IA recomiende eliminar bloques/entradas completos (actualmente detecta viñetas duplicadas/redundantes y sugiere borrarlas individualmente, pero no remueve el bloque completo).
 
 ---
 
@@ -40,4 +60,5 @@
 | **Slice 8: Asistencias IA en Perfil** | Destilación de viñetas, sugerencias de títulos y normalización de skills con aprobación manual. | Concluido |
 | **Slice 9: Persistencia Cloud** | Capa Repository (local + Supabase Postgres/Storage), Auth JWT y soft delete de snapshots. | Concluido |
 | **Slice 10: Pulido UX & Anti-Alucinación** | Validador estricto anti-alucinación en summary, importación de proyectos en editor y loading dashboard. | Concluido |
+| **Slice 11: Perfil Monolingüe & Espejo Bilingüe** | Perfil base SSOT con espejo derivado incremental (`mirror.py`, `translator.py`), glosario determinista e integración en editor/tailoring. | Concluido |
 | **Fase F1 / F2: Fitting & Motor Físico** | Medición física en Typst, poda determinista Bottom-Up y fitting en 1 página A4. | Concluido |

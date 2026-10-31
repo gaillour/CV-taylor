@@ -221,7 +221,9 @@ class TailoringPipeline:
             val_report = self.validator.validate_model(fitted_model)
 
         # 5. Typst compilation
-        render_res: RenderResult = render_cv(fitted_model, include_svg=include_svg)
+        render_res: RenderResult = render_cv(
+            fitted_model, candidate_pool=self.profile, include_svg=include_svg
+        )
         svg_content: str | None = None
         if include_svg and render_res.svg_pages:
             svg_content = render_res.svg_pages[0].decode("utf-8", errors="replace")

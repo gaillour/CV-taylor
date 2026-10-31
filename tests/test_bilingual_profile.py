@@ -264,3 +264,64 @@ def test_tailor_uses_mirror_profile_for_other_language() -> None:
     assert model.summary == mirror_doc.profile.summary
     assert model.experience[0].title == "[EN] Desarrollador Backend"
     assert model.experience[0].bullets[0].text.startswith("[EN] Desarrollo de API")
+
+
+def test_import_english_cv_to_spanish_base_mirrors_original(monkeypatch) -> None:
+    from fastapi.testclient import TestClient
+    from back.api.main import app
+    from back.engine.models import ContactInfo, Profile
+    import json
+    import io
+
+    class DummyEnEsTranslator:
+        def translate_batch(self, texts, src, dst):
+            return [f"[{dst.upper()}] {t}" for t in texts]
+
+    monkeypatch.setattr("back.engine.mirror.get_translator", lambda: DummyEnEsTranslator())
+
+    client = TestClient(app)
+    english_cv = """John Doe
+john@example.com | +1 555 123 4567 | San Francisco, USA
+github.com/johndoe | linkedin.com/in/johndoe
+
+SUMMARY
+Experienced software engineer specializing in distributed backend systems.
+
+EXPERIENCE
+Acme Labs | 2021-03 - Present | Staff Engineer
+- Architected event-driven microservices processing 10M daily events.
+- Reduced database p99 query latency by 45% using Redis caching.
+
+SKILLS
+Python, Go, PostgreSQL, Redis, Kubernetes
+"""
+    files = {"file": ("resume_en.txt", io.BytesIO(english_cv.encode("utf-8")), "text/plain")}
+    # Empty Spanish base profile passed via base_profile
+    empty_es = Profile(
+        full_name="",
+        base_lang="es",
+        contact=ContactInfo(email="", phone="", location=""),
+        skills=[],
+        entries=[],
+    )
+    res = client.post(
+        "/api/profile/import",
+        files=files,
+        data={"source_lang": "auto", "base_profile": empty_es.model_dump_json()},
+    )
+    assert res.status_code == 200, res.text
+    data = res.json()
+
+    assert data["detected_lang"] == "en"
+    assert data["translated_to_base"] is True
+    assert data["profile"]["base_lang"] == "es"
+    assert data["mirror"]["base_lang"] == "en"
+
+    # Base profile was translated to Spanish
+    base_entry = data["profile"]["entries"][0]
+    assert "[ES]" in base_entry["facts"][0]["text"]
+
+    # Mirror profile preserves original English text verbatim
+    mirror_entry = data["mirror"]["entries"][0]
+    assert "Architected event-driven microservices processing 10M daily events." in [f["text"] for f in mirror_entry["facts"]]
+    assert "Reduced database p99 query latency by 45% using Redis caching." in [f["text"] for f in mirror_entry["facts"]]

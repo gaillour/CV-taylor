@@ -100,12 +100,56 @@ def validate_translation(src: str, dst: str) -> bool:
     return nums(src) == nums(dst)
 
 
+def _normalize_text_for_map(text: str) -> str:
+    """Normalize whitespace for reverse mapping match."""
+    return " ".join(text.split()).strip().lower()
+
+
+def translate_profile(
+    source_profile: Profile,
+    target_lang: LangCode,
+    translator: Translator | None = None,
+) -> tuple[Profile, dict[str, str], list[str]]:
+    """Translate `source_profile` into `target_lang` and return a reverse text mapping.
+
+    Returns:
+    - translated_profile (with base_lang = target_lang)
+    - reverse_map: normalized_translated_text -> original_source_text
+    - failed_keys: list of slot keys that could not be translated
+    """
+    if source_profile.base_lang == target_lang:
+        return source_profile.model_copy(deep=True), {}, []
+
+    tr = translator if translator is not None else get_translator()
+    mirror_doc, failed = build_mirror(source_profile, previous=None, translator=tr)
+    translated_profile = mirror_doc.profile
+
+    reverse_map: dict[str, str] = {}
+    src_slots = _slots(source_profile)
+    dst_slots = _slots(translated_profile)
+
+    for key, (get_src, _) in src_slots.items():
+        src_val = get_src()
+        if not src_val or not src_val.strip():
+            continue
+        if key in dst_slots:
+            dst_val = dst_slots[key][0]()
+            if dst_val and dst_val.strip():
+                reverse_map[_normalize_text_for_map(dst_val)] = src_val
+
+    return translated_profile, reverse_map, failed
+
+
 def build_mirror(
     base: Profile,
     previous: ProfileMirror | None,
     translator: Translator | None,
+    reverse_map: dict[str, str] | None = None,
 ) -> tuple[ProfileMirror, list[str]]:
     """Derive the mirror from `base`, reusing previous translations whose source is unchanged.
+
+    If `reverse_map` is provided, texts in `base` matching an entry in `reverse_map`
+    will directly take that original text for the mirror slot without calling the translator.
 
     Returns the mirror and the keys that could not be translated (left with the base text
     and without a source hash, so they are retried on the next sync).
@@ -123,7 +167,9 @@ def build_mirror(
 
     sources: dict[str, str] = {}
     pending: list[tuple[str, str]] = []
-    for key, (get, set_) in _slots(mirror).items():
+    slots = _slots(mirror)
+
+    for key, (get, set_) in slots.items():
         text = get()
         if not text or not text.strip():
             continue
@@ -133,6 +179,14 @@ def build_mirror(
             set_(cached)
             sources[key] = digest
             continue
+
+        if reverse_map:
+            norm_key = _normalize_text_for_map(text)
+            if norm_key in reverse_map:
+                set_(reverse_map[norm_key])
+                sources[key] = digest
+                continue
+
         glossed = _glossary(text, key, src_lang, dst_lang)
         if glossed is not None:
             set_(glossed)
@@ -150,7 +204,6 @@ def build_mirror(
                 )
             except Exception as exc:  # noqa: BLE001 - mirror must never block saving base
                 logger.warning("Fallo la traducción del espejo: %s", exc)
-        slots = _slots(mirror)
         for i, (key, text) in enumerate(pending):
             if translated is None or not translated[i]:
                 failed.append(key)

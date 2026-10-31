@@ -6,6 +6,7 @@ import {
   Entry,
   EntryTitle,
   Fact,
+  ImportProfileResponse,
   LangCode,
   MirrorResponse,
   MirrorStatus,
@@ -58,6 +59,7 @@ interface ProfileState {
   enhancing: boolean;
   canEnhanceAfterImport: boolean;
   lastEnhanceStats: EnhanceStats | null;
+  lastImportInfo: { detectedLang: LangCode; translatedToBase: boolean } | null;
   dirty: boolean;
   error: string | null;
 
@@ -66,7 +68,7 @@ interface ProfileState {
   swapBaseLang: () => Promise<boolean>;
   fetchProfile: () => Promise<void>;
   saveProfile: () => Promise<boolean>;
-  importProfile: (file: File) => Promise<boolean>;
+  importProfile: (file: File, sourceLang?: "auto" | LangCode) => Promise<boolean>;
   enhanceProfile: () => Promise<boolean>;
   dismissImportPrompt: () => void;
   setProfile: (updater: (prev: Profile) => Profile) => void;
@@ -121,6 +123,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   enhancing: false,
   canEnhanceAfterImport: false,
   lastEnhanceStats: null,
+  lastImportInfo: null,
   dirty: false,
   error: null,
 
@@ -198,13 +201,14 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
   },
 
-  importProfile: async (file: File) => {
-    set({ importing: true, error: null });
+  importProfile: async (file: File, sourceLang: "auto" | LangCode = "auto") => {
+    set({ importing: true, error: null, lastImportInfo: null });
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("source_lang", sourceLang);
       const currentProfile = get().profile;
-      if (currentProfile && !isProfileEmpty(currentProfile)) {
+      if (currentProfile) {
         formData.append("base_profile", JSON.stringify(currentProfile));
       }
       const res = await apiFetch(`${API_BASE_URL}/api/profile/import`, {
@@ -221,13 +225,18 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         }
         throw new Error(errorMsg);
       }
-      const imported = (await res.json()) as Profile;
+      const data = (await res.json()) as ImportProfileResponse;
       set({
-        profile: imported,
-        viewLang: imported.base_lang || "es",
-        mirror: null,
+        profile: data.profile,
+        mirror: data.mirror,
+        mirrorStatus: data.mirror_status,
+        viewLang: data.profile.base_lang || "es",
         importing: false,
         canEnhanceAfterImport: true,
+        lastImportInfo: {
+          detectedLang: data.detected_lang,
+          translatedToBase: data.translated_to_base,
+        },
         dirty: true,
         error: null,
       });

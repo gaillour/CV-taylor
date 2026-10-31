@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, ConfigDict, Field
@@ -16,11 +16,13 @@ from back.engine.importer import (
 from back.engine.llm import LLMClient
 from back.engine.mirror import (
     MirrorStatus,
+    build_mirror,
     get_or_sync_mirror,
     swap_base,
     sync_mirror,
+    translate_profile,
 )
-from back.engine.models import Fact, Profile
+from back.engine.models import Fact, LangCode, Profile
 from back.engine.profile_assistant import (
     EnhanceProfileResponse,
     clean_and_deduplicate_profile,
@@ -59,6 +61,21 @@ class SwapBaseResponse(BaseModel):
     profile: Profile
     mirror: Profile
     mirror_status: MirrorStatus
+
+
+SourceLangOption = Literal["auto", "es", "en"]
+
+
+class ImportProfileResponse(BaseModel):
+    """Response payload when importing a CV into the master profile."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    profile: Profile
+    mirror: Profile
+    mirror_status: MirrorStatus
+    detected_lang: LangCode
+    translated_to_base: bool
 
 
 @router.put("", response_model=Profile)
@@ -171,12 +188,13 @@ def upsert_bullet_fact(
         ) from exc
 
 
-@router.post("/import", response_model=Profile)
+@router.post("/import", response_model=ImportProfileResponse)
 async def import_master_profile(
     repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
     file: UploadFile = File(...),  # noqa: B008
     base_profile: str | None = Form(default=None),  # noqa: B008
-) -> Profile:
+    source_lang: SourceLangOption = Form(default="auto"),  # noqa: B008
+) -> ImportProfileResponse:
     """Extract structured Profile from uploaded PDF/TXT and merge into Master Profile."""
     filename = (file.filename or "").lower()
     if not (filename.endswith(".pdf") or filename.endswith(".txt")):
@@ -224,13 +242,53 @@ async def import_master_profile(
     try:
         llm = LLMClient()
         active_llm = llm if llm.is_configured else None
-        extracted = parse_profile_from_text(text, llm=active_llm)
+        forced_lang: LangCode | None = None if source_lang == "auto" else source_lang
+        extracted = parse_profile_from_text(text, llm=active_llm, default_lang=forced_lang)
+        if forced_lang is not None:
+            extracted.base_lang = forced_lang
+        detected_lang = extracted.base_lang
+
         current_profile = (
             Profile.model_validate_json(base_profile) if base_profile else repo.get_profile()
         )
-        merged = merge_profiles(current_profile, extracted)
+        target_lang = current_profile.base_lang or "es"
+
+        reverse_map: dict[str, str] = {}
+        translated_to_base = False
+
+        if detected_lang != target_lang:
+            translated_extracted, reverse_map, _ = translate_profile(
+                extracted, target_lang=target_lang
+            )
+            to_merge = translated_extracted
+            translated_to_base = True
+        else:
+            to_merge = extracted
+
+        merged = merge_profiles(current_profile, to_merge)
         merged = clean_and_deduplicate_profile(merged)
-        return merged
+        merged.base_lang = target_lang
+
+        # Build and update mirror with reverse map to preserve original resume texts
+        from back.engine.translator import get_translator
+
+        translator = get_translator()
+        mirror_doc, failed = build_mirror(
+            merged,
+            repo.get_mirror(),
+            translator,
+            reverse_map=reverse_map if reverse_map else None,
+        )
+        repo.save_mirror(mirror_doc)
+        mirror_status: MirrorStatus = "partial" if failed else "ok"
+
+        return ImportProfileResponse(
+            profile=merged,
+            mirror=mirror_doc.profile,
+            mirror_status=mirror_status,
+            detected_lang=detected_lang,
+            translated_to_base=translated_to_base,
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=500,

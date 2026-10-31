@@ -847,7 +847,9 @@ def merge_profiles(base: Profile, incoming: Profile) -> Profile:
     """
     base_empty = not base.full_name.strip() and len(base.entries) == 0 and len(base.skills) == 0
     if base_empty:
-        return incoming.model_copy(deep=True)
+        merged = incoming.model_copy(deep=True)
+        merged.base_lang = base.base_lang
+        return merged
 
     incoming_empty = (
         not incoming.full_name.strip() and len(incoming.entries) == 0 and len(incoming.skills) == 0
@@ -1078,13 +1080,7 @@ def merge_profiles(base: Profile, incoming: Profile) -> Profile:
         schema_version=base.schema_version or "1.0.0",
         full_name=full_name,
         contact=contact,
-        base_lang=(
-            incoming.base_lang
-            if (not base_name_clean or base_name_clean.lower() in _DUMMY_NAMES)
-            and len(base.entries) == 0
-            else base.base_lang
-        )
-        or incoming.base_lang,
+        base_lang=base.base_lang or incoming.base_lang,
         summary=summary,
         skills=merged_skills,
         entries=sorted_entries,

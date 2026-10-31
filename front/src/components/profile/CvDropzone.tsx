@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { UploadCloud, FileText, Loader2, AlertCircle } from "lucide-react";
+import { UploadCloud, FileText, Loader2, AlertCircle, Languages, CheckCircle2 } from "lucide-react";
 import { useProfileStore } from "@/store/useProfileStore";
+import { SourceLangOption } from "@/types/cv";
 
 interface CvDropzoneProps {
   onSuccess?: () => void;
@@ -12,7 +13,8 @@ interface CvDropzoneProps {
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
-  const { importProfile, importing, error } = useProfileStore();
+  const { importProfile, importing, error, lastImportInfo, profile } = useProfileStore();
+  const [sourceLang, setSourceLang] = useState<SourceLangOption>("auto");
   const [isDragging, setIsDragging] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +35,7 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
       return;
     }
 
-    const ok = await importProfile(file);
+    const ok = await importProfile(file, sourceLang);
     if (ok) {
       if (onSuccess) onSuccess();
     }
@@ -134,7 +136,65 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
             </div>
           </div>
         )}
+
+        {/* Source language selector toggle */}
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="mt-4 pt-3 border-t border-zinc-900 w-full flex items-center justify-between text-xs text-zinc-400 px-2"
+        >
+          <div className="flex items-center gap-1.5">
+            <Languages className="w-3.5 h-3.5 text-zinc-500" />
+            <span>Idioma del CV:</span>
+          </div>
+          <div className="inline-flex rounded-lg bg-zinc-900/90 p-0.5 border border-zinc-800 text-[11px]">
+            <button
+              type="button"
+              disabled={importing}
+              onClick={() => setSourceLang("auto")}
+              className={`px-2.5 py-1 rounded-md transition ${
+                sourceLang === "auto"
+                  ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              Auto
+            </button>
+            <button
+              type="button"
+              disabled={importing}
+              onClick={() => setSourceLang("es")}
+              className={`px-2.5 py-1 rounded-md transition ${
+                sourceLang === "es"
+                  ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              ES
+            </button>
+            <button
+              type="button"
+              disabled={importing}
+              onClick={() => setSourceLang("en")}
+              className={`px-2.5 py-1 rounded-md transition ${
+                sourceLang === "en"
+                  ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              EN
+            </button>
+          </div>
+        </div>
       </div>
+
+      {lastImportInfo?.translatedToBase && (
+        <div className="mt-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+          <span>
+            Se detectó tu CV en <strong>{lastImportInfo.detectedLang === "en" ? "inglés" : "español"}</strong> y se tradujo al idioma base ({profile?.base_lang?.toUpperCase() || "ES"}). La versión original quedó guardada en el perfil espejo.
+          </span>
+        </div>
+      )}
 
       {displayError && (
         <div className="mt-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-center gap-2">

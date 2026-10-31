@@ -468,3 +468,44 @@ def test_bottom_up_pruning_drops_last_project_before_recent_experience() -> None
         else:
             # Recent experience bullet was not even touched while project bullet was pruned
             assert "fact_proj_last_2" in fit_report.pruned_fact_ids
+
+
+def test_fit_engine_guarantees_85_to_100_percent_fill_and_avoids_aggressive_pruning() -> None:
+    profile = Profile.from_json(JUAN_FIXTURE)
+    base_model = RenderModel.from_profile(
+        profile,
+        archetype="dev",
+        theme="classic",
+        density=0.0,
+        include_summary=True,
+    )
+
+    # Artificially expand base model to force overflow to 2 pages
+    extra_bullets = [
+        RenderBullet(
+            text=f"Viñeta sintética adicional de gran longitud #{i} para forzar overflow controlado.",
+            fact_ids=[f"fact_overflow_synthetic_{i}"],
+            priority=10 + i,
+            pinned=False,
+            position=90 + i,
+        )
+        for i in range(5)
+    ]
+    exp0 = base_model.experience[0]
+    modified_exp = exp0.model_copy(update={"bullets": [*exp0.bullets, *extra_bullets]})
+    overflow_model = base_model.model_copy(
+        update={"experience": [modified_exp, *base_model.experience[1:]]}
+    )
+
+    assert measure_fit(overflow_model).pages >= 2
+
+    fitted_model, fit_report = fit_render_model(overflow_model, candidate_pool=profile)
+
+    assert fit_report.fits_one_page is True
+    assert fit_report.pages == 1
+    assert 85.0 <= fit_report.fill_pct <= 98.0
+    assert fit_report.underfilled is False
+    # Ensure projects weren't gutted to 1 bullet each
+    for proj in fitted_model.projects:
+        assert len(proj.bullets) >= 1
+

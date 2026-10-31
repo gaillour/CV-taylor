@@ -116,6 +116,16 @@ export interface SwapBaseResponse {
   mirror_status: MirrorStatus;
 }
 
+export type SourceLangOption = "auto" | LangCode;
+
+export interface ImportProfileResponse {
+  profile: Profile;
+  mirror: Profile;
+  mirror_status: MirrorStatus;
+  detected_lang: LangCode;
+  translated_to_base: boolean;
+}
+
 export interface RenderSkillGroup {
   category: string;
   items: string;

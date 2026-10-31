@@ -119,7 +119,7 @@ Python, FastAPI, TypeScript, Docker, PostgreSQL
     files = {"file": ("cv.txt", io.BytesIO(sample_cv.encode("utf-8")), "text/plain")}
     res = client.post("/api/profile/import", files=files)
     assert res.status_code == 200, res.text
-    data = res.json()
+    data = res.json()["profile"]
     assert data["full_name"] == "Juan Perez"
     assert data["contact"]["email"] == "juan.perez@example.com"
     assert len(data["entries"]) >= 1
@@ -154,7 +154,7 @@ Python, Kubernetes
     files = {"file": ("cv_viejo.txt", io.BytesIO(old_cv.encode("utf-8")), "text/plain")}
     res = client.post("/api/profile/import", files=files)
     assert res.status_code == 200, res.text
-    merged = res.json()
+    merged = res.json()["profile"]
 
     # Original name and entries are preserved
     assert merged["full_name"] == existing_profile["full_name"]
@@ -177,7 +177,7 @@ Python, Kubernetes
         data={"base_profile": json.dumps(existing_profile)},
     )
     assert res_mem.status_code == 200, res_mem.text
-    assert res_mem.json()["full_name"] == "Juan Editado En Memoria"
+    assert res_mem.json()["profile"]["full_name"] == "Juan Editado En Memoria"
 
 
 def test_import_profile_invalid_extension(isolated_profile: Path) -> None:
