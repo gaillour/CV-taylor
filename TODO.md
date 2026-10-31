@@ -7,9 +7,9 @@
 - [x] **Motor de Fitting — Rango 85%-100% de llenado garantizado:**
   - [x] Ajustar algoritmo de convergencia en `back/engine/fit.py` y `renderer.py`: evitar que el CV quede underfilled (<85%) tras poda de viñetas.
   - [x] Implementar reincorporación bottom-up de hechos o relajación controlada de espaciados si el fill ratio queda por debajo del umbral mínimo sin romper el límite de 1 página A4.
-- [ ] **Asistente de Perfil — Títulos contextuales en Proyectos:**
-  - [ ] En `back/engine/profile_assistant.py`, filtrar sugerencias según `entry.kind == 'project'`.
-  - [ ] Prohibir cargos de empleo (ej. sugerir "Software Developer" a un simulador de físicas) y orientar a nombres descriptivos del artefacto/producto.
+- [x] **Asistente de Perfil — Títulos contextuales en Proyectos:**
+  - [x] En `back/engine/profile_assistant.py`, filtrar sugerencias según `entry.kind == 'project'`.
+  - [x] Prohibir cargos de empleo (ej. sugerir "Software Developer" a un simulador de físicas) y orientar a nombres descriptivos del artefacto/producto.
 
 ---
 

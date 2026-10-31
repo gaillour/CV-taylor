@@ -279,15 +279,28 @@ def _polish_fact_deterministic(text: str, lang: LangCode) -> str | None:
     return None
 
 
-def _suggest_titles_deterministic(entry: Entry, lang: LangCode) -> list[EntryTitle]:
-    """Suggest archetype-aligned title variants for experience or project entries."""
-    if entry.kind not in {"experience", "project"}:
-        return []
+FORBIDDEN_PROJECT_TITLE_PATTERN = re.compile(
+    r"\b("
+    r"developer|dev|engineer|programmer|coder|architect|lead|specialist|consultant|intern|manager|analyst|"
+    r"desarrollador|desarrolladora|ingeniero|ingeniera|programador|programadora|"
+    r"arquitecto|arquitecta|lider|líder|especialista|consultor|consultora|pasante|gerente|analista"
+    r")\b",
+    re.IGNORECASE,
+)
 
-    existing_titles = {t.title.lower().strip() for t in entry.titles}
-    existing_archetypes = {t.archetype.lower().strip() for t in entry.titles if t.archetype}
-    corpus = " ".join([entry.org, entry.context] + [f.text for f in entry.facts]).lower()
 
+def _is_forbidden_project_title(title: str) -> bool:
+    """Check if title contains employment/job title terms prohibited for projects."""
+    return bool(FORBIDDEN_PROJECT_TITLE_PATTERN.search(title))
+
+
+def _suggest_titles_for_experience(
+    entry: Entry,
+    lang: LangCode,
+    corpus: str,
+    existing_titles: set[str],
+    existing_archetypes: set[str],
+) -> list[EntryTitle]:
     backend_kws = ["fastapi", "python", "sql", "postgresql", "api", "backend", "docker"]
     frontend_kws = ["react", "next.js", "typescript", "frontend", "tailwind", "ui"]
 
@@ -335,6 +348,152 @@ def _suggest_titles_deterministic(entry: Entry, lang: LangCode) -> list[EntryTit
     return suggested
 
 
+def _suggest_titles_for_project(
+    entry: Entry,
+    lang: LangCode,
+    corpus: str,
+    existing_titles: set[str],
+    existing_archetypes: set[str],
+) -> list[EntryTitle]:
+    backend_kws = [
+        "fastapi",
+        "python",
+        "sql",
+        "postgresql",
+        "api",
+        "backend",
+        "docker",
+        "rest",
+        "graphql",
+        "server",
+        "microservice",
+        "microservicios",
+        "redis",
+    ]
+    frontend_kws = [
+        "react",
+        "next.js",
+        "typescript",
+        "frontend",
+        "tailwind",
+        "ui",
+        "css",
+        "vue",
+        "web",
+        "html",
+        "svelte",
+    ]
+    cli_kws = ["cli", "terminal", "command-line", "command line", "tui", "consola"]
+    data_kws = [
+        "pipeline",
+        "etl",
+        "analytics",
+        "análisis",
+        "datos",
+        "data",
+        "machine learning",
+        "ml",
+        "scraper",
+        "scraping",
+        "pandas",
+        "numpy",
+    ]
+    engine_kws = [
+        "engine",
+        "motor",
+        "simulad",
+        "physics",
+        "física",
+        "físicas",
+        "rendering",
+        "graphics",
+        "game",
+        "juego",
+        "compilador",
+        "compiler",
+        "parser",
+        "emulador",
+        "emulator",
+    ]
+
+    has_backend = any(k in corpus for k in backend_kws)
+    has_frontend = any(k in corpus for k in frontend_kws)
+    has_cli = any(k in corpus for k in cli_kws)
+    has_data = any(k in corpus for k in data_kws)
+    has_engine = any(k in corpus for k in engine_kws)
+
+    candidates: list[tuple[str, str]] = []
+    if lang == "en":
+        if has_engine:
+            candidates.append(("Simulation Engine & Core System", "dev"))
+        if has_cli:
+            candidates.append(("Command Line Interface Tool", "tools"))
+        if has_data:
+            candidates.append(("Data Processing Pipeline", "data"))
+        if has_backend and has_frontend:
+            candidates.append(("Full Stack Web Application", "fullstack"))
+        elif has_backend:
+            candidates.append(("REST API & Backend Service", "backend"))
+        elif has_frontend:
+            candidates.append(("Interactive Web Application", "frontend"))
+        if not candidates:
+            candidates.append(("Software System & Architecture", "dev"))
+    else:
+        if has_engine:
+            candidates.append(("Motor de Simulación y Sistema Core", "dev"))
+        if has_cli:
+            candidates.append(("Herramienta de Línea de Comandos (CLI)", "tools"))
+        if has_data:
+            candidates.append(("Pipeline de Procesamiento de Datos", "data"))
+        if has_backend and has_frontend:
+            candidates.append(("Aplicación Web Full Stack", "fullstack"))
+        elif has_backend:
+            candidates.append(("API REST y Servicio Backend", "backend"))
+        elif has_frontend:
+            candidates.append(("Aplicación Web Interactiva", "frontend"))
+        if not candidates:
+            candidates.append(("Sistema de Software y Arquitectura", "dev"))
+
+    suggested: list[EntryTitle] = []
+    for title_str, arch in candidates:
+        if _is_forbidden_project_title(title_str):
+            continue
+        if title_str.lower() in existing_titles or arch in existing_archetypes:
+            continue
+        existing_titles.add(title_str.lower())
+        existing_archetypes.add(arch)
+        suggested.append(
+            EntryTitle(
+                id=_short_id("title_ai"),
+                entry_id=entry.id,
+                title=title_str,
+                archetype=arch,
+                is_default=False,
+                source="ai",
+                approved=False,
+                approved_at=None,
+            )
+        )
+        if len(suggested) >= 2:
+            break
+
+    return suggested
+
+
+def _suggest_titles_deterministic(entry: Entry, lang: LangCode) -> list[EntryTitle]:
+    """Suggest archetype-aligned title variants for experience or project entries."""
+    if entry.kind not in {"experience", "project"}:
+        return []
+
+    existing_titles = {t.title.lower().strip() for t in entry.titles}
+    existing_archetypes = {t.archetype.lower().strip() for t in entry.titles if t.archetype}
+    corpus = " ".join([entry.org, entry.context] + [f.text for f in entry.facts]).lower()
+
+    if entry.kind == "project":
+        return _suggest_titles_for_project(entry, lang, corpus, existing_titles, existing_archetypes)
+    return _suggest_titles_for_experience(entry, lang, corpus, existing_titles, existing_archetypes)
+
+
 def _enhance_with_llm(
     profile: Profile,
     llm: LLMClient,
@@ -377,8 +536,10 @@ def _enhance_with_llm(
         "extract 1-3 atomic bullets (16-24 words, nominal/action style).\n"
         "   - `improved_facts`: For existing `facts` that can be phrased with stronger ATS "
         "impact, provide `fact_id` and `proposed_text`.\n"
-        "   - `suggested_titles`: Up to 2 alternative role/project titles tailored to "
+        "   - `suggested_titles`: Up to 2 alternative titles tailored to "
         "archetypes (`backend`, `frontend`, `fullstack`, `data`, `devops`).\n"
+        "     * For `experience` entries: Suggest job/role titles tailored to archetypes (e.g. 'Backend Engineer', 'Desarrollador Full Stack').\n"
+        "     * For `project` entries: Suggest concise, descriptive artifact/system/product titles (e.g. 'Simulador de Físicas 2D', 'API Gateway Distribuido'). STRICTLY PROHIBITED: NEVER suggest employment job titles (e.g. 'Software Developer', 'Backend Engineer') for projects.\n"
         "STRICT ANTI-HALLUCINATION RULES:\n"
         "- NEVER invent numbers, percentages, latencies, or metrics not in original text.\n"
         "- NEVER introduce technologies not mentioned in the candidate's profile.\n"
@@ -546,6 +707,8 @@ def _enhance_with_llm(
                 t_str = str(t_item.get("title", "")).strip()
                 arch = str(t_item.get("archetype", "")).strip() or None
                 if not t_str or t_str.lower() in existing_titles:
+                    continue
+                if entry.kind == "project" and _is_forbidden_project_title(t_str):
                     continue
                 existing_titles.add(t_str.lower())
                 entry.titles.append(
