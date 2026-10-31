@@ -18,9 +18,9 @@
 - [x] **ATS Reactivo en Editor:**
   - [x] Crear endpoint liviano `POST /api/ats/evaluate` en backend para evaluar puntaje, keywords presentes y ausentes sobre `CurriculumData` (RenderModel) sin compilar PDF/Typst.
   - [x] Conectar `useCvStore.ts` y gauge visual en `CvEditor.tsx` con debounce de 500ms al alternar viñetas o editar textos.
-- [ ] **Tailoring — Selección binaria obligatoria de idioma:**
-  - [ ] Eliminar detección "auto" en `front/src/components/tailor/TailorModal.tsx`.
-  - [ ] Forzar selección binaria manual explícita (`Español` / `English`) por parte del usuario antes de disparar el pipeline.
+- [x] **Tailoring — Selección binaria obligatoria de idioma:**
+  - [x] Eliminar detección "auto" en `front/src/components/tailor/TailorModal.tsx`.
+  - [x] Forzar selección binaria manual explícita (`Español` / `English`) por parte del usuario antes de disparar el pipeline.
 - [ ] **IA — Poda de bloques completos irrelevantes:**
   - [ ] Permitir que el curador IA / heurística descarte un bloque/entrada completo (`experience` o `project`) si su relevancia frente a la oferta es nula, evitando dejar títulos aislados sin viñetas.
 

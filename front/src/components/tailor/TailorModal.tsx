@@ -35,7 +35,7 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
 
   const [offerText, setOfferText] = useState("");
   const [selectedTheme, setSelectedTheme] = useState<ThemeName>(renderModel?.theme || "classic");
-  const [selectedLang, setSelectedLang] = useState<LangCode | "auto">("auto");
+  const [selectedLang, setSelectedLang] = useState<LangCode>(renderModel?.lang || "es");
   const [noLlm, setNoLlm] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [lastResult, setLastResult] = useState<TailorResponse | null>(null);
@@ -58,7 +58,7 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
       const res = await tailorCv({
         offer_text: offerText.trim(),
         theme: selectedTheme,
-        lang: selectedLang === "auto" ? null : selectedLang,
+        lang: selectedLang,
         no_llm: noLlm,
       });
       clearInterval(stepInterval);
@@ -244,15 +244,30 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
                   <label className="block text-xs font-medium text-zinc-400 mb-1">
                     Idioma Destino
                   </label>
-                  <select
-                    value={selectedLang}
-                    onChange={(e) => setSelectedLang(e.target.value as LangCode | "auto")}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700"
-                  >
-                    <option value="auto">Auto (detectar de la oferta)</option>
-                    <option value="es">Español (ES)</option>
-                    <option value="en">English (EN)</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-1.5 bg-zinc-900 border border-zinc-800 rounded-lg p-1">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedLang("es")}
+                      className={`py-1 px-2 rounded-md text-xs font-medium transition ${
+                        selectedLang === "es"
+                          ? "bg-zinc-800 text-zinc-100 shadow-sm border border-zinc-700"
+                          : "text-zinc-400 hover:text-zinc-200"
+                      }`}
+                    >
+                      Español (ES)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedLang("en")}
+                      className={`py-1 px-2 rounded-md text-xs font-medium transition ${
+                        selectedLang === "en"
+                          ? "bg-zinc-800 text-zinc-100 shadow-sm border border-zinc-700"
+                          : "text-zinc-400 hover:text-zinc-200"
+                      }`}
+                    >
+                      English (EN)
+                    </button>
+                  </div>
                 </div>
               </div>
 
