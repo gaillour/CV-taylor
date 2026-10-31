@@ -21,8 +21,8 @@
 - [x] **Tailoring — Selección binaria obligatoria de idioma:**
   - [x] Eliminar detección "auto" en `front/src/components/tailor/TailorModal.tsx`.
   - [x] Forzar selección binaria manual explícita (`Español` / `English`) por parte del usuario antes de disparar el pipeline.
-- [ ] **IA — Poda de bloques completos irrelevantes:**
-  - [ ] Permitir que el curador IA / heurística descarte un bloque/entrada completo (`experience` o `project`) si su relevancia frente a la oferta es nula, evitando dejar títulos aislados sin viñetas.
+- [x] **IA — Poda de bloques completos irrelevantes:**
+  - [x] Permitir que el curador IA / heurística descarte un bloque/entrada completo (`experience` o `project`) si su relevancia frente a la oferta es nula, evitando dejar títulos aislados sin viñetas.
 
 ---
 

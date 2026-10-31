@@ -581,3 +581,50 @@ def test_tailor_bilingual_skills_and_harmonize(monkeypatch: pytest.MonkeyPatch) 
 
     assert result.summary == mock_harmonized["summary"]
     assert result.experience[0].title == "Lead Software Engineer"
+
+
+def test_tailor_discards_irrelevant_blocks_and_empty_bullet_entries() -> None:
+    """Verifies that entries with no bullets or zero relevance are pruned entirely, never leaving isolated headers."""
+    profile_data = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+    # Add an irrelevant project with zero affinity
+    profile_data["entries"].append(
+        {
+            "id": "proj_unrelated_art",
+            "kind": "project",
+            "org": "Pintura al Óleo",
+            "start_date": "2020",
+            "end_date": "2021",
+            "position": 1,
+            "archived": False,
+            "default_selected": False,
+            "archetypes": [],
+            "titles": [
+                {
+                    "id": "title_art",
+                    "title": "Galería de Cuadros",
+                    "approved": True,
+                }
+            ],
+            "facts": [],
+        }
+    )
+    custom_profile = Profile.model_validate(profile_data)
+    engine = TailorEngine(custom_profile, client=None)
+
+    job_spec = JobSpec(
+        role="Backend Developer",
+        archetype="backend",
+        keywords=["Python", "FastAPI", "PostgreSQL"],
+    )
+
+    tailored = engine.tailor(job_spec, use_llm=False)
+    proj_ids = [e.entry_id for e in tailored.projects]
+
+    # The unrelated project must be completely pruned
+    assert "proj_unrelated_art" not in proj_ids
+
+    # None of the surviving experience or project entries should have 0 bullets (no isolated titles)
+    for exp in tailored.experience:
+        assert len(exp.bullets) > 0, f"Entry {exp.title} was rendered with 0 bullets!"
+    for proj in tailored.projects:
+        assert len(proj.bullets) > 0, f"Entry {proj.title} was rendered with 0 bullets!"

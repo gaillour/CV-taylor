@@ -216,8 +216,12 @@ class TailorEngine:
                 fids = item.get("fact_ids", [])
                 if eid in valid_entry_ids and isinstance(fids, list):
                     entry_obj = valid_entry_ids[eid]
-                    valid_fids = {f.id for f in entry_obj.facts}
-                    curated_map[eid] = [fid for fid in fids if fid in valid_fids]
+                    valid_fids = {f.id for f in entry_obj.facts if f.approved}
+                    curated_fids = [fid for fid in fids if fid in valid_fids]
+                    # Discard entire block if LLM selected 0 facts for an experience/project that has facts
+                    if entry_obj.kind in {"experience", "project"} and entry_obj.facts and not curated_fids:
+                        continue
+                    curated_map[eid] = curated_fids
 
             return curated_map if curated_map else None
         except Exception:
@@ -285,7 +289,15 @@ class TailorEngine:
                 if is_secondary and higher_education_ids and aff <= 0:
                     continue
 
-            elif kind in {"experience", "project"}:
+            elif kind == "project":
+                # Projects require positive affinity or archetype match; do not force irrelevant projects
+                archetype_match = bool(
+                    archetype and matches_archetype(archetype, entry.archetypes)
+                )
+                if aff <= 0 and not (entry.default_selected and archetype_match):
+                    continue
+
+            elif kind == "experience":
                 # The first entry can be the top relevant/default entry.
                 # Additional entries (slot 2 and 3) require affinity > 0 or default + archetype
                 if len(selected) >= 1:
@@ -297,8 +309,8 @@ class TailorEngine:
 
             selected.append(entry)
 
-        # Safety floor: if nothing matched at all, provide the top base entry
-        if not selected and scored:
+        # Safety floor for experience: if nothing matched at all, provide the top base entry
+        if not selected and scored and kind == "experience":
             selected.append(scored[0][2])
 
         return selected
@@ -512,6 +524,10 @@ class TailorEngine:
                     )
                 else:
                     bullets = self._build_deterministic_bullets(chosen_facts, keywords_lower)
+
+                if entry.kind in {"experience", "project"} and not bullets:
+                    # Skip empty entries without bullets to avoid leaving isolated titles
+                    continue
 
                 rendered_entries.append(
                     RenderEntry(
