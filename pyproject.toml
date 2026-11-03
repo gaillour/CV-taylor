@@ -2,8 +2,8 @@
 name = "cv-tailor"
 version = "0.1.0"
 description = "Deterministic 1-page AI CV tailoring engine and CLI"
-readme = "SPEC.md"
-license = { text = "AGPL-3.0-only" }
+readme = "README.md"
+license = { text = "FSL-1.1-MIT" }
 requires-python = ">=3.12"
 dependencies = [
     "cv-tailor-engine",

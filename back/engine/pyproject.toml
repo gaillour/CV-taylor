@@ -2,7 +2,7 @@
 name = "cv-tailor-engine"
 version = "0.1.0"
 description = "Core rendering, fit loop, and validation engine for CV Tailor"
-license = { text = "AGPL-3.0-only" }
+license = { text = "FSL-1.1-MIT" }
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.10.0",
