@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import {
+  ArrowDown,
+  ArrowUp,
   Check,
   ChevronDown,
   ChevronRight,
@@ -19,6 +21,7 @@ export function EntriesTab({
   onAddEntry,
   onUpdateEntry,
   onRemoveEntry,
+  onMoveEntry,
   onAddTitle,
   onRemoveTitle,
   onUpsertEntryTitle,
@@ -39,6 +42,7 @@ export function EntriesTab({
   onAddEntry: (e: Entry) => void;
   onUpdateEntry: (id: string, e: Partial<Entry>) => void;
   onRemoveEntry: (id: string) => void;
+  onMoveEntry?: (id: string, direction: "up" | "down") => void;
   onAddTitle: (entryId: string, t: EntryTitle) => void;
   onRemoveTitle: (entryId: string, titleId: string) => void;
   onUpsertEntryTitle?: (entryId: string, titleText: string) => void;
@@ -144,9 +148,11 @@ export function EntriesTab({
       </div>
 
       <div className="space-y-2.5">
-        {entries.map((entry) => {
+        {entries.map((entry, idx) => {
           const isExpanded = Boolean(expandedIds[entry.id]);
           const isHighlighted = highlightedEntryId === entry.id;
+          const isFirst = idx === 0;
+          const isLast = idx === entries.length - 1;
 
           return (
             <EntryCardItem
@@ -155,9 +161,12 @@ export function EntriesTab({
               readOnly={readOnly}
               isExpanded={isExpanded}
               isHighlighted={isHighlighted}
+              isFirst={isFirst}
+              isLast={isLast}
               onToggle={() => toggleExpand(entry.id)}
               onUpdateEntry={onUpdateEntry}
               onRemoveEntry={onRemoveEntry}
+              onMoveEntry={onMoveEntry}
               onAddTitle={onAddTitle}
               onRemoveTitle={onRemoveTitle}
               onUpsertEntryTitle={onUpsertEntryTitle}
@@ -189,9 +198,12 @@ function EntryCardItem({
   readOnly = false,
   isExpanded,
   isHighlighted,
+  isFirst = false,
+  isLast = false,
   onToggle,
   onUpdateEntry,
   onRemoveEntry,
+  onMoveEntry,
   onAddTitle,
   onRemoveTitle,
   onUpsertEntryTitle,
@@ -209,9 +221,12 @@ function EntryCardItem({
   readOnly?: boolean;
   isExpanded: boolean;
   isHighlighted: boolean;
+  isFirst?: boolean;
+  isLast?: boolean;
   onToggle: () => void;
   onUpdateEntry: (id: string, e: Partial<Entry>) => void;
   onRemoveEntry: (id: string) => void;
+  onMoveEntry?: (id: string, direction: "up" | "down") => void;
   onAddTitle: (entryId: string, t: EntryTitle) => void;
   onRemoveTitle: (entryId: string, titleId: string) => void;
   onUpsertEntryTitle?: (entryId: string, titleText: string) => void;
@@ -321,7 +336,11 @@ function EntryCardItem({
             </div>
             <div className="text-[11px] text-zinc-500 flex items-center gap-2 mt-0.5">
               <span>
-                {entry.start_date} — {entry.end_date || "presente"}
+                {entry.end_date
+                  ? entry.end_date === entry.start_date
+                    ? entry.start_date
+                    : `${entry.start_date} — ${entry.end_date}`
+                  : `${entry.start_date} — presente`}
               </span>
               {entry.location && <span>· {entry.location}</span>}
             </div>
@@ -338,6 +357,28 @@ function EntryCardItem({
           <span className="text-[10px] text-zinc-500 font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800">
             {entry.facts.length} {entry.facts.length === 1 ? "logro" : "logros"}
           </span>
+          {!readOnly && onMoveEntry && (
+            <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                disabled={isFirst}
+                onClick={() => onMoveEntry(entry.id, "up")}
+                className="p-1 rounded hover:bg-zinc-800 disabled:opacity-20 text-zinc-400 hover:text-zinc-200 transition cursor-pointer disabled:cursor-not-allowed"
+                title="Subir prioridad en perfil"
+              >
+                <ArrowUp className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                disabled={isLast}
+                onClick={() => onMoveEntry(entry.id, "down")}
+                className="p-1 rounded hover:bg-zinc-800 disabled:opacity-20 text-zinc-400 hover:text-zinc-200 transition cursor-pointer disabled:cursor-not-allowed"
+                title="Bajar prioridad en perfil"
+              >
+                <ArrowDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
           {!readOnly && (
             <button
               type="button"

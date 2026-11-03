@@ -1,38 +1,37 @@
 # TODO.md — Roadmap Operativo (`cv-tailor`)
 
-## Fase Activa: F4 — Pulido de Fitting, ATS Reactivo y Usabilidad
+## Fase Activa: F5 — Consistencia de Editor, Importación y Normalización
 
-### P0 — Crítico / Bloqueante
+### P0 — Crítico & Bugs Inmediatos
 
-- [x] **Motor de Fitting — Rango 85%-100% de llenado garantizado:**
-  - [x] Ajustar algoritmo de convergencia en `back/engine/fit.py` y `renderer.py`: evitar que el CV quede underfilled (<85%) tras poda de viñetas.
-  - [x] Implementar reincorporación bottom-up de hechos o relajación controlada de espaciados si el fill ratio queda por debajo del umbral mínimo sin romper el límite de 1 página A4.
-- [x] **Asistente de Perfil — Títulos contextuales en Proyectos:**
-  - [x] En `back/engine/profile_assistant.py`, filtrar sugerencias según `entry.kind == 'project'`.
-  - [x] Prohibir cargos de empleo (ej. sugerir "Software Developer" a un simulador de físicas) y orientar a nombres descriptivos del artefacto/producto.
-
----
-
-### P1 — Core UX & Adaptación
-
-- [x] **ATS Reactivo en Editor:**
-  - [x] Crear endpoint liviano `POST /api/ats/evaluate` en backend para evaluar puntaje, keywords presentes y ausentes sobre `CurriculumData` (RenderModel) sin compilar PDF/Typst.
-  - [x] Conectar `useCvStore.ts` y gauge visual en `CvEditor.tsx` con debounce de 500ms al alternar viñetas o editar textos.
-- [x] **Tailoring — Selección binaria obligatoria de idioma:**
-  - [x] Eliminar detección "auto" en `front/src/components/tailor/TailorModal.tsx`.
-  - [x] Forzar selección binaria manual explícita (`Español` / `English`) por parte del usuario antes de disparar el pipeline.
-- [x] **IA — Poda de bloques completos irrelevantes:**
-  - [x] Permitir que el curador IA / heurística descarte un bloque/entrada completo (`experience` o `project`) si su relevancia frente a la oferta es nula, evitando dejar títulos aislados sin viñetas.
+- [x] **Fechas idénticas inicio/fin en entradas:**
+  - [x] En `back/engine/models.py` (`Entry.format_date_range`), si `start_str == end_str`, devolver un único punto temporal (ej. `"2024"` o `"03/2024"`) en lugar de duplicar `"2024 - 2024"`.
+  - [x] Validar compatibilidad en diagnósticos ATS y tests de renderizado.
+- [x] **Selección y orden de proyectos al crear CV en blanco:**
+  - [x] En `RenderModel.from_profile`, aplicar criterio de selección determinista para proyectos (orden de perfil, pineados y mayor cantidad de viñetas) limitando a `MAX_PROJECT_ENTRIES`.
+  - [x] Asegurar que el fitting inicial no reduzca a 0 las viñetas de los proyectos seleccionados dejando títulos aislados.
+  - [x] Permitir reordenamiento posicional de entradas (subir/bajar) directamente en el Perfil con persistencia reactiva.
 
 ---
 
-### P2 — Usabilidad en Editor y Perfil
+### P1 — Core UX & Modularidad en Editor
 
-- [ ] **Editor — Reordenamiento de Secciones e Items:**
-  - [ ] Permitir alterar el orden de secciones (ej. ubicar Proyectos antes de Experiencia) mediante `section_order` en `CurriculumData`.
-  - [ ] Controles para subir/bajar la posición relativa de experiencias y proyectos dentro de sus secciones.
-- [ ] **Perfil — Visibilidad contextual de "Mejorar con IA":**
-  - [ ] Ocultar o condicionar el botón/banner fijo de optimización para que aparezca únicamente tras importar un CV o cuando haya viñetas/skills pendientes de normalizar.
+- [ ] **Importación integral desde Perfil en Editor:**
+  - [ ] Permitir importar experiencias laborales y categorías de habilidades desde el Perfil (maestro o espejo bilingüe), replicando el flujo ya existente en proyectos.
+- [ ] **Consistencia de acciones y espaciado en Dropdowns:**
+  - [ ] Corregir padding superior de botones de añadir/importar dentro de los dropdowns del editor.
+  - [ ] Unificar diseño y componentes de acción para que experiencias, habilidades y educación compartan el estándar de proyectos.
+- [ ] **Toggle para excluir Resumen Profesional:**
+  - [ ] Incorporar switch o control en el editor para ocultar/excluir la sección de resumen profesional (quitando `summary` de `section_order` o vaciando el texto sin perder datos).
+
+---
+
+### P2 — Calidad de Perfil & Consistencia de Renderizado
+
+- [ ] **Detección y eliminación completa de viñetas redundantes:**
+  - [ ] Refinar prompt en `back/engine/profile_assistant.py` para que ante viñetas idénticas o fuertemente redundantes recomiende su eliminación completa vía `redundant_facts` en vez de reescrituras vacías en `improved_facts`.
+- [ ] **Consistencia de % de llenado entre plantillas Typst:**
+  - [ ] Calibrar márgenes base y espaciados verticales entre las 6 plantillas (`basic`, `classic`, `engineering`, `kire`, `modern`, `yuan`) para reducir saltos drásticos en el porcentaje de llenado (fill ratio) al alternar entre estilos.
 
 ---
 
@@ -40,7 +39,8 @@
 
 - [ ] **Nuevas plantillas Typst:**
   - [ ] Diseños editoriales modernos y versátiles (roles de producto, diseño o consultoría) más allá del estilo estrictamente ingenieril.
-  - [ ] Soporte opcional para foto de perfil / avatar en plantillas compatibles.
+- [ ] **Soporte opcional para foto de perfil / avatar (`nth fotos`):**
+  - [ ] Soporte opcional de imagen en cabecera para plantillas compatibles.
 - [ ] **Validación en ATS:**
   - [ ] Pruebas de compatibilidad y parsing con plataformas ATS de reclutamiento (Lever, Greenhouse, Workday).
 
@@ -62,3 +62,4 @@
 | **Slice 10: Pulido UX & Anti-Alucinación** | Validador estricto anti-alucinación en summary, importación de proyectos en editor y loading dashboard. | Concluido |
 | **Slice 11: Perfil Monolingüe & Espejo Bilingüe** | Perfil base SSOT con espejo derivado incremental (`mirror.py`, `translator.py`), glosario determinista e integración en editor/tailoring. | Concluido |
 | **Fase F1 / F2: Fitting & Motor Físico** | Medición física en Typst, poda determinista Bottom-Up y fitting en 1 página A4. | Concluido |
+| **Fase F4: Fitting 85-100%, ATS en vivo y Usabilidad** | Rango garantizado 85-100%, selector binario de idioma, ATS live, reordenamiento de secciones y títulos de artefacto en proyectos. | Concluido |

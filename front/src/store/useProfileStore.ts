@@ -88,6 +88,7 @@ interface ProfileState {
 
   addEntry: (entry: Entry) => void;
   updateEntry: (id: string, entry: Partial<Entry>) => void;
+  moveEntry: (id: string, direction: "up" | "down") => void;
   removeEntry: (id: string) => void;
 
   addTitle: (entryId: string, title: EntryTitle) => void;
@@ -382,6 +383,34 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       ...p,
       entries: p.entries.map((e) => (e.id === id ? { ...e, ...entryUpdate } : e)),
     }));
+  },
+
+  moveEntry: (id, direction) => {
+    get().setProfile((p) => {
+      const entry = p.entries.find((e) => e.id === id);
+      if (!entry) return p;
+      const sameKind = p.entries.filter((e) => e.kind === entry.kind && !e.archived);
+      sameKind.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      const currIdx = sameKind.findIndex((e) => e.id === id);
+      if (currIdx === -1) return p;
+      const targetIdx = direction === "up" ? currIdx - 1 : currIdx + 1;
+      if (targetIdx < 0 || targetIdx >= sameKind.length) return p;
+
+      const swapped = [...sameKind];
+      const temp = swapped[currIdx];
+      swapped[currIdx] = swapped[targetIdx];
+      swapped[targetIdx] = temp;
+
+      const posMap = new Map<string, number>();
+      swapped.forEach((item, idx) => {
+        posMap.set(item.id, idx);
+      });
+
+      return {
+        ...p,
+        entries: p.entries.map((e) => (posMap.has(e.id) ? { ...e, position: posMap.get(e.id)! } : e)),
+      };
+    });
   },
 
   removeEntry: (id) => {

@@ -57,6 +57,7 @@ export default function ProfilePage() {
     removeSkill,
     addEntry,
     updateEntry,
+    moveEntry,
     removeEntry,
     addTitle,
     removeTitle,
@@ -471,6 +472,7 @@ export default function ProfilePage() {
               readOnly={isViewingMirror}
               onAddEntry={addEntry}
               onUpdateEntry={updateEntry}
+              onMoveEntry={moveEntry}
               onRemoveEntry={removeEntry}
               onAddTitle={addTitle}
               onRemoveTitle={removeTitle}
@@ -497,6 +499,7 @@ export default function ProfilePage() {
               readOnly={isViewingMirror}
               onAddEntry={addEntry}
               onUpdateEntry={updateEntry}
+              onMoveEntry={moveEntry}
               onRemoveEntry={removeEntry}
               onAddTitle={addTitle}
               onRemoveTitle={removeTitle}
@@ -521,6 +524,7 @@ export default function ProfilePage() {
               readOnly={isViewingMirror}
               onAddEntry={addEntry}
               onUpdateEntry={updateEntry}
+              onMoveEntry={moveEntry}
               onRemoveEntry={removeEntry}
               onAddTitle={addTitle}
               onRemoveTitle={removeTitle}

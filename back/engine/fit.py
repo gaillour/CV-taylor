@@ -532,7 +532,13 @@ def fit_render_model(
                 )
             )
             pruned_fact_ids.extend(bullet.fact_ids)
-            current_model = _remove_bullet(current_model, sec_name, entry_idx, bullet_idx)
+            current_model = _remove_bullet(
+                current_model,
+                sec_name,
+                entry_idx,
+                bullet_idx,
+                drop_empty_entry=True,
+            )
             current_fit = measure_fit(current_model)
 
         # Step 2: Prune non-pinned bullets by priority respecting entry.min_bullets
@@ -555,7 +561,13 @@ def fit_render_model(
                 )
             )
             pruned_fact_ids.extend(bullet.fact_ids)
-            current_model = _remove_bullet(current_model, sec_name, entry_idx, bullet_idx)
+            current_model = _remove_bullet(
+                current_model,
+                sec_name,
+                entry_idx,
+                bullet_idx,
+                drop_empty_entry=True,
+            )
             current_fit = measure_fit(current_model)
 
         # Step 3: Extreme overflow fallback (if entries at min_bullets still overflow 1 page)

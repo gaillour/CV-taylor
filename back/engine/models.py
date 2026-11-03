@@ -178,6 +178,8 @@ class Entry(BaseModel):
             present_str = "Present" if lang == "en" else "Presente"
             return f"{start_str} - {present_str}"
         end_str = _format_iso_date(self.end_date, self.date_precision)
+        if start_str == end_str:
+            return start_str
         return f"{start_str} - {end_str}"
 
     def select_title(
@@ -534,17 +536,32 @@ class RenderModel(BaseModel):
         project_entries: list[RenderEntry] = []
         education_entries: list[RenderEntry] = []
 
-        sorted_entries = sorted(
-            (e for e in profile.entries if not e.archived),
-            key=lambda e: e.position,
-        )
+        active_entries = [e for e in profile.entries if not e.archived]
+
+        def _entry_sort_key(e: Entry) -> tuple[int, int, int, int, str]:
+            matches_arch = 0 if (archetype and archetype in e.archetypes) else 1
+            has_approved_facts = len([f for f in e.facts if f.approved])
+            return (
+                matches_arch,
+                0 if e.default_selected else 1,
+                e.position,
+                -has_approved_facts,
+                e.start_date or "",
+            )
+
+        sorted_entries = sorted(active_entries, key=_entry_sort_key)
+        has_default_selected_proj = any(e.kind == "project" and e.default_selected for e in active_entries)
+        has_default_selected_exp = any(e.kind == "experience" and e.default_selected for e in active_entries)
 
         for entry in sorted_entries:
             if not include_all:
                 if archetype and entry.archetypes and archetype not in entry.archetypes:
                     continue
-                if not archetype and not entry.default_selected:
-                    continue
+                if not archetype:
+                    if entry.kind == "project" and has_default_selected_proj and not entry.default_selected:
+                        continue
+                    if entry.kind == "experience" and has_default_selected_exp and not entry.default_selected:
+                        continue
                 if entry.kind == "experience" and len(experience_entries) >= MAX_EXPERIENCE_ENTRIES:
                     continue
                 if entry.kind == "project" and len(project_entries) >= MAX_PROJECT_ENTRIES:
@@ -566,10 +583,20 @@ class RenderModel(BaseModel):
                     chosen_facts = [f for f in sorted_facts if f.default_selected or f.pinned]
                 if not chosen_facts and sorted_facts:
                     chosen_facts = sorted_facts[: max(entry.min_bullets, 2)]
+                elif len(chosen_facts) < entry.min_bullets and sorted_facts:
+                    for f in sorted_facts:
+                        if f not in chosen_facts:
+                            chosen_facts.append(f)
+                            if len(chosen_facts) >= entry.min_bullets:
+                                break
                 if entry.max_bullets > 0:
                     chosen_facts = chosen_facts[: entry.max_bullets]
             else:
                 chosen_facts = sorted_facts
+
+            # Do not create empty entries with 0 bullets in a blank CV
+            if not include_all and not chosen_facts and entry.kind in {"experience", "project"}:
+                continue
 
             bullets = [
                 RenderBullet(
@@ -602,6 +629,12 @@ class RenderModel(BaseModel):
                 project_entries.append(render_entry)
             elif entry.kind == "education":
                 education_entries.append(render_entry)
+
+        # Preserve user position ordering in the rendered sections
+        entry_pos_map = {e.id: e.position for e in profile.entries}
+        experience_entries.sort(key=lambda re: entry_pos_map.get(re.entry_id, 0))
+        project_entries.sort(key=lambda re: entry_pos_map.get(re.entry_id, 0))
+        education_entries.sort(key=lambda re: entry_pos_map.get(re.entry_id, 0))
 
         summary_text: str | None = profile.summary if include_summary else None
 

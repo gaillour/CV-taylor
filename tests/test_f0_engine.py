@@ -11,6 +11,7 @@ from pydantic import ValidationError
 
 from back.engine import (
     DesignKnobs,
+    Entry,
     EntryTitle,
     JobSpec,
     Profile,
@@ -41,8 +42,8 @@ def test_load_master_profile_fixture() -> None:
     scania = entries_by_id["exp_scania"]
     assert scania.start_date == "2026-02"
     assert scania.end_date == "2026-02"
-    assert scania.format_date_range("es") == "02/2026 - 02/2026"
-    assert scania.format_date_range("en") == "02/2026 - 02/2026"
+    assert scania.format_date_range("es") == "02/2026"
+    assert scania.format_date_range("en") == "02/2026"
 
 
 def test_ai_title_requires_human_approval() -> None:
@@ -164,7 +165,8 @@ def test_ats_linear_reading_order_and_canonical_headers(
         )
         extracted = proc.stdout
         assert "Desarrollador Full Stack / Backend — Simple MDQ | 06/2025 - Presente" in extracted
-        assert "02/2026 - 02/2026" in extracted
+        assert "02/2026" in extracted
+        assert "02/2026 - 02/2026" not in extracted
         assert (
             "Ingeniería Informática — Universidad Nacional de Mar del Plata | 03/2022 - Presente"
             in extracted
@@ -178,3 +180,43 @@ def test_ats_linear_reading_order_and_canonical_headers(
             "HABILIDADES",
         ):
             assert header in upper_text
+
+
+def test_identical_date_range_formats_as_single_point() -> None:
+    entry = Entry(
+        id="test_exp",
+        kind="experience",
+        org="Acme Corp",
+        start_date="2024-05",
+        end_date="2024-05",
+        date_precision="month",
+        titles=[EntryTitle(id="t1", title="Eng", approved=True)],
+    )
+    assert entry.format_date_range("es") == "05/2024"
+    assert entry.format_date_range("en") == "05/2024"
+
+    entry_year = Entry(
+        id="test_exp_yr",
+        kind="experience",
+        org="Acme Corp",
+        start_date="2023-01",
+        end_date="2023-11",
+        date_precision="year",
+        titles=[EntryTitle(id="t2", title="Eng", approved=True)],
+    )
+    assert entry_year.format_date_range("es") == "2023"
+
+
+def test_from_profile_with_many_projects_never_leaves_empty_titles() -> None:
+    profile = Profile.model_validate_json(Path("out/profile.json").read_text(encoding="utf-8"))
+    # Ensure profile has >= 3 projects
+    proj_count = len([e for e in profile.entries if e.kind == "project"])
+    assert proj_count >= 3
+
+    model = RenderModel.from_profile(profile, theme="classic")
+    assert len(model.projects) <= 3
+    assert len(model.projects) > 0
+    for p in model.projects:
+        # Every project must have at least 1 bullet point (never an isolated title)
+        assert len(p.bullets) >= 1
+
