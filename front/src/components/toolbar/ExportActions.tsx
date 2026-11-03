@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCvStore } from "@/store/useCvStore";
-import { Download, Save, CheckCircle2, AlertCircle, X, RotateCcw } from "lucide-react";
+import { Download, Save, CheckCircle2, AlertCircle, X, RotateCcw, Loader2 } from "lucide-react";
 
 interface ToastNotification {
   type: "success" | "error";
@@ -90,7 +90,7 @@ export function ExportActions() {
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {/* Discard Unsaved Changes Button */}
         {dirty && (
           <button
@@ -100,9 +100,9 @@ export function ExportActions() {
                 ? "Revertir cambios a la versión guardada"
                 : "Descartar borrador y volver a la galería"
             }
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-900/60 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 border border-zinc-800 hover:border-rose-500/30 rounded-lg text-xs font-medium transition cursor-pointer shadow-sm"
+            className="flex items-center gap-1 px-2.5 py-1 bg-zinc-900/60 hover:bg-rose-950/30 text-zinc-400 hover:text-rose-300 border border-white/[0.08] rounded-md text-xs font-medium transition cursor-pointer"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3 h-3" />
             <span>Descartar</span>
           </button>
         )}
@@ -112,9 +112,13 @@ export function ExportActions() {
           onClick={handleSaveSnapshot}
           disabled={savingSnapshot || !renderModel}
           title="Guardar versión inmutable con hash SHA-256"
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 hover:border-zinc-600 rounded-lg text-xs font-medium transition cursor-pointer disabled:opacity-50 shadow-sm"
+          className="flex items-center gap-1 px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-white/[0.08] rounded-md text-xs font-medium transition cursor-pointer disabled:opacity-50"
         >
-          <Save className={`w-3.5 h-3.5 text-zinc-400 ${savingSnapshot ? "animate-pulse" : ""}`} />
+          {savingSnapshot ? (
+            <Loader2 className="w-3 h-3 animate-spin text-zinc-400" />
+          ) : (
+            <Save className="w-3 h-3 text-zinc-400" />
+          )}
           <span>{savingSnapshot ? "Guardando..." : "Guardar"}</span>
         </button>
 
@@ -122,37 +126,41 @@ export function ExportActions() {
         <button
           onClick={handleDownloadPdf}
           disabled={exportingPdf || !renderModel}
-          title="Descargar PDF binario nativo compilado por Typst"
-          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition cursor-pointer shadow-sm shadow-emerald-950/40 disabled:opacity-50"
+          title="Descargar PDF compilado por Typst"
+          className="flex items-center gap-1.5 px-3 py-1 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer disabled:opacity-50"
         >
-          <Download className={`w-3.5 h-3.5 ${exportingPdf ? "animate-bounce" : ""}`} />
+          {exportingPdf ? (
+            <Loader2 className="w-3 h-3 animate-spin text-zinc-950" />
+          ) : (
+            <Download className="w-3 h-3" />
+          )}
           <span>{exportingPdf ? "Generando..." : "Descargar PDF"}</span>
         </button>
       </div>
 
-      {/* Floating Linear/Vercel-style Toast Pill */}
+      {/* Floating Toast */}
       {toast && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-3.5 py-2 rounded-full border border-zinc-800 bg-zinc-950/90 backdrop-blur-md shadow-2xl text-xs text-zinc-200 transition-all duration-200 ease-out select-none">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-3 py-1.5 rounded-md border border-white/[0.08] bg-zinc-950/95 backdrop-blur-md shadow-2xl text-xs text-zinc-200 transition-all select-none">
           {toast.type === "success" ? (
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
           ) : (
-            <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+            <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
           )}
 
-          <span className="font-medium">{toast.title}</span>
+          <span className="font-mono text-xs">{toast.title}</span>
 
           {toast.badge && (
-            <span className="font-mono text-[11px] text-zinc-400 bg-zinc-900/90 px-2 py-0.5 rounded-full border border-zinc-800/80">
+            <span className="font-mono text-[10px] text-zinc-400 bg-zinc-900 px-1.5 py-0.5 rounded border border-white/[0.08]">
               {toast.badge}
             </span>
           )}
 
           <button
             onClick={() => setToast(null)}
-            className="text-zinc-500 hover:text-zinc-300 ml-1 p-0.5 rounded-full hover:bg-zinc-800 transition cursor-pointer"
+            className="text-zinc-500 hover:text-zinc-300 ml-1 p-0.5 rounded hover:bg-zinc-800 transition cursor-pointer"
             title="Cerrar notificación"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-3 h-3" />
           </button>
         </div>
       )}

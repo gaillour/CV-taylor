@@ -17,8 +17,11 @@ import {
   GraduationCap,
   ChevronDown,
   ChevronUp,
+  ArrowUp,
+  ArrowDown,
   Sliders,
 } from "lucide-react";
+import { DEFAULT_SECTION_ORDER, SectionKey } from "@/types/cv";
 
 export function CvEditor() {
   const { renderModel, updateModel } = useCvStore();
@@ -45,8 +48,40 @@ export function CvEditor() {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const sections = [
+  const headerSection = {
+    key: "header",
+    title: "Datos de Contacto",
+    icon: <User className="w-4 h-4 text-cyan-400" />,
+    badge: renderModel.full_name,
+    component: (
+      <HeaderSection
+        fullName={renderModel.full_name}
+        contact={renderModel.contact}
+        onChange={({ fullName, contact }, debounceMs) =>
+          updateModel(
+            (prev) => ({
+              ...prev,
+              ...(fullName !== undefined ? { full_name: fullName } : {}),
+              ...(contact !== undefined ? { contact } : {}),
+            }),
+            debounceMs
+          )
+        }
+      />
+    ),
+  };
+
+  const sectionMap: Record<
+    SectionKey,
     {
+      key: SectionKey;
+      title: string;
+      icon: React.ReactNode;
+      badge: string;
+      component: React.ReactNode;
+    }
+  > = {
+    experience: {
       key: "experience",
       title: "Experiencia Laboral",
       icon: <Briefcase className="w-4 h-4 text-emerald-400" />,
@@ -60,7 +95,7 @@ export function CvEditor() {
         />
       ),
     },
-    {
+    projects: {
       key: "projects",
       title: "Proyectos Destacados",
       icon: <FolderGit2 className="w-4 h-4 text-blue-400" />,
@@ -74,7 +109,7 @@ export function CvEditor() {
         />
       ),
     },
-    {
+    skills: {
       key: "skills",
       title: "Habilidades Técnicas",
       icon: <Wrench className="w-4 h-4 text-amber-400" />,
@@ -88,7 +123,7 @@ export function CvEditor() {
         />
       ),
     },
-    {
+    summary: {
       key: "summary",
       title: "Resumen Profesional",
       icon: <FileText className="w-4 h-4 text-purple-400" />,
@@ -102,29 +137,7 @@ export function CvEditor() {
         />
       ),
     },
-    {
-      key: "header",
-      title: "Datos de Contacto",
-      icon: <User className="w-4 h-4 text-cyan-400" />,
-      badge: renderModel.full_name,
-      component: (
-        <HeaderSection
-          fullName={renderModel.full_name}
-          contact={renderModel.contact}
-          onChange={({ fullName, contact }, debounceMs) =>
-            updateModel(
-              (prev) => ({
-                ...prev,
-                ...(fullName !== undefined ? { full_name: fullName } : {}),
-                ...(contact !== undefined ? { contact } : {}),
-              }),
-              debounceMs
-            )
-          }
-        />
-      ),
-    },
-    {
+    education: {
       key: "education",
       title: "Educación",
       icon: <GraduationCap className="w-4 h-4 text-indigo-400" />,
@@ -138,40 +151,122 @@ export function CvEditor() {
         />
       ),
     },
-  ];
+  };
+
+  const currentOrder: SectionKey[] = renderModel.section_order?.length
+    ? renderModel.section_order
+    : DEFAULT_SECTION_ORDER;
+
+  const moveSection = (key: SectionKey, direction: "up" | "down", e: React.MouseEvent) => {
+    e.stopPropagation();
+    const orderList = [...currentOrder];
+    const index = orderList.indexOf(key);
+    if (index === -1) return;
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= orderList.length) return;
+
+    const temp = orderList[index];
+    orderList[index] = orderList[targetIndex];
+    orderList[targetIndex] = temp;
+
+    updateModel((prev) => ({ ...prev, section_order: orderList }), 0);
+  };
 
   return (
     <div className="space-y-3 pb-6">
-      {/* Dynamic Accordion Sections */}
-      {sections.map(({ key, title, icon, badge, component }) => {
+      {/* Header Fijo de Contacto */}
+      <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 overflow-hidden transition">
+        <button
+          type="button"
+          onClick={() => toggleSection(headerSection.key)}
+          className="w-full flex items-center justify-between p-3.5 hover:bg-zinc-900/50 transition select-none text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5">
+            {headerSection.icon}
+            <span className="text-xs font-semibold text-zinc-200">{headerSection.title}</span>
+            {headerSection.badge && (
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+                {headerSection.badge}
+              </span>
+            )}
+          </div>
+          <div className="text-zinc-500">
+            {openSections[headerSection.key] ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </div>
+        </button>
+
+        {openSections[headerSection.key] && (
+          <div className="p-3.5 pt-0 border-t border-zinc-800/40">
+            {headerSection.component}
+          </div>
+        )}
+      </div>
+
+      {/* Secciones Reordenables del Cuerpo */}
+      {currentOrder.map((key, idx) => {
+        const sec = sectionMap[key];
+        if (!sec) return null;
         const isOpen = openSections[key];
+        const isFirst = idx === 0;
+        const isLast = idx === currentOrder.length - 1;
+
         return (
           <div
             key={key}
             className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 overflow-hidden transition"
           >
-            <button
-              type="button"
+            <div
               onClick={() => toggleSection(key)}
-              className="w-full flex items-center justify-between p-3.5 hover:bg-zinc-900/50 transition select-none text-left"
+              className="w-full flex items-center justify-between p-3.5 hover:bg-zinc-900/50 transition select-none cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
-                {icon}
-                <span className="text-xs font-semibold text-zinc-200">{title}</span>
-                {badge && (
+                {sec.icon}
+                <span className="text-xs font-semibold text-zinc-200">{sec.title}</span>
+                {sec.badge && (
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
-                    {badge}
+                    {sec.badge}
                   </span>
                 )}
               </div>
-              <div className="text-zinc-500">
-                {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+
+              <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-0.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    title="Subir sección en el CV"
+                    disabled={isFirst}
+                    onClick={(e) => moveSection(key, "up", e)}
+                    className="p-1 rounded hover:bg-zinc-800 disabled:opacity-20 text-zinc-400 hover:text-zinc-200 transition cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    title="Bajar sección en el CV"
+                    disabled={isLast}
+                    onClick={(e) => moveSection(key, "down", e)}
+                    className="p-1 rounded hover:bg-zinc-800 disabled:opacity-20 text-zinc-400 hover:text-zinc-200 transition cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="text-zinc-500 pl-1 border-l border-zinc-800/60">
+                  {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </div>
               </div>
-            </button>
+            </div>
 
             {isOpen && (
               <div className="p-3.5 pt-0 border-t border-zinc-800/40">
-                {component}
+                {sec.component}
               </div>
             )}
           </div>

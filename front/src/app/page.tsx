@@ -15,7 +15,7 @@ import {
   AlertCircle,
   GitBranch,
   Target,
-  Sparkles,
+  SlidersHorizontal,
   Trash2,
 } from "lucide-react";
 import { API_BASE_URL, useCvStore } from "@/store/useCvStore";
@@ -234,42 +234,42 @@ export default function GalleryPage() {
 
   if (!profileInitialized || loading) {
     return (
-      <div className="flex-1 flex flex-col min-h-0 bg-black text-zinc-100 items-center justify-center py-24 gap-3">
-        <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
-        <p className="text-xs text-zinc-400 font-medium">Cargando tus CVs...</p>
+      <div className="flex-1 flex flex-col min-h-0 bg-[#09090b] text-zinc-100 items-center justify-center py-24 gap-3">
+        <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
+        <p className="text-xs text-zinc-500 font-mono">Cargando versiones...</p>
       </div>
     );
   }
 
   if (profileEmpty && snapshots.length === 0) {
     return (
-      <div className="flex-1 flex flex-col min-h-0 bg-black text-zinc-100 items-center justify-center py-24 gap-3">
-        <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
-        <p className="text-xs text-zinc-400 font-medium">Redirigiendo a tu perfil para cargar tu CV...</p>
+      <div className="flex-1 flex flex-col min-h-0 bg-[#09090b] text-zinc-100 items-center justify-center py-24 gap-3">
+        <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
+        <p className="text-xs text-zinc-500 font-mono">Redirigiendo a perfil...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-black text-zinc-100 overflow-y-auto">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#09090b] text-zinc-100 overflow-y-auto">
       {/* Header bar */}
-      <div className="max-w-6xl w-full mx-auto px-6 py-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-zinc-800/80">
+      <div className="max-w-6xl w-full mx-auto px-6 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/[0.08]">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-zinc-100 flex items-center gap-2">
-            CVs Guardados
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
-              {snapshots.length} versiones
+          <h2 className="text-base font-semibold tracking-tight text-zinc-100 flex items-center gap-2">
+            Versiones guardadas
+            <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.08] text-zinc-400">
+              {snapshots.length}
             </span>
           </h2>
-          <p className="text-xs text-zinc-400 mt-1">
-            Historial de CVs y versiones guardadas. Hacé click en cualquier versión para editarla o crear una nueva variante.
+          <p className="text-xs text-zinc-400 mt-0.5">
+            Historial de versiones compiladas en Typst. Hacé click para editar o derivar una nueva variante.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleNewBaseCv}
-            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800 hover:border-zinc-700 rounded-lg text-xs font-medium transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-white/[0.08] rounded-md text-xs font-medium transition cursor-pointer"
             title="Crear un borrador de CV en blanco"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -278,10 +278,10 @@ export default function GalleryPage() {
 
           <button
             onClick={handleTailorClick}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs sm:text-sm font-semibold transition cursor-pointer shadow-sm shadow-emerald-950/40"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer"
           >
-            <Sparkles className="w-4 h-4 text-emerald-200" />
-            <span>Generar CV para una oferta</span>
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>Adaptar a oferta</span>
           </button>
         </div>
       </div>
@@ -289,25 +289,25 @@ export default function GalleryPage() {
       {/* Banner Onboarding si el perfil está vacío */}
       {profileEmpty && (
         <div className="max-w-6xl w-full mx-auto px-6 pt-6">
-          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="p-4 rounded-lg bg-zinc-900/50 border border-white/[0.08] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-start sm:items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
-                <Sparkles className="w-4 h-4" />
+              <div className="w-7 h-7 rounded-md bg-zinc-800 border border-white/[0.08] text-zinc-300 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                <FileText className="w-3.5 h-3.5" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-zinc-100">
-                  Completá tu perfil para empezar
+                <p className="text-xs font-medium text-zinc-200">
+                  Perfil base incompleto
                 </p>
                 <p className="text-[11px] text-zinc-400">
-                  Cargá tu experiencia y habilidades para adaptar automáticamente tu CV a cualquier oferta.
+                  Cargá tus datos y experiencia base para habilitar la adaptación automática a ofertas.
                 </p>
               </div>
             </div>
             <button
               onClick={() => router.push("/perfil")}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium transition cursor-pointer self-start sm:self-auto shrink-0 shadow-sm"
+              className="px-3 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer self-start sm:self-auto shrink-0"
             >
-              Cargar mi CV en Perfil
+              Completar perfil
             </button>
           </div>
         </div>
@@ -316,36 +316,36 @@ export default function GalleryPage() {
       {/* Main Grid Content */}
       <div className="max-w-6xl w-full mx-auto px-6 py-6 flex-1">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 text-zinc-500 text-sm gap-3">
-            <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+          <div className="flex flex-col items-center justify-center py-24 text-zinc-500 text-xs font-mono gap-3">
+            <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
             <p>Cargando snapshots...</p>
           </div>
         ) : error ? (
-          <div className="p-4 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
+          <div className="p-3.5 rounded-lg bg-red-950/30 border border-red-500/20 text-red-300 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         ) : groups.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-zinc-800/80 rounded-2xl bg-zinc-950/40 p-8">
-            <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 mb-3">
-              <FileText className="w-6 h-6 text-zinc-500" />
+          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-white/[0.08] rounded-xl bg-zinc-950/40 p-8">
+            <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-400 mb-3">
+              <FileText className="w-5 h-5 text-zinc-400" />
             </div>
-            <h3 className="text-sm font-semibold text-zinc-200">No hay CVs guardados todavía</h3>
-            <p className="text-xs text-zinc-500 max-w-sm mt-1 mb-5">
+            <h3 className="text-xs font-semibold text-zinc-200">No hay versiones guardadas todavía</h3>
+            <p className="text-xs text-zinc-400 max-w-sm mt-1 mb-5">
               Generá tu primer CV adaptado a una oferta laboral con Typst o abrí el editor base para empezar.
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={handleNewBaseCv}
-                className="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-lg text-xs font-medium transition cursor-pointer"
+                className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 rounded-md text-xs font-medium transition cursor-pointer"
               >
-                Abrir CV Base
+                Abrir CV base
               </button>
               <button
                 onClick={handleTailorClick}
-                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition cursor-pointer"
+                className="px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer"
               >
-                Adaptar Oferta
+                Adaptar oferta
               </button>
             </div>
           </div>
@@ -358,7 +358,7 @@ export default function GalleryPage() {
               return (
                 <div
                   key={group.key}
-                  className="flex flex-col bg-zinc-950/60 border border-zinc-800/90 hover:border-zinc-700/80 rounded-2xl overflow-hidden transition shadow-sm group"
+                  className="flex flex-col bg-zinc-950 border border-white/[0.08] hover:border-white/[0.16] rounded-xl overflow-hidden transition group"
                 >
                   {/* Card Header & Content */}
                   <div
@@ -378,39 +378,39 @@ export default function GalleryPage() {
                           <div
                             className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono border ${
                               latest.ats_score >= 85
-                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                                : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                                ? "bg-emerald-950/30 border-emerald-500/30 text-emerald-400"
+                                : "bg-zinc-900 border-white/[0.08] text-zinc-300"
                             }`}
                           >
                             <Target className="w-3 h-3" />
-                            <span>ATS {latest.ats_score}%</span>
+                            <span className="tabular-nums">ATS {latest.ats_score}%</span>
                           </div>
                         )}
                       </div>
 
                       {/* Main Role Title */}
-                      <h3 className="text-sm font-semibold text-zinc-100 group-hover:text-emerald-400 transition flex items-center justify-between">
+                      <h3 className="text-xs font-semibold text-zinc-100 group-hover:text-white transition flex items-center justify-between">
                         <span className="truncate">{group.role}</span>
-                        <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-emerald-400 transition shrink-0 ml-1" />
+                        <ChevronRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-300 transition shrink-0 ml-1" />
                       </h3>
 
-                      <p className="text-xs text-zinc-500 mt-1 line-clamp-1">
-                        Candidato: {latest.full_name}
+                      <p className="text-[11px] text-zinc-500 mt-1 line-clamp-1 font-mono">
+                        {latest.full_name}
                       </p>
                     </div>
 
                     {/* Metadata footer inside card */}
-                    <div className="pt-4 mt-4 border-t border-zinc-900 flex items-center justify-between text-[11px] text-zinc-500">
-                      <div className="flex items-center gap-1.5">
+                    <div className="pt-4 mt-4 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-zinc-500">
+                      <div className="flex items-center gap-1.5 tabular-nums">
                         <Clock className="w-3 h-3 text-zinc-600" />
                         <span>{formatDate(latest.created_at)}</span>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="uppercase font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+                      <div className="flex items-center gap-1.5">
+                        <span className="uppercase text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.08] text-zinc-400">
                           {latest.lang}
                         </span>
-                        <span className="capitalize font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+                        <span className="capitalize text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.08] text-zinc-400">
                           {latest.theme}
                         </span>
                       </div>
@@ -418,12 +418,12 @@ export default function GalleryPage() {
                   </div>
 
                   {/* Card Bottom Actions */}
-                  <div className="px-5 py-2.5 bg-zinc-900/40 border-t border-zinc-900 flex items-center justify-between text-xs">
+                  <div className="px-5 py-2.5 bg-zinc-900/40 border-t border-white/[0.06] flex items-center justify-between text-xs">
                     <div className="flex items-center gap-3">
                       <button
                         onClick={(e) => handleOpenPreview(latest.id, e)}
                         className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 transition text-[11px]"
-                        title="Previsualizar CV en grande"
+                        title="Previsualizar CV"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>Preview</span>
@@ -449,8 +449,8 @@ export default function GalleryPage() {
                         <GitBranch className="w-3 h-3 text-zinc-500" />
                         <span>
                           {group.history.length === 1
-                            ? "1 versión anterior"
-                            : `${group.history.length} versiones anteriores`}
+                            ? "1 anterior"
+                            : `${group.history.length} anteriores`}
                         </span>
                         {isExpanded ? (
                           <ChevronDown className="w-3 h-3" />
@@ -463,28 +463,28 @@ export default function GalleryPage() {
 
                   {/* History Dropdown / Fork lineage */}
                   {isExpanded && group.history.length > 0 && (
-                    <div className="bg-zinc-950 border-t border-zinc-900 p-3 space-y-1.5 text-xs font-mono">
-                      <div className="text-[10px] uppercase text-zinc-500 px-2 py-0.5 font-semibold">
+                    <div className="bg-zinc-950 border-t border-white/[0.06] p-3 space-y-1 text-xs font-mono">
+                      <div className="text-[10px] text-zinc-500 px-2 py-0.5 font-medium">
                         Versiones anteriores
                       </div>
                       {group.history.map((hSnap) => (
                         <div
                           key={hSnap.id}
-                          className="flex items-center justify-between p-2 rounded-lg hover:bg-zinc-900/80 transition group/item"
+                          className="flex items-center justify-between p-2 rounded-md hover:bg-zinc-900 transition group/item"
                         >
                           <div
                             onClick={() => handleOpenDraft(hSnap)}
                             className="flex-1 cursor-pointer flex flex-col"
                           >
-                            <span className="text-[11px] text-zinc-300 font-sans group-hover/item:text-emerald-400 transition">
+                            <span className="text-[11px] text-zinc-300 group-hover/item:text-white transition">
                               {formatDate(hSnap.created_at)}
                             </span>
-                            <span className="text-[10px] text-zinc-500">
+                            <span className="text-[10px] text-zinc-500 tabular-nums">
                               {hSnap.id} {hSnap.parent_id ? `← ${hSnap.parent_id}` : ""}
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5">
                             <button
                               onClick={(e) => handleOpenPreview(hSnap.id, e)}
                               className="p-1 hover:text-zinc-200 text-zinc-500 transition"
@@ -501,7 +501,7 @@ export default function GalleryPage() {
                             </button>
                             <button
                               onClick={() => handleOpenDraft(hSnap)}
-                              className="p-1 hover:text-emerald-400 text-zinc-500 transition"
+                              className="p-1 hover:text-zinc-200 text-zinc-500 transition"
                               title="Abrir para editar"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
@@ -530,40 +530,40 @@ export default function GalleryPage() {
 
       {/* Preview Modal Dialog */}
       {previewSnapshot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="relative w-full max-w-4xl h-[90vh] bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs animate-in fade-in duration-100">
+          <div className="relative w-full max-w-4xl h-[90vh] bg-zinc-950 border border-white/[0.08] rounded-xl shadow-2xl flex flex-col overflow-hidden">
             {/* Modal Header */}
-            <div className="h-14 px-6 border-b border-zinc-800 flex items-center justify-between shrink-0 bg-zinc-900/40">
+            <div className="h-12 px-5 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-zinc-900/40">
               <div className="flex items-center gap-3">
-                <FileText className="w-4 h-4 text-emerald-400" />
+                <FileText className="w-4 h-4 text-zinc-400" />
                 <div>
-                  <h3 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
+                  <h3 className="text-xs font-semibold text-zinc-100 flex items-center gap-2">
                     {previewSnapshot.role || "CV Base"} · {previewSnapshot.company || "General"}
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.08] text-zinc-400">
                       {previewSnapshot.id}
                     </span>
                   </h3>
-                  <p className="text-[11px] text-zinc-500">
-                    {formatDate(previewSnapshot.created_at)} · SHA256: {previewSnapshot.pdf_sha256.slice(0, 10)}
+                  <p className="text-[10px] font-mono text-zinc-500 tabular-nums">
+                    {formatDate(previewSnapshot.created_at)} · {previewSnapshot.pdf_sha256.slice(0, 10)}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
                     const snap = previewSnapshot;
                     setPreviewSnapshot(null);
                     handleOpenDraft(snap as unknown as SnapshotSummary);
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>Editar versión</span>
                 </button>
                 <button
                   onClick={() => setPreviewSnapshot(null)}
-                  className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition"
+                  className="px-2.5 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
                 >
                   Cerrar
                 </button>
@@ -571,7 +571,7 @@ export default function GalleryPage() {
             </div>
 
             {/* Modal Body: CV Typst SVG preview */}
-            <div className="flex-1 p-4 overflow-hidden flex flex-col">
+            <div className="flex-1 p-4 overflow-hidden flex flex-col bg-[#09090b]">
               <CvPreview svg={previewSvg} loading={previewLoading} />
             </div>
           </div>

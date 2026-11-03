@@ -10,7 +10,7 @@ import { AtsGauge } from "@/components/editor/AtsGauge";
 import { CvEditor } from "@/components/editor/CvEditor";
 import { ExportActions } from "@/components/toolbar/ExportActions";
 import { Snapshot, ThemeName } from "@/types/cv";
-import { RefreshCw, Palette, Target, Loader2, Pencil } from "lucide-react";
+import { RefreshCw, Palette, Loader2, Pencil } from "lucide-react";
 
 const DISCARD_PROMPT =
   "Tenés cambios sin guardar en el borrador actual. ¿Descartarlos y abrir esta versión?";
@@ -24,7 +24,6 @@ function EditorContent() {
     error,
     fetchPreview,
     updateModel,
-    lastAts,
     lastJobSpec,
     hydrated,
     draftParentId,
@@ -141,8 +140,8 @@ function EditorContent() {
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-black text-zinc-100 font-sans select-none overflow-hidden">
       {/* Editor Toolbar */}
-      <header className="h-12 shrink-0 border-b border-zinc-800/80 bg-zinc-950/50 px-6 flex items-center justify-between z-20">
-        <div className="flex items-center gap-2 text-xs text-zinc-400 min-w-0">
+      <header className="h-12 shrink-0 border-b border-white/[0.08] bg-[#09090b]/90 backdrop-blur-md px-6 flex items-center justify-between z-20">
+        <div className="flex items-center gap-2 text-xs text-zinc-400 min-w-0 font-mono">
           {isEditingTitle ? (
             <input
               type="text"
@@ -154,7 +153,7 @@ function EditorContent() {
                 if (e.key === "Escape") setIsEditingTitle(false);
               }}
               autoFocus
-              className="bg-zinc-900 border border-emerald-500/70 rounded px-2 py-0.5 text-xs text-zinc-100 font-medium focus:outline-none max-w-[200px]"
+              className="bg-zinc-900 border border-white/[0.18] rounded-md px-2 py-0.5 text-xs text-zinc-100 font-mono focus:outline-none max-w-[200px]"
               placeholder="Título del CV..."
             />
           ) : (
@@ -164,7 +163,7 @@ function EditorContent() {
                 setTitleInputValue(lastJobSpec?.role || "CV base");
                 setIsEditingTitle(true);
               }}
-              className="group flex items-center gap-1.5 font-medium text-zinc-200 hover:text-white transition text-xs truncate cursor-pointer"
+              className="group flex items-center gap-1.5 text-zinc-200 hover:text-white transition text-xs truncate cursor-pointer"
               title="Hacé clic para renombrar el título del CV"
             >
               <span className="truncate">{lastJobSpec?.role || "CV base"}</span>
@@ -177,12 +176,12 @@ function EditorContent() {
           )}
 
           {!draftParentId && (
-            <span className="font-mono text-[11px] text-amber-400/80 shrink-0">sin guardar</span>
+            <span className="text-[10px] text-amber-400/80 shrink-0">sin guardar</span>
           )}
         </div>
 
         {/* Global Toolbar */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {/* Active Adaptation / Reactive ATS Gauge */}
           <AtsGauge />
 
@@ -190,15 +189,15 @@ function EditorContent() {
           <FillGauge fitReport={fitReport} loading={loading} />
 
           {/* Theme Selector */}
-          <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-xs">
-            <Palette className="w-3.5 h-3.5 text-zinc-400 ml-2 mr-1" />
+          <div className="flex items-center bg-zinc-900 border border-white/[0.08] rounded-md p-0.5 text-xs font-mono">
+            <Palette className="w-3.5 h-3.5 text-zinc-500 ml-1.5 mr-1" />
             {(["classic", "modern", "engineering"] as ThemeName[]).map((t) => (
               <button
                 key={t}
                 onClick={() => handleThemeChange(t)}
-                className={`px-2.5 py-1 rounded-md capitalize transition ${
+                className={`px-2 py-0.5 rounded capitalize transition cursor-pointer ${
                   renderModel?.theme === t
-                    ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
+                    ? "bg-zinc-800 text-zinc-100 font-medium border border-white/[0.06]"
                     : "text-zinc-400 hover:text-zinc-200"
                 }`}
               >
@@ -213,7 +212,7 @@ function EditorContent() {
           <button
             onClick={() => fetchPreview()}
             disabled={loading}
-            className="flex items-center justify-center p-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 transition disabled:opacity-50"
+            className="flex items-center justify-center p-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] rounded-md text-zinc-400 hover:text-zinc-200 transition disabled:opacity-50 cursor-pointer"
             title="Recargar preview desde backend"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -224,7 +223,7 @@ function EditorContent() {
       {/* Main Split Screen Container */}
       <main className="flex-1 flex overflow-hidden p-4 gap-4">
         {/* Left Panel: Reactive CV Editor */}
-        <div className="w-[480px] xl:w-[520px] shrink-0 flex flex-col bg-zinc-950/40 border border-zinc-800/80 rounded-2xl p-5 overflow-y-auto">
+        <div className="w-[480px] xl:w-[520px] shrink-0 flex flex-col bg-zinc-950 border border-white/[0.08] rounded-xl p-5 overflow-y-auto">
           <CvEditor />
         </div>
 

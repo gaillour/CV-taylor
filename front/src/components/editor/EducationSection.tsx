@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { RenderEntry, RenderBullet } from "@/types/cv";
 import { BulletList } from "./BulletList";
 import { BufferedInput } from "./BufferedFields";
-import { Plus, Trash2, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, Check, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from "lucide-react";
 
 interface EducationSectionProps {
   entries: RenderEntry[];
@@ -41,6 +41,16 @@ export function EducationSection({ entries, onChange }: EducationSectionProps) {
 
   const handleDelete = (index: number) => {
     const updated = entries.filter((_, i) => i !== index);
+    onChange(updated, 0);
+  };
+
+  const handleMoveEntry = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= entries.length) return;
+    const updated = [...entries];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
     onChange(updated, 0);
   };
 
@@ -113,10 +123,30 @@ export function EducationSection({ entries, onChange }: EducationSectionProps) {
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveEntry(idx, "up")}
+                      disabled={idx === 0}
+                      className="p-1 text-zinc-400 hover:text-zinc-200 disabled:opacity-20 transition cursor-pointer disabled:cursor-not-allowed"
+                      title="Subir educación"
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveEntry(idx, "down")}
+                      disabled={idx === entries.length - 1}
+                      className="p-1 text-zinc-400 hover:text-zinc-200 disabled:opacity-20 transition cursor-pointer disabled:cursor-not-allowed"
+                      title="Bajar educación"
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={() => toggleCollapse(entry.entry_id)}
-                    className="p-1 text-zinc-400 hover:text-zinc-200 transition"
+                    className="p-1 text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
                     title={isCollapsed ? "Expandir" : "Colapsar"}
                   >
                     {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -124,7 +154,7 @@ export function EducationSection({ entries, onChange }: EducationSectionProps) {
                   <button
                     type="button"
                     onClick={() => handleDelete(idx)}
-                    className="p-1 text-zinc-500 hover:text-rose-400 transition"
+                    className="p-1 text-zinc-500 hover:text-rose-400 transition cursor-pointer"
                     title="Eliminar educación"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

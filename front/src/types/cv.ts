@@ -3,6 +3,15 @@ export type LangCode = "es" | "en";
 export type EntryKind = "experience" | "project" | "education";
 export type DatePrecision = "year" | "month" | "day";
 export type TitleSource = "user" | "ai" | "imported";
+export type SectionKey = "summary" | "skills" | "experience" | "projects" | "education";
+
+export const DEFAULT_SECTION_ORDER: SectionKey[] = [
+  "summary",
+  "experience",
+  "projects",
+  "education",
+  "skills",
+];
 
 export interface ContactInfo {
   email: string;
@@ -181,6 +190,7 @@ export interface RenderModel {
   experience: RenderEntry[];
   projects: RenderEntry[];
   education: RenderEntry[];
+  section_order?: SectionKey[];
   design: DesignKnobs;
 }
 

@@ -26,7 +26,7 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
 
     const ext = file.name.toLowerCase();
     if (!ext.endsWith(".pdf") && !ext.endsWith(".txt")) {
-      setLocalError("Formato no soportado. Por favor seleccioná un archivo .pdf o .txt.");
+      setLocalError("Formato no soportado. Seleccioná un archivo .pdf o .txt.");
       return;
     }
 
@@ -67,7 +67,6 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       handleFile(e.target.files[0]);
-      // Reset input value so re-selecting same file triggers onChange
       e.target.value = "";
     }
   };
@@ -79,10 +78,10 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         onClick={() => !importing && fileInputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition select-none ${
+        className={`relative border border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition select-none ${
           isDragging
-            ? "border-emerald-500 bg-emerald-500/10 scale-[1.01]"
-            : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/70 hover:bg-zinc-900/50"
+            ? "border-zinc-400 bg-zinc-900/80"
+            : "border-white/[0.1] hover:border-white/[0.2] bg-zinc-950/60 hover:bg-zinc-900/30"
         } ${importing ? "pointer-events-none opacity-80" : ""}`}
       >
         <input
@@ -95,43 +94,39 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
         />
 
         {importing ? (
-          <div className="flex flex-col items-center justify-center py-4 space-y-3">
-            <Loader2 className="w-10 h-10 animate-spin text-emerald-400" />
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-zinc-100">
+          <div className="flex flex-col items-center justify-center py-4 space-y-2.5">
+            <Loader2 className="w-6 h-6 animate-spin text-zinc-300" />
+            <div className="space-y-0.5">
+              <p className="text-xs font-semibold text-zinc-100">
                 Procesando currículum...
               </p>
-              <p className="text-xs text-zinc-400">
+              <p className="text-[11px] text-zinc-400">
                 Extrayendo experiencia, logros y habilidades.
               </p>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-2 space-y-3">
-            <div className="w-14 h-14 rounded-2xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-center text-emerald-400 shadow-sm group-hover:scale-105 transition">
-              <UploadCloud className="w-7 h-7" />
+            <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300">
+              <UploadCloud className="w-5 h-5 text-zinc-400" />
             </div>
 
             <div className="space-y-1">
-              <p className="text-sm font-medium text-zinc-200">
-                <span className="text-emerald-400 font-semibold underline underline-offset-4">
-                  Hacé click para seleccionar
-                </span>{" "}
-                o arrastrá tu CV acá
+              <p className="text-xs font-medium text-zinc-200">
+                Hacé click para seleccionar o arrastrá tu CV
               </p>
-              <p className="text-xs text-zinc-400">
-                Archivos compatibles: <span className="text-zinc-300 font-mono">.PDF</span> o{" "}
-                <span className="text-zinc-300 font-mono">.TXT</span> (hasta 5 MB)
+              <p className="text-[11px] text-zinc-500 font-mono">
+                Archivos .pdf o .txt (hasta 5 MB)
               </p>
             </div>
 
-            <div className="flex items-center gap-2 pt-2 text-[11px] text-zinc-400">
-              <span className="flex items-center gap-1 bg-zinc-900 px-2.5 py-1 rounded-full border border-zinc-800">
-                <FileText className="w-3.5 h-3.5 text-zinc-400" />
-                1 o 2 columnas soportadas
+            <div className="flex items-center gap-2 pt-1 text-[10px] font-mono text-zinc-400">
+              <span className="flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded border border-white/[0.06]">
+                <FileText className="w-3 h-3 text-zinc-500" />
+                1 o 2 columnas
               </span>
-              <span className="bg-zinc-900 px-2.5 py-1 rounded-full border border-zinc-800">
-                Estructuración asistida con IA
+              <span className="bg-zinc-900 px-2 py-0.5 rounded border border-white/[0.06]">
+                Estructuración asistida
               </span>
             </div>
           </div>
@@ -140,20 +135,20 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
         {/* Source language selector toggle */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className="mt-4 pt-3 border-t border-zinc-900 w-full flex items-center justify-between text-xs text-zinc-400 px-2"
+          className="mt-4 pt-3 border-t border-white/[0.06] w-full flex items-center justify-between text-xs text-zinc-400 px-2 font-mono"
         >
-          <div className="flex items-center gap-1.5">
-            <Languages className="w-3.5 h-3.5 text-zinc-500" />
+          <div className="flex items-center gap-1.5 text-[11px]">
+            <Languages className="w-3 h-3 text-zinc-500" />
             <span>Idioma del CV:</span>
           </div>
-          <div className="inline-flex rounded-lg bg-zinc-900/90 p-0.5 border border-zinc-800 text-[11px]">
+          <div className="inline-flex rounded-md bg-zinc-900 p-0.5 border border-white/[0.08] text-[10px]">
             <button
               type="button"
               disabled={importing}
               onClick={() => setSourceLang("auto")}
-              className={`px-2.5 py-1 rounded-md transition ${
+              className={`px-2 py-0.5 rounded transition cursor-pointer ${
                 sourceLang === "auto"
-                  ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
+                  ? "bg-zinc-800 text-zinc-100 font-medium border border-white/[0.06]"
                   : "text-zinc-400 hover:text-zinc-200"
               }`}
             >
@@ -163,9 +158,9 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
               type="button"
               disabled={importing}
               onClick={() => setSourceLang("es")}
-              className={`px-2.5 py-1 rounded-md transition ${
+              className={`px-2 py-0.5 rounded transition cursor-pointer ${
                 sourceLang === "es"
-                  ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
+                  ? "bg-zinc-800 text-zinc-100 font-medium border border-white/[0.06]"
                   : "text-zinc-400 hover:text-zinc-200"
               }`}
             >
@@ -175,9 +170,9 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
               type="button"
               disabled={importing}
               onClick={() => setSourceLang("en")}
-              className={`px-2.5 py-1 rounded-md transition ${
+              className={`px-2 py-0.5 rounded transition cursor-pointer ${
                 sourceLang === "en"
-                  ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
+                  ? "bg-zinc-800 text-zinc-100 font-medium border border-white/[0.06]"
                   : "text-zinc-400 hover:text-zinc-200"
               }`}
             >
@@ -188,17 +183,17 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
       </div>
 
       {lastImportInfo?.translatedToBase && (
-        <div className="mt-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2">
+        <div className="mt-3 p-3 rounded-md bg-zinc-900 border border-white/[0.08] text-zinc-300 text-xs flex items-center gap-2 font-mono text-[11px]">
           <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
           <span>
-            Se detectó tu CV en <strong>{lastImportInfo.detectedLang === "en" ? "inglés" : "español"}</strong> y se tradujo al idioma base ({profile?.base_lang?.toUpperCase() || "ES"}). La versión original quedó guardada en el perfil espejo.
+            CV detectado en <strong>{lastImportInfo.detectedLang === "en" ? "inglés" : "español"}</strong> y traducido al idioma base ({profile?.base_lang?.toUpperCase() || "ES"}).
           </span>
         </div>
       )}
 
       {displayError && (
-        <div className="mt-3 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+        <div className="mt-3 p-2.5 rounded-md bg-rose-950/40 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2 font-mono text-[11px]">
+          <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
           <span>{displayError}</span>
         </div>
       )}

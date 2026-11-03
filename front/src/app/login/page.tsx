@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Sparkles,
+  FileText,
   Mail,
   Lock,
   Loader2,
@@ -86,33 +86,30 @@ export default function LoginPage() {
 
   if (checkingConfig) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-black text-zinc-500 text-xs gap-2">
-        <Loader2 className="w-4 h-4 animate-spin" />
-        Verificando conexión Cloud...
+      <div className="flex-1 flex items-center justify-center bg-[#09090b] text-zinc-500 text-xs font-mono gap-2">
+        <Loader2 className="w-4 h-4 animate-spin text-zinc-400" />
+        Verificando configuración...
       </div>
     );
   }
 
   if (!configured) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-black p-6">
-        <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-950 p-6 text-center space-y-4">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto">
-            <Sparkles className="w-5 h-5" />
+      <div className="flex-1 flex items-center justify-center bg-[#09090b] p-6">
+        <div className="w-full max-w-md rounded-xl border border-white/[0.08] bg-zinc-950 p-6 text-center space-y-4">
+          <div className="w-9 h-9 rounded-md bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300 mx-auto">
+            <FileText className="w-4 h-4" />
           </div>
-          <h2 className="text-base font-semibold text-zinc-100">Modo Local Activo</h2>
+          <h2 className="text-xs font-semibold text-zinc-100">Modo local activo</h2>
           <p className="text-xs text-zinc-400 leading-relaxed">
-            No se detectaron credenciales de Supabase (
-            <code className="text-zinc-300">SUPABASE_URL</code> /{" "}
-            <code className="text-zinc-300">NEXT_PUBLIC_SUPABASE_URL</code>). La aplicación
-            está operando con almacenamiento local en disco sin requerir autenticación.
+            No se detectaron credenciales de Supabase. La aplicación está operando con almacenamiento local en disco.
           </p>
           <button
             type="button"
             onClick={() => router.replace("/")}
-            className="w-full py-2 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-medium text-xs transition"
+            className="w-full py-2 px-4 rounded-md bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-xs transition cursor-pointer"
           >
-            Ir a la Galería de CVs
+            Ir a la galería de CVs
           </button>
         </div>
       </div>
@@ -120,24 +117,24 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center bg-black p-6 overflow-y-auto">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-800/90 bg-zinc-950/90 p-7 shadow-2xl space-y-6">
+    <div className="flex-1 flex items-center justify-center bg-[#09090b] p-6 overflow-y-auto">
+      <div className="w-full max-w-sm rounded-xl border border-white/[0.08] bg-zinc-950 p-6 shadow-2xl space-y-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-            <Sparkles className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-md bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300">
+            <FileText className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-base font-semibold text-zinc-100">CV Tailor Cloud</h1>
-            <p className="text-xs text-zinc-400">
+            <h1 className="text-xs font-semibold text-zinc-100">cv-tailor cloud</h1>
+            <p className="text-[11px] text-zinc-400">
               {mode === "signin"
-                ? "Iniciá sesión para sincronizar tu perfil y CVs"
-                : "Creá tu cuenta para guardar tu Perfil Maestro"}
+                ? "Iniciá sesión para sincronizar tus CVs"
+                : "Creá tu cuenta para respaldar tu perfil"}
             </p>
           </div>
         </div>
 
-        {/* Selector de modo */}
-        <div className="grid grid-cols-2 rounded-lg bg-zinc-900 p-1 border border-zinc-800 text-xs font-medium">
+        {/* Mode Selector */}
+        <div className="grid grid-cols-2 rounded-md bg-zinc-900 p-0.5 border border-white/[0.08] text-xs font-mono">
           <button
             type="button"
             onClick={() => {
@@ -145,13 +142,13 @@ export default function LoginPage() {
               setError(null);
               setInfoMessage(null);
             }}
-            className={`py-1.5 rounded-md transition ${
+            className={`py-1 rounded transition cursor-pointer ${
               mode === "signin"
-                ? "bg-zinc-800 text-zinc-100 shadow-sm"
+                ? "bg-zinc-800 text-zinc-100 border border-white/[0.06]"
                 : "text-zinc-400 hover:text-zinc-200"
             }`}
           >
-            Iniciar Sesión
+            Iniciar sesión
           </button>
           <button
             type="button"
@@ -160,50 +157,50 @@ export default function LoginPage() {
               setError(null);
               setInfoMessage(null);
             }}
-            className={`py-1.5 rounded-md transition ${
+            className={`py-1 rounded transition cursor-pointer ${
               mode === "signup"
-                ? "bg-zinc-800 text-zinc-100 shadow-sm"
+                ? "bg-zinc-800 text-zinc-100 border border-white/[0.06]"
                 : "text-zinc-400 hover:text-zinc-200"
             }`}
           >
-            Crear Cuenta
+            Crear cuenta
           </button>
         </div>
 
         {error && (
-          <div className="flex items-start gap-2.5 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
-            <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 rounded-md border border-rose-500/20 bg-rose-950/30 p-2.5 text-xs text-rose-300 font-mono text-[11px]">
+            <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
         {infoMessage && (
-          <div className="flex items-start gap-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 rounded-md border border-white/[0.08] bg-zinc-900 p-2.5 text-xs text-zinc-300 font-mono text-[11px]">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
             <span>{infoMessage}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-zinc-300">Email</label>
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          <div className="space-y-1">
+            <label className="block text-[11px] font-medium text-zinc-400">Email</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@email.com"
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-900/80 pl-9 pr-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500/60 focus:outline-none"
+                className="w-full rounded-md border border-white/[0.08] bg-zinc-900/60 pl-8 pr-3 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none font-mono"
               />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-zinc-300">Contraseña</label>
+          <div className="space-y-1">
+            <label className="block text-[11px] font-medium text-zinc-400">Contraseña</label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Lock className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
@@ -211,7 +208,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-900/80 pl-9 pr-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500/60 focus:outline-none"
+                className="w-full rounded-md border border-white/[0.08] bg-zinc-900/60 pl-8 pr-3 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none font-mono"
               />
             </div>
           </div>
@@ -219,42 +216,42 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-semibold py-2.5 text-xs transition"
+            className="w-full flex items-center justify-center gap-1.5 rounded-md bg-zinc-100 hover:bg-white disabled:bg-zinc-900 disabled:text-zinc-600 text-zinc-950 font-medium py-2 text-xs transition cursor-pointer"
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-950" />
             ) : (
               <>
-                {mode === "signin" ? "Ingresar" : "Registrarme"}
-                <ArrowRight className="w-3.5 h-3.5" />
+                <span>{mode === "signin" ? "Ingresar" : "Registrarme"}</span>
+                <ArrowRight className="w-3 h-3" />
               </>
             )}
           </button>
         </form>
 
         <div className="relative flex items-center justify-center">
-          <div className="border-t border-zinc-800 w-full" />
-          <span className="bg-zinc-950 px-3 text-[11px] text-zinc-500 uppercase tracking-wider">
-            O continuar con
+          <div className="border-t border-white/[0.06] w-full" />
+          <span className="bg-zinc-950 px-2 text-[10px] text-zinc-500 font-mono uppercase">
+            o
           </span>
-          <div className="border-t border-zinc-800 w-full" />
+          <div className="border-t border-white/[0.06] w-full" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => signInWithOAuth("github")}
-            className="flex items-center justify-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/70 hover:bg-zinc-800 py-2 text-xs font-medium text-zinc-200 transition"
+            className="flex items-center justify-center gap-1.5 rounded-md border border-white/[0.08] bg-zinc-900 hover:bg-zinc-800 py-1.5 text-xs font-medium text-zinc-300 transition cursor-pointer"
           >
-            <Code2 className="w-3.5 h-3.5" />
+            <Code2 className="w-3.5 h-3.5 text-zinc-400" />
             GitHub
           </button>
           <button
             type="button"
             onClick={() => signInWithOAuth("google")}
-            className="flex items-center justify-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/70 hover:bg-zinc-800 py-2 text-xs font-medium text-zinc-200 transition"
+            className="flex items-center justify-center gap-1.5 rounded-md border border-white/[0.08] bg-zinc-900 hover:bg-zinc-800 py-1.5 text-xs font-medium text-zinc-300 transition cursor-pointer"
           >
-            <Globe className="w-3.5 h-3.5" />
+            <Globe className="w-3.5 h-3.5 text-zinc-400" />
             Google
           </button>
         </div>

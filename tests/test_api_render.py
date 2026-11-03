@@ -125,3 +125,21 @@ def test_preview_density_adjustment() -> None:
         mod_data["render_model"]["design"]["entry_spacing_pt"]
         < base_model["design"]["entry_spacing_pt"]
     )
+
+
+def test_preview_custom_section_order() -> None:
+    res_base = client.post("/api/render/preview", json={})
+    assert res_base.status_code == 200
+    base_data = res_base.json()
+    base_model = base_data["render_model"]
+
+    reordered_model = json.loads(json.dumps(base_model))
+    custom_order = ["projects", "skills", "experience", "education", "summary"]
+    reordered_model["section_order"] = custom_order
+
+    res = client.post("/api/render/preview", json={"render_model": reordered_model})
+    assert res.status_code == 200
+    data = res.json()
+    assert data["render_model"]["section_order"] == custom_order
+    assert "<svg" in data["svg"]
+    assert data["fit_report"]["pages"] == 1

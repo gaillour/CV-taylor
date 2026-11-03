@@ -6,11 +6,11 @@ import React, { useEffect, useState, useSyncExternalStore } from "react";
 import {
   CloudUpload,
   FileStack,
+  FileText,
   Loader2,
   LogIn,
   LogOut,
   PenSquare,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 import { useCvStore } from "@/store/useCvStore";
@@ -139,22 +139,22 @@ export function TopNav() {
   const editorHref = `/editor/${draftParentId ?? "nuevo"}`;
 
   return (
-    <header className="h-14 shrink-0 border-b border-zinc-800/80 bg-zinc-950/70 backdrop-blur-md px-6 flex items-center justify-between gap-6 z-30">
+    <header className="h-12 shrink-0 border-b border-white/[0.08] bg-[#09090b]/90 backdrop-blur-md px-6 flex items-center justify-between gap-6 z-30">
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-            <Sparkles className="w-4 h-4" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-md bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300">
+            <FileText className="w-3.5 h-3.5" />
           </div>
-          <h1 className="text-sm font-semibold tracking-tight text-zinc-100 flex items-center gap-2">
-            CV Tailor
-            <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              {cloudEnabled ? "Cloud" : "Local"}
+          <h1 className="text-xs font-semibold tracking-tight text-zinc-100 flex items-center gap-2">
+            cv-tailor
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-white/[0.08]">
+              {cloudEnabled ? "cloud" : "local"}
             </span>
           </h1>
         </div>
 
         {!isLogin && (
-          <nav className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5">
+          <nav className="flex items-center bg-zinc-950 border border-white/[0.08] rounded-md p-0.5">
             <Link
               href="/"
               onClick={handleLeaveProfile}
@@ -199,40 +199,40 @@ export function TopNav() {
       </div>
 
       {cloudEnabled && !isLogin && (
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           {session?.user ? (
             <>
-              <span className="text-xs text-zinc-400 hidden md:inline truncate max-w-[180px]">
+              <span className="text-xs font-mono text-zinc-400 hidden md:inline truncate max-w-[180px]">
                 {session.user.email}
               </span>
               <button
                 type="button"
                 onClick={handleSyncLocalToCloud}
                 disabled={syncingLocal}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 disabled:opacity-50 text-xs text-emerald-300 transition"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-white/[0.08] bg-zinc-900 hover:bg-zinc-800 disabled:opacity-50 text-xs text-zinc-300 transition cursor-pointer"
                 title="Subir out/profile.json y out/snapshots locales a tu cuenta de Supabase"
               >
                 {syncingLocal ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-3 h-3 animate-spin text-zinc-400" />
                 ) : (
-                  <CloudUpload className="w-3.5 h-3.5" />
+                  <CloudUpload className="w-3 h-3 text-zinc-400" />
                 )}
                 Subir locales
               </button>
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-xs text-zinc-300 transition"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-white/[0.08] bg-zinc-900 hover:bg-zinc-800 text-xs text-zinc-300 transition cursor-pointer"
                 title="Cerrar sesión"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="w-3 h-3 text-zinc-400" />
                 Salir
               </button>
             </>
           ) : (
             <Link
               href="/login"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-xs font-medium text-emerald-400 transition"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-100 hover:bg-white text-xs font-medium text-zinc-950 transition"
             >
               <LogIn className="w-3.5 h-3.5" />
               Iniciar sesión

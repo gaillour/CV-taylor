@@ -13,6 +13,15 @@ EntryKind = Literal["experience", "project", "education", "certification", "othe
 DatePrecision = Literal["year", "month", "day"]
 TitleSource = Literal["user", "ai"]
 ThemeName = Literal["classic", "modern", "engineering"]
+SectionKey = Literal["summary", "skills", "experience", "projects", "education"]
+
+DEFAULT_SECTION_ORDER: list[SectionKey] = [
+    "summary",
+    "experience",
+    "projects",
+    "education",
+    "skills",
+]
 
 MAX_EXPERIENCE_ENTRIES: int = 3
 MAX_PROJECT_ENTRIES: int = 3
@@ -478,6 +487,9 @@ class RenderModel(BaseModel):
     experience: list[RenderEntry] = Field(default_factory=list)
     projects: list[RenderEntry] = Field(default_factory=list)
     education: list[RenderEntry] = Field(default_factory=list)
+    section_order: list[SectionKey] = Field(
+        default_factory=lambda: list(DEFAULT_SECTION_ORDER)
+    )
     design: DesignKnobs = Field(default_factory=DesignKnobs)
 
     @classmethod
@@ -491,6 +503,7 @@ class RenderModel(BaseModel):
         density: float = 0.0,
         include_summary: bool = True,
         include_all: bool = False,
+        section_order: list[SectionKey] | None = None,
     ) -> RenderModel:
         """Build a deterministic RenderModel from a Master Profile respecting ATS slots."""
         target_lang: LangCode = lang or profile.base_lang
@@ -602,6 +615,7 @@ class RenderModel(BaseModel):
             experience=experience_entries,
             projects=project_entries,
             education=education_entries,
+            section_order=list(section_order) if section_order else list(DEFAULT_SECTION_ORDER),
             design=design,
         )
 

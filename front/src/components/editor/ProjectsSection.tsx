@@ -12,6 +12,8 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  ArrowUp,
+  ArrowDown,
   FolderGit2,
   FileCode2,
   X,
@@ -87,6 +89,16 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
 
   const handleDelete = (index: number) => {
     const updated = entries.filter((_, i) => i !== index);
+    onChange(updated, 0);
+  };
+
+  const handleMoveEntry = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= entries.length) return;
+    const updated = [...entries];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
     onChange(updated, 0);
   };
 
@@ -368,6 +380,26 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveEntry(idx, "up")}
+                      disabled={idx === 0}
+                      className="p-1 text-zinc-400 hover:text-zinc-200 disabled:opacity-20 transition cursor-pointer disabled:cursor-not-allowed"
+                      title="Subir proyecto"
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveEntry(idx, "down")}
+                      disabled={idx === entries.length - 1}
+                      className="p-1 text-zinc-400 hover:text-zinc-200 disabled:opacity-20 transition cursor-pointer disabled:cursor-not-allowed"
+                      title="Bajar proyecto"
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={() => toggleCollapse(entry.entry_id)}

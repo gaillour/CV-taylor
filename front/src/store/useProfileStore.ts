@@ -45,6 +45,11 @@ export function countPendingSuggestions(profile: Profile | null): number {
   return count;
 }
 
+export function hasPendingSuggestions(profile: Profile | null): boolean {
+  if (!profile || isProfileEmpty(profile)) return false;
+  return countPendingSuggestions(profile) > 0;
+}
+
 interface ProfileState {
   profile: Profile | null;
   mirror: Profile | null;

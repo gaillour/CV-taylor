@@ -76,59 +76,85 @@
   #text(size: font_size - 0.6pt, fill: luma(65))[#contact_parts.join([ | ])]
 ]
 
-#if data.at("summary", default: none) != none and data.summary != "" [
-  == #labels.summary
-  #data.summary
-]
-
-#if data.experience.len() > 0 [
-  == #labels.experience
-  #for exp in data.experience [
-    #let exp_meta = if exp.at("location", default: none) != none and exp.location != "" {
-      exp.date_label + " | " + exp.location
-    } else {
-      exp.date_label
-    }
-    #block(above: 3.5pt, below: 4.5pt, sticky: true)[*#exp.title* — #emph(exp.org) | #text(size: font_size - 0.5pt, fill: luma(75))[#exp_meta]]
-    #for b in exp.bullets [
-      - #b.text
-    ]
-    #v(entry_space)
+#let render_summary() = {
+  if data.at("summary", default: none) != none and data.summary != "" [
+    == #labels.summary
+    #data.summary
   ]
-]
+}
 
-#if data.projects.len() > 0 [
-  == #labels.projects
-  #for proj in data.projects [
-    #block(above: 3.5pt, below: 4.5pt, sticky: true)[*#proj.title*#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#text(fill: accent)[#proj.link]]] | #text(size: font_size - 0.5pt, fill: luma(75))[#proj.date_label]]
-    #for b in proj.bullets [
-      - #b.text
-    ]
-    #v(entry_space)
-  ]
-]
-
-#if data.education.len() > 0 [
-  == #labels.education
-  #for edu in data.education [
-    #let edu_meta = if edu.at("location", default: none) != none and edu.location != "" {
-      edu.date_label + " | " + edu.location
-    } else {
-      edu.date_label
-    }
-    #block(above: 3.5pt, below: 4.5pt, sticky: true)[*#edu.title* — #emph(edu.org) | #text(size: font_size - 0.5pt, fill: luma(75))[#edu_meta]]
-    #if edu.bullets.len() > 0 [
-      #for b in edu.bullets [
+#let render_experience() = {
+  if data.experience.len() > 0 [
+    == #labels.experience
+    #for exp in data.experience [
+      #let exp_meta = if exp.at("location", default: none) != none and exp.location != "" {
+        exp.date_label + " | " + exp.location
+      } else {
+        exp.date_label
+      }
+      #block(above: 3.5pt, below: 4.5pt, sticky: true)[*#exp.title* — #emph(exp.org) | #text(size: font_size - 0.5pt, fill: luma(75))[#exp_meta]]
+      #for b in exp.bullets [
         - #b.text
       ]
+      #v(entry_space)
     ]
-    #v(entry_space)
   ]
-]
+}
 
-#if data.skills.len() > 0 [
-  == #labels.skills
-  #for hab in data.skills [
-    - *#hab.category:* #hab.items
+#let render_projects() = {
+  if data.projects.len() > 0 [
+    == #labels.projects
+    #for proj in data.projects [
+      #block(above: 3.5pt, below: 4.5pt, sticky: true)[*#proj.title*#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#text(fill: accent)[#proj.link]]] | #text(size: font_size - 0.5pt, fill: luma(75))[#proj.date_label]]
+      #for b in proj.bullets [
+        - #b.text
+      ]
+      #v(entry_space)
+    ]
   ]
-]#v(0pt, weak: true)#context [#metadata(counter(page).final().first()) <pages>#metadata(here().position()) <end>]
+}
+
+#let render_education() = {
+  if data.education.len() > 0 [
+    == #labels.education
+    #for edu in data.education [
+      #let edu_meta = if edu.at("location", default: none) != none and edu.location != "" {
+        edu.date_label + " | " + edu.location
+      } else {
+        edu.date_label
+      }
+      #block(above: 3.5pt, below: 4.5pt, sticky: true)[*#edu.title* — #emph(edu.org) | #text(size: font_size - 0.5pt, fill: luma(75))[#edu_meta]]
+      #if edu.bullets.len() > 0 [
+        #for b in edu.bullets [
+          - #b.text
+        ]
+      ]
+      #v(entry_space)
+    ]
+  ]
+}
+
+#let render_skills() = {
+  if data.skills.len() > 0 [
+    == #labels.skills
+    #for hab in data.skills [
+      - *#hab.category:* #hab.items
+    ]
+  ]
+}
+
+#let section_map = (
+  summary: render_summary,
+  experience: render_experience,
+  projects: render_projects,
+  education: render_education,
+  skills: render_skills,
+)
+
+#let default_order = ("summary", "experience", "projects", "education", "skills")
+#let order = data.at("section_order", default: default_order)
+#for sec in order {
+  if sec in section_map {
+    (section_map.at(sec))()
+  }
+}#v(0pt, weak: true)#context [#metadata(counter(page).final().first()) <pages>#metadata(here().position()) <end>]

@@ -80,64 +80,90 @@
 = #data.full_name
 #block(below: 4.5pt)[#text(size: font_size - 0.5pt, fill: luma(70))[#contact_parts.join([ | ])]]
 
-#if data.at("summary", default: none) != none and data.summary != "" [
-  == #labels.summary
-  #data.summary
-]
-
-#if data.at("experience", default: ()).len() > 0 [
-  == #labels.experience
-  #for exp in data.experience [
-    #let exp_meta = if exp.at("location", default: none) != none and exp.location != "" {
-      exp.date_label + " | " + exp.location
-    } else {
-      exp.date_label
-    }
-    #block(below: 4.2pt, sticky: true)[*#exp.title*, #exp.org | #text(size: font_size - 0.5pt, fill: luma(80))[#exp_meta]]
-    #for b in exp.bullets [
-      #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
-      - #b_text
-    ]
-    #v(entry_space, weak: true)
+#let render_summary() = {
+  if data.at("summary", default: none) != none and data.summary != "" [
+    == #labels.summary
+    #data.summary
   ]
-]
+}
 
-#if data.at("projects", default: ()).len() > 0 [
-  == #labels.projects
-  #for proj in data.projects [
-    #block(below: 4.2pt, sticky: true)[*#proj.title*#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#proj.link]] | #text(size: font_size - 0.5pt, fill: luma(80))[#proj.date_label]]
-    #for b in proj.bullets [
-      #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
-      - #b_text
-    ]
-    #v(entry_space, weak: true)
-  ]
-]
-
-#if data.at("education", default: ()).len() > 0 [
-  == #labels.education
-  #for edu in data.education [
-    #let edu_meta = if edu.at("location", default: none) != none and edu.location != "" {
-      edu.date_label + " | " + edu.location
-    } else {
-      edu.date_label
-    }
-    #block(below: 4.2pt, sticky: true)[*#edu.title*, #edu.org | #text(size: font_size - 0.5pt, fill: luma(80))[#edu_meta]]
-    #if edu.bullets.len() > 0 [
-      #for b in edu.bullets [
+#let render_experience() = {
+  if data.at("experience", default: ()).len() > 0 [
+    == #labels.experience
+    #for exp in data.experience [
+      #let exp_meta = if exp.at("location", default: none) != none and exp.location != "" {
+        exp.date_label + " | " + exp.location
+      } else {
+        exp.date_label
+      }
+      #block(below: 4.2pt, sticky: true)[*#exp.title*, #exp.org | #text(size: font_size - 0.5pt, fill: luma(80))[#exp_meta]]
+      #for b in exp.bullets [
         #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
         - #b_text
       ]
+      #v(entry_space, weak: true)
     ]
-    #v(entry_space, weak: true)
   ]
-]
+}
 
-#if data.at("skills", default: ()).len() > 0 [
-  == #labels.skills
-  #for hab in data.skills [
-    #let cat = hab.at("category", default: hab.at("name", default: ""))
-    #let itms = hab.at("items", default: "")
-    - *#cat:* #itms
+#let render_projects() = {
+  if data.at("projects", default: ()).len() > 0 [
+    == #labels.projects
+    #for proj in data.projects [
+      #block(below: 4.2pt, sticky: true)[*#proj.title*#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#proj.link]] | #text(size: font_size - 0.5pt, fill: luma(80))[#proj.date_label]]
+      #for b in proj.bullets [
+        #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
+        - #b_text
+      ]
+      #v(entry_space, weak: true)
+    ]
   ]
-]#v(0pt, weak: true)#context [#metadata(counter(page).final().first()) <pages>#metadata(here().position()) <end>]
+}
+
+#let render_education() = {
+  if data.at("education", default: ()).len() > 0 [
+    == #labels.education
+    #for edu in data.education [
+      #let edu_meta = if edu.at("location", default: none) != none and edu.location != "" {
+        edu.date_label + " | " + edu.location
+      } else {
+        edu.date_label
+      }
+      #block(below: 4.2pt, sticky: true)[*#edu.title*, #edu.org | #text(size: font_size - 0.5pt, fill: luma(80))[#edu_meta]]
+      #if edu.bullets.len() > 0 [
+        #for b in edu.bullets [
+          #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
+          - #b_text
+        ]
+      ]
+      #v(entry_space, weak: true)
+    ]
+  ]
+}
+
+#let render_skills() = {
+  if data.at("skills", default: ()).len() > 0 [
+    == #labels.skills
+    #for hab in data.skills [
+      #let cat = hab.at("category", default: hab.at("name", default: ""))
+      #let itms = hab.at("items", default: "")
+      - *#cat:* #itms
+    ]
+  ]
+}
+
+#let section_map = (
+  summary: render_summary,
+  experience: render_experience,
+  projects: render_projects,
+  education: render_education,
+  skills: render_skills,
+)
+
+#let default_order = ("summary", "experience", "projects", "education", "skills")
+#let order = data.at("section_order", default: default_order)
+#for sec in order {
+  if sec in section_map {
+    (section_map.at(sec))()
+  }
+}#v(0pt, weak: true)#context [#metadata(counter(page).final().first()) <pages>#metadata(here().position()) <end>]
