@@ -6,6 +6,8 @@ import { Scissors, ArrowUpRight } from "lucide-react";
 
 export function LandingNav() {
   const [scrollPercent, setScrollPercent] = React.useState(0);
+  const [isVisible, setIsVisible] = React.useState(true);
+  const lastScrollY = React.useRef(0);
 
   React.useEffect(() => {
     const scrollContainer = document.getElementById("main-scroll");
@@ -24,6 +26,15 @@ export function LandingNav() {
       if (total > 0) {
         setScrollPercent(Math.min(100, Math.max(0, (current / total) * 100)));
       }
+
+      // Auto-hide al scrollear hacia abajo, reaparece suave al subir
+      const diff = current - lastScrollY.current;
+      if (current > 60 && diff > 4) {
+        setIsVisible(false);
+      } else if (diff < -4 || current <= 60) {
+        setIsVisible(true);
+      }
+      lastScrollY.current = current;
     };
 
     target.addEventListener("scroll", onScroll, { passive: true });
@@ -32,22 +43,21 @@ export function LandingNav() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-[var(--bg-canvas)]/85 border-b border-[var(--border-hairline)] transition-colors">
+    <header
+      className={`sticky top-0 z-50 backdrop-blur-md bg-[var(--bg-canvas)]/85 border-b border-[var(--border-hairline)] transition-transform duration-300 ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Monograma & Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded border border-[var(--accent-border)] bg-[var(--accent-subtle)] flex items-center justify-center text-[var(--accent)] transition-transform duration-200 group-hover:scale-105">
-            <Scissors className="w-4 h-4" />
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-7 h-7 rounded-md border border-[var(--accent-border)] bg-[var(--accent-subtle)] flex items-center justify-center text-[var(--accent)] transition-all duration-200 group-hover:border-[var(--accent)] shadow-sm">
+            <Scissors className="w-3.5 h-3.5" />
           </div>
-          <div>
-            <span className="font-display text-sm tracking-[0.2em] text-[var(--text-primary)] font-bold block leading-none">
-              CV-TAILOR
-            </span>
-            <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--text-muted)] font-mono">
-              Typst • Bespoke Resumes
-            </span>
-          </div>
+          <span className="text-sm font-semibold tracking-[0.16em] text-[var(--text-primary)] font-mono">
+            TAYLOR
+          </span>
         </Link>
 
         {/* Enlaces de navegación */}

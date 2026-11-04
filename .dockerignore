@@ -1,0 +1,32 @@
+# Version control
+.git
+.gitignore
+
+# Frontend
+front/
+
+# Virtual environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+
+# Local data & outputs
+out/
+backups/
+test_pdfs/
+tempo/
+fixtures/
+landing_prueba.html
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# OS / Editor artifacts
+.DS_Store
+*.swp
+*.swo

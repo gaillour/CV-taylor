@@ -1,17 +1,17 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Sparkles, ArrowRightLeft, Check, ShieldCheck, Languages, Cpu, Layers } from "lucide-react";
+import { Sparkles, CheckCircle2 } from "lucide-react";
 import { MirrorCvCard } from "./MirrorCvCard";
 import type { MirrorCvData } from "./types";
 
 const ES_SAMPLE_CV: MirrorCvData = {
   lang: "es",
   badge: "Español (Base)",
-  name: "Alex Morgan",
+  name: "Santiago Rossi",
   title: "Tech Lead Backend & Arquitecturas Distribuidas",
   location: "Buenos Aires, AR",
-  contact: "alex.morgan@dev.io • linkedin.com/in/alex-morgan",
+  contact: "santiago.rossi@dev.io • linkedin.com/in/santiago-rossi",
   summary:
     "Ingeniero de Software enfocado en arquitectura de baja latencia, contratos inmutables y procesamiento distribuido de alto rendimiento. Conducción técnica de equipos cross-functional y diseño de microservicios resilientes.",
   experience: [
@@ -49,10 +49,10 @@ const ES_SAMPLE_CV: MirrorCvData = {
 const EN_SAMPLE_CV: MirrorCvData = {
   lang: "en",
   badge: "English (Mirror)",
-  name: "Alex Morgan",
+  name: "Santiago Rossi",
   title: "Staff Backend Engineer & Distributed Systems Lead",
   location: "Buenos Aires, AR (Remote US/EU)",
-  contact: "alex.morgan@dev.io • linkedin.com/in/alex-morgan",
+  contact: "santiago.rossi@dev.io • linkedin.com/in/santiago-rossi",
   summary:
     "Software Engineer specializing in low-latency distributed architectures, immutable data contracts, and high-throughput transaction pipelines. Proven track record leading cross-functional teams and designing fault-tolerant microservices.",
   experience: [
@@ -89,9 +89,12 @@ const EN_SAMPLE_CV: MirrorCvData = {
 
 export function TheMirrorSection() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const slotEsRef = useRef<HTMLDivElement>(null);
+  const slotEnRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
+  const [deltaX, setDeltaX] = useState(420);
 
-  // Manejo de cálculo de scroll en container o main-scroll
+  // Manejo de cálculo de scroll continuo en container o main-scroll
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -108,20 +111,60 @@ export function TheMirrorSection() {
     setProgress(clamped);
   }, []);
 
+  // Medición de la distancia horizontal entre el Slot ES y el Slot EN
+  const measureDistance = useCallback(() => {
+    if (!slotEsRef.current || !slotEnRef.current) return;
+    const esLeft = slotEsRef.current.offsetLeft;
+    const enLeft = slotEnRef.current.offsetLeft;
+    const offsetDiff = enLeft - esLeft;
+    if (offsetDiff > 0) {
+      setDeltaX(offsetDiff);
+      return;
+    }
+    const esRect = slotEsRef.current.getBoundingClientRect();
+    const enRect = slotEnRef.current.getBoundingClientRect();
+    const rectDiff = enRect.left - esRect.left;
+    if (rectDiff > 0) {
+      setDeltaX(rectDiff);
+    }
+  }, []);
+
   useEffect(() => {
     const scrollParent = document.getElementById("main-scroll") || window;
 
     // Disparar en frame inicial
     handleScroll();
+    measureDistance();
 
-    scrollParent.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll, { passive: true });
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    const onResize = () => {
+      handleScroll();
+      measureDistance();
+    };
+
+    scrollParent.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
+
+    const timer = setTimeout(measureDistance, 80);
 
     return () => {
-      scrollParent.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
+      clearTimeout(timer);
+      scrollParent.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
     };
-  }, [handleScroll]);
+  }, [handleScroll, measureDistance]);
 
   // Función para forzar toggle manual suave
   const toggleLanguage = (target: "es" | "en") => {
@@ -140,10 +183,6 @@ export function TheMirrorSection() {
     });
   };
 
-  // Cálculo de rotación y apertura de espejos laterales
-  const isEnView = progress > 0.5;
-  const triptychAngle = Math.min(progress * 28, 24); // Ángulo de apertura de las alas laterales
-
   return (
     <section
       id="the-mirror"
@@ -151,219 +190,199 @@ export function TheMirrorSection() {
       className="relative min-h-[220vh] border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]"
     >
       {/* Contenedor Sticky que se clava en la pantalla durante el recorrido de scroll */}
-      <div className="sticky top-0 h-screen w-full flex flex-col justify-between py-6 sm:py-8 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <div className="sticky top-0 h-screen w-full flex flex-col justify-between items-center pt-5 sm:pt-6 pb-6 px-4 sm:px-6 lg:px-8 overflow-hidden">
         
-        {/* Cabecera Editorial */}
-        <div className="text-center max-w-3xl mx-auto shrink-0 z-10">
-          <span className="font-script text-2xl sm:text-3xl text-[var(--accent)] block mb-1">
+        {/* Cabecera Editorial Compacta */}
+        <div className="text-center max-w-2xl mx-auto shrink-0 z-10">
+          <span className="font-script text-xl sm:text-2xl text-[var(--accent)] block -mb-0.5">
             El Espejo Bilingüe
           </span>
-          <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl text-[var(--text-primary)] font-bold tracking-tight">
+          <h2 className="font-display text-xl sm:text-2xl lg:text-3xl text-[var(--text-primary)] font-bold tracking-tight">
             The Mirror: Un Perfil, Dos Culturas Profesionales
           </h2>
-          <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-2 max-w-xl mx-auto">
-            Editá tu carrera en tu idioma base. El motor espeja tu dossier a inglés técnico nativo para ATS internacionales con diagramación Typst idéntica.
+          <p className="text-[11px] sm:text-xs text-[var(--text-secondary)] mt-1 max-w-lg mx-auto">
+            Editá tu carrera en tu idioma base. Mientras scrolleás, el motor traslada y espeja tu dossier a inglés técnico nativo directo al cuadro de destino ATS.
           </p>
         </div>
 
-        {/* Tríptico de 3 Espejos de Sastrería */}
-        <div className="flex-1 flex items-center justify-center my-auto w-full max-w-6xl mx-auto relative">
-          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        {/* Escenario Central: Dos Docks y CV 3D en Vuelo Horizontal */}
+        <div className="w-full flex-1 flex flex-col items-center justify-center relative my-auto">
+          
+          {/* Halos de luz rasante que acompañan el viaje del documento */}
+          <div
+            className="absolute w-72 h-72 sm:w-[480px] sm:h-[480px] rounded-full pointer-events-none transition-all duration-300 -z-10"
+            style={{
+              background: `radial-gradient(circle, var(--accent-subtle) 0%, transparent 70%)`,
+              left: `calc(25% + ${progress * 50}%)`,
+              top: "50%",
+              transform: `translate(-50%, -50%) scale(${1 + Math.sin(progress * Math.PI) * 0.25})`,
+              filter: "blur(60px)",
+            }}
+          />
+
+          {/* Grid de Dos Docks: Izquierda (ES) y Derecha (EN) */}
+          <div className="relative grid grid-cols-2 gap-4 sm:gap-8 md:gap-12 lg:gap-16 items-center justify-items-center w-full max-w-[820px] lg:max-w-[900px] mx-auto scale-[0.52] xs:scale-[0.62] sm:scale-[0.8] md:scale-100 origin-center transition-transform duration-200">
             
-            {/* ALA OESTE: ESPEJO 1 (Reflejo Terminológico & Matices ATS) */}
+            {/* DOCK IZQUIERDO: ES (ORIGEN BASE) */}
             <div
-              className="hidden lg:block lg:col-span-3 transition-all duration-300 transform-gpu"
-              style={{
-                transform: `perspective(1000px) rotateY(${triptychAngle}deg)`,
-                opacity: 0.85 + progress * 0.15,
-              }}
+              ref={slotEsRef}
+              onClick={() => toggleLanguage("es")}
+              className="relative w-full max-w-[320px] sm:max-w-[350px] lg:max-w-[380px] aspect-[210/297] rounded-md border-2 border-dashed border-[var(--border-hairline)] bg-[var(--bg-surface)]/40 p-4 sm:p-5 flex flex-col justify-between cursor-pointer select-none transition-colors hover:border-[var(--text-muted)]"
             >
-              <div className="p-4 sm:p-5 rounded-lg bg-[var(--bg-surface)]/85 backdrop-blur-md border border-[var(--border-hairline)] shadow-xl relative overflow-hidden">
-                <div className="flex items-center gap-2 pb-2 mb-3 border-b border-[var(--border-hairline)]">
-                  <Languages className="w-4 h-4 text-[var(--accent)]" />
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-primary)] font-semibold">
-                    Matiz Cultural ATS
+              {/* Header del Dock ES */}
+              <div className="flex items-center justify-between pb-1.5 border-b border-[var(--border-hairline)]">
+                <span className="font-mono text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--bg-surface-raised)] text-[var(--text-secondary)] border border-[var(--border-hairline)] uppercase tracking-wider">
+                  ES • Base
+                </span>
+                <span className="text-[9px] font-mono text-[var(--text-muted)]">
+                  Origen
+                </span>
+              </div>
+
+              {/* Centro del Dock ES */}
+              <div className="flex flex-col items-center justify-center my-auto text-center py-4">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-2 border-dashed border-zinc-700/50 bg-zinc-800/30 flex flex-col items-center justify-center mb-2">
+                  <span className="font-display text-4xl sm:text-5xl font-black text-zinc-500/40 tracking-tight select-none">
+                    ES
+                  </span>
+                  <span className="text-[7.5px] font-mono uppercase tracking-widest text-zinc-500 font-bold -mt-1">
+                    Base
                   </span>
                 </div>
+                <span className="text-[10px] sm:text-[11px] font-semibold text-[var(--text-secondary)]">
+                  Dossier Original
+                </span>
+                <p className="text-[8.5px] text-[var(--text-muted)] max-w-[180px] mt-0.5 font-mono">
+                  Redactado en tu idioma nativo
+                </p>
 
-                <div className="space-y-3 text-[11px]">
-                  <div className="p-2.5 rounded bg-[var(--bg-surface-raised)] border border-[var(--border-hairline)]">
-                    <span className="text-[9px] font-mono text-[var(--text-muted)] uppercase block mb-1">
-                      Cargo / Seniority
-                    </span>
-                    <p className="text-[var(--text-secondary)] line-through text-[10px] mb-0.5">
-                      Líder Técnico
-                    </p>
-                    <p className="text-[var(--accent)] font-semibold flex items-center gap-1 font-mono text-[11px]">
-                      <Check className="w-3 h-3 shrink-0" />
-                      Staff Backend Lead
-                    </p>
-                  </div>
-
-                  <div className="p-2.5 rounded bg-[var(--bg-surface-raised)] border border-[var(--border-hairline)]">
-                    <span className="text-[9px] font-mono text-[var(--text-muted)] uppercase block mb-1">
-                      Verbo de Acción
-                    </span>
-                    <p className="text-[var(--text-secondary)] line-through text-[10px] mb-0.5">
-                      Rediseño de pipeline...
-                    </p>
-                    <p className="text-[var(--accent)] font-semibold flex items-center gap-1 font-mono text-[11px]">
-                      <Check className="w-3 h-3 shrink-0" />
-                      Architected core pipeline...
-                    </p>
-                  </div>
-
-                  <div className="p-2.5 rounded bg-[var(--bg-surface-raised)] border border-[var(--border-hairline)]">
-                    <span className="text-[9px] font-mono text-[var(--text-muted)] uppercase block mb-1">
-                      Impacto de Negocio
-                    </span>
-                    <p className="text-[var(--text-primary)] font-mono text-[10px]">
-                      Métricas cuantificadas (-38% p99) respetadas al 100%.
-                    </p>
-                  </div>
+                {/* Wireframe lines simulando el documento base */}
+                <div className="w-full max-w-[170px] space-y-1.5 mt-3 opacity-30">
+                  <div className="h-1.5 bg-[var(--text-muted)] rounded-full w-full" />
+                  <div className="h-1.5 bg-[var(--text-muted)] rounded-full w-4/5 mx-auto" />
+                  <div className="h-1.5 bg-[var(--text-muted)] rounded-full w-3/5 mx-auto" />
                 </div>
+              </div>
 
-                <div className="mt-3 pt-2 border-t border-[var(--border-hairline)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)]">
-                  <span>Traducción Técnica:</span>
-                  <span className="text-[var(--accent)] font-semibold">Zero-Literal Slop</span>
-                </div>
+              {/* Pie del Dock ES */}
+              <div className="pt-2 border-t border-[var(--border-hairline)] flex items-center justify-between text-[8px] sm:text-[9px] font-mono text-[var(--text-muted)]">
+                <span className="flex items-center gap-1">
+                  <span className={`w-1.5 h-1.5 rounded-full ${progress < 0.15 ? "bg-[var(--accent)]" : "bg-zinc-600"}`} />
+                  Fuente editable
+                </span>
+                <span>Typst A4</span>
+              </div>
+
+              {/* LA TARJETA FLOTANTE QUE VIAJA AL DOCK EN */}
+              <div
+                className="absolute inset-0 w-full h-full z-20 pointer-events-auto"
+                style={{
+                  transform: `translate3d(${progress * deltaX}px, ${-Math.sin(progress * Math.PI) * 22}px, 0) scale(${1 + Math.sin(progress * Math.PI) * 0.04})`,
+                  transformOrigin: "center center",
+                }}
+              >
+                <MirrorCvCard
+                  progress={progress}
+                  esCv={ES_SAMPLE_CV}
+                  enCv={EN_SAMPLE_CV}
+                />
               </div>
             </div>
 
-            {/* ESPEJO CENTRAL: EL CV FLOTANTE ROTANDO EN 3D */}
-            <div className="col-span-1 lg:col-span-6 flex flex-col items-center justify-center relative">
-              
-              {/* Halos de luz rasante */}
-              <div
-                className="absolute w-72 h-72 sm:w-96 sm:h-96 rounded-full pointer-events-none transition-all duration-500 -z-10"
-                style={{
-                  background: `radial-gradient(circle, var(--accent-subtle) 0%, transparent 70%)`,
-                  transform: `scale(${1 + Math.sin(progress * Math.PI) * 0.25})`,
-                  filter: "blur(50px)",
-                }}
-              />
-
-              {/* El CV 3D de dos caras */}
-              <MirrorCvCard
-                progress={progress}
-                esCv={ES_SAMPLE_CV}
-                enCv={EN_SAMPLE_CV}
-              />
-            </div>
-
-            {/* ALA ESTE: ESPEJO 3 (Garantía de Sincronización Inmutable) */}
+            {/* DOCK DERECHO: EN (CUADRO DE DESTINO) */}
             <div
-              className="hidden lg:block lg:col-span-3 transition-all duration-300 transform-gpu"
-              style={{
-                transform: `perspective(1000px) rotateY(-${triptychAngle}deg)`,
-                opacity: 0.85 + progress * 0.15,
-              }}
+              ref={slotEnRef}
+              onClick={() => toggleLanguage("en")}
+              className={`relative w-full max-w-[320px] sm:max-w-[350px] lg:max-w-[380px] aspect-[210/297] rounded-md border-2 border-dashed transition-all duration-300 p-4 sm:p-5 flex flex-col justify-between cursor-pointer select-none ${
+                progress >= 0.85
+                  ? "border-[var(--tailor-green-border)] bg-[var(--tailor-green-subtle)]/15 shadow-xl"
+                  : "border-[var(--accent)]/50 bg-[var(--accent-subtle)]/5 hover:border-[var(--accent)]"
+              }`}
             >
-              <div className="p-4 sm:p-5 rounded-lg bg-[var(--bg-surface)]/85 backdrop-blur-md border border-[var(--border-hairline)] shadow-xl relative overflow-hidden">
-                <div className="flex items-center gap-2 pb-2 mb-3 border-b border-[var(--border-hairline)]">
-                  <ShieldCheck className="w-4 h-4 text-[var(--accent)]" />
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--text-primary)] font-semibold">
-                    Inmutabilidad Typst
+              {/* Header del Dock EN */}
+              <div className="flex items-center justify-between pb-1.5 border-b border-[var(--border-hairline)]">
+                <span className="font-mono text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--accent)] text-[var(--accent-contrast)] uppercase tracking-wider flex items-center gap-1 shadow-xs">
+                  <Sparkles className="w-3 h-3" />
+                  EN • Mirror
+                </span>
+                <span className="text-[9px] font-mono text-[var(--accent)] font-semibold">
+                  International ATS
+                </span>
+              </div>
+
+              {/* Centro del Dock EN: El cuadro destacado que dice EN */}
+              <div className="flex flex-col items-center justify-center my-auto text-center py-4">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-2 border-dashed border-[var(--accent)]/60 bg-[var(--accent-subtle)]/15 flex flex-col items-center justify-center mb-2 shadow-inner">
+                  <span className="font-display text-4xl sm:text-5xl font-black text-[var(--accent)] tracking-tight select-none">
+                    EN
+                  </span>
+                  <span className="text-[7.5px] font-mono uppercase tracking-widest text-[var(--accent)] font-bold -mt-1">
+                    Target
                   </span>
                 </div>
+                <span className="text-[10px] sm:text-[11px] font-semibold text-[var(--text-primary)]">
+                  Cuadro de Destino
+                </span>
+                <p className="text-[8.5px] text-[var(--text-muted)] max-w-[180px] mt-0.5 font-mono">
+                  Traducción contextual a inglés técnico
+                </p>
 
-                <div className="space-y-3 text-[11px]">
-                  <div className="p-2.5 rounded bg-[var(--bg-surface-raised)] border border-[var(--border-hairline)]">
-                    <div className="flex items-center gap-1.5 font-semibold text-[var(--text-primary)] mb-1">
-                      <Cpu className="w-3.5 h-3.5 text-[var(--accent)]" />
-                      <span>Single Source of Truth</span>
-                    </div>
-                    <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed">
-                      Cero discrepancias entre perfiles. Tu información canónica vive en una base sincronizada.
-                    </p>
-                  </div>
-
-                  <div className="p-2.5 rounded bg-[var(--bg-surface-raised)] border border-[var(--border-hairline)]">
-                    <div className="flex items-center gap-1.5 font-semibold text-[var(--text-primary)] mb-1">
-                      <Layers className="w-3.5 h-3.5 text-[var(--accent)]" />
-                      <span>1 Página Estricta A4</span>
-                    </div>
-                    <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed">
-                      El motor tipográfico recalcula micro-espaciados para que ambas versiones mantengan 1 sola hoja.
-                    </p>
-                  </div>
-
-                  <div className="p-2.5 rounded bg-[var(--bg-surface-raised)] border border-[var(--border-hairline)]">
-                    <div className="flex items-center gap-1.5 font-semibold text-[var(--text-primary)] mb-1">
-                      <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
-                      <span>Doble Exportación PDF</span>
-                    </div>
-                    <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed">
-                      Descargá en cualquier momento el dossier en español o en inglés con 1 clic.
-                    </p>
-                  </div>
+                {/* Wireframe lines simulando la plantilla de destino */}
+                <div className="w-full max-w-[170px] space-y-1.5 mt-3 opacity-40">
+                  <div className="h-1.5 bg-[var(--accent)] rounded-full w-full" />
+                  <div className="h-1.5 bg-[var(--accent)] rounded-full w-4/5 mx-auto" />
+                  <div className="h-1.5 bg-[var(--accent)] rounded-full w-3/5 mx-auto" />
                 </div>
+              </div>
 
-                <div className="mt-3 pt-2 border-t border-[var(--border-hairline)] flex items-center justify-between text-[10px] font-mono text-[var(--text-muted)]">
-                  <span>Compilación:</span>
-                  <span className="text-[var(--accent)] font-semibold">Determinista</span>
-                </div>
+              {/* Pie del Dock EN */}
+              <div className="pt-2 border-t border-[var(--border-hairline)] flex items-center justify-between text-[8px] sm:text-[9px] font-mono">
+                {progress >= 0.85 ? (
+                  <span className="text-[var(--tailor-green-text)] font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Espejo Acoplado
+                  </span>
+                ) : (
+                  <span className="text-[var(--text-muted)] flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                    Esperando documento...
+                  </span>
+                )}
+                <span className="text-[var(--text-muted)]">100% Typst Sync</span>
               </div>
             </div>
 
           </div>
         </div>
 
-        {/* Consola Inferior: Telemetría de Rotación & Controles de Idioma */}
-        <div className="w-full max-w-xl mx-auto shrink-0 z-10">
-          <div className="p-3 sm:p-4 rounded-xl bg-[var(--bg-surface-raised)]/90 backdrop-blur-md border border-[var(--border-hairline)] shadow-xl">
-            
-            {/* Barra de progreso de rotación de 0° a 180° */}
-            <div className="flex items-center justify-between gap-3 text-xs font-mono mb-2.5">
-              <button
-                type="button"
-                onClick={() => toggleLanguage("es")}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors text-[11px] cursor-pointer ${
-                  !isEnView
-                    ? "bg-[var(--accent)] text-[var(--accent-contrast)] font-bold shadow-sm"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
-                }`}
-              >
-                <span>ES</span>
-                <span className="text-[9px] uppercase tracking-wider font-semibold">Base</span>
-              </button>
-
-              {/* Riel central con ángulo */}
-              <div className="flex-1 flex flex-col items-center px-2">
-                <div className="flex justify-between w-full text-[9px] text-[var(--text-muted)] font-mono mb-1">
-                  <span>0° Español</span>
-                  <span className="text-[var(--accent)] font-semibold">
-                    {Math.round(progress * 180)}° Giro 3D
-                  </span>
-                  <span>180° English</span>
-                </div>
-                <div className="w-full h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden border border-[var(--border-hairline)]">
-                  <div
-                    className="h-full bg-[var(--accent)] transition-all duration-150 rounded-full"
-                    style={{ width: `${Math.max(progress * 100, 3)}%` }}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => toggleLanguage("en")}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded transition-colors text-[11px] cursor-pointer ${
-                  isEnView
-                    ? "bg-[var(--accent)] text-[var(--accent-contrast)] font-bold shadow-sm"
-                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
-                }`}
-              >
-                <span>EN</span>
-                <span className="text-[9px] uppercase tracking-wider font-semibold">Mirror</span>
-              </button>
-            </div>
-
-            <p className="text-[10px] text-center text-[var(--text-muted)] font-mono flex items-center justify-center gap-1.5">
-              <ArrowRightLeft className="w-3 h-3 text-[var(--accent)]" />
-              <span>Hacé scroll para rotar el espejo o clickeá en los botones para alternar idiomas</span>
-            </p>
-          </div>
+        {/* Controles limpios sin barra de progreso */}
+        <div className="flex items-center justify-center gap-2 sm:gap-4 text-[10px] sm:text-xs font-mono text-[var(--text-muted)] shrink-0 z-10">
+          <button
+            type="button"
+            onClick={() => toggleLanguage("es")}
+            className={`px-3 py-1 rounded transition-colors cursor-pointer ${
+              progress < 0.5
+                ? "text-[var(--text-primary)] font-bold bg-[var(--bg-surface-raised)] border border-[var(--border-hairline)] shadow-xs"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            ← Base (ES)
+          </button>
+          <span className="text-[var(--border-hairline)]">•</span>
+          <span className="text-[9.5px] sm:text-[10px] text-[var(--text-muted)]">
+            Scrolleá para trasladar y rotar hacia EN
+          </span>
+          <span className="text-[var(--border-hairline)]">•</span>
+          <button
+            type="button"
+            onClick={() => toggleLanguage("en")}
+            className={`px-3 py-1 rounded transition-colors cursor-pointer ${
+              progress >= 0.5
+                ? "text-[var(--accent)] font-bold bg-[var(--accent-subtle)] border border-[var(--accent-border)] shadow-xs"
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            Mirror (EN) →
+          </button>
         </div>
 
       </div>

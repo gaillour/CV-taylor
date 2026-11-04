@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useCallback } from "react";
-import { Check, ShieldCheck, FileCode, Sparkles } from "lucide-react";
+import { Check, FileCode, Sparkles } from "lucide-react";
 
 export function CvCanvasPreview() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -36,20 +36,20 @@ export function CvCanvasPreview() {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative w-full max-w-[430px] mx-auto select-none py-4 cursor-default"
+      className="relative w-full max-w-[350px] sm:max-w-[370px] mx-auto select-none py-2 cursor-default"
       style={{ perspective: "1200px" }}
     >
       {/* Sello técnico flotante con acento reflectivo */}
-      <div className="absolute top-0 right-3 z-30 px-3 py-1 rounded bg-[var(--bg-surface-raised)] border border-[var(--accent-border)] flex items-center gap-1.5 shadow-lg backdrop-blur-sm transition-transform duration-300 hover:scale-105">
+      <div className="absolute top-0 right-2 z-30 px-3 py-1 rounded bg-[var(--bg-surface-raised)] border border-[var(--accent-border)] flex items-center gap-1.5 shadow-lg backdrop-blur-sm transition-transform duration-300 hover:scale-105">
         <Sparkles className="w-3.5 h-3.5 text-[var(--accent)] animate-pulse" />
         <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--accent)] font-semibold">
           1 Page Strict • Typst
         </span>
       </div>
 
-      {/* Hoja A4 ATS con inclinación física 3D y brillo especular */}
+      {/* Hoja A4 ATS Rectangular con inclinación física 3D y brillo especular */}
       <div
-        className="ats-sheet-canvas relative rounded-sm p-6 sm:p-7 text-left font-sans text-gray-900 border border-gray-200 overflow-hidden"
+        className="ats-sheet-canvas relative rounded-sm aspect-[210/297] p-5 sm:p-6 text-left font-sans text-gray-900 border border-gray-200 overflow-hidden flex flex-col justify-between shadow-2xl"
         style={{
           transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
           transition: coords.active ? "transform 0.1s ease-out" : "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease",
@@ -69,10 +69,10 @@ export function CvCanvasPreview() {
         {/* Cabecera del CV */}
         <div className="border-b border-gray-300 pb-2.5 mb-3 text-center relative z-10">
           <h2 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight leading-none mb-1">
-            Alex Morgan
+            Santiago Rossi
           </h2>
           <p className="text-[9px] text-gray-600 font-mono">
-            alex.morgan@dev.io • Buenos Aires, AR • github.com/alex-dev
+            santiago.rossi@dev.io • Buenos Aires, AR • github.com/santi-dev
           </p>
         </div>
 
@@ -135,7 +135,7 @@ export function CvCanvasPreview() {
         </div>
 
         {/* Footer interno con sello en bajo relieve dorado (Blind deboss) */}
-        <div className="mt-4 pt-2 border-t border-gray-200 flex items-center justify-between text-[7.5px] text-gray-500 font-mono relative z-10">
+        <div className="mt-auto pt-2 border-t border-gray-200 flex items-center justify-between text-[7.5px] text-gray-500 font-mono relative z-10">
           <span className="flex items-center gap-1 text-emerald-700 font-semibold">
             <Check className="w-2.5 h-2.5 text-emerald-600 stroke-[3]" />
             100% Parsing ATS

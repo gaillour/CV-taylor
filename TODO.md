@@ -1,43 +1,56 @@
 # TODO.md — Roadmap Operativo (`cv-tailor`)
 
-- Aveces se tilda el visor de pdf en el editor ni bien se entra pero al minimo cambio se actualiza y anda bien. Pej cambio la densidad y al instante se ve bien. 
-- Estoy viendo en este momento la recomendación de q el template se debería usar con foto y mi foto ya esta puesta. Cambiando de templates sigue apareciendo. Guardando se va igual.
-- El template Vercanard tiene considerablemente menos % de relleno q el resto, considerar sacarlo. No permite poner cosas en el lateral. Solo podría ir skills contacto y educación creo. Pero nose. Claro las dos columnas son todo un temita.. pero creo q con decidir q hacer podemos agregar mas templates.
-- Chequear licencias de typst templates!!!!
-- Esta medio raro algunas cosas de los templates, necesita medio un polish.
-- Landing:
-    - El cv del principio esta cuadrado, o rectangularlo o sacarlo.
-    - El logo en la esup izq esta raro
-    - Typst Engine • Deterministic 1-Page Layout Lo sacaría eso
-    - El cv q gira sacar los cosos del costado. Quedo muy pegado abajo al stopscroll, que quede mas arriba.
-    - Podriamos poner una tijera cortando el cv desbordado de cosas q pase a limpio
-    - El nombre q no sea alex morgan
+## P0 — Infraestructura & Despliegue Cloud (Staging / Alpha Privado)
 
-## Fase Activa: F7 — Rediseño Visual & Modernización UI
+- [x] **Dockerfile Backend (FastAPI):**
+  - [x] Crear Dockerfile multi-stage con Python 3.12 y `uv`.
+  - [x] Validar compatibilidad de rueda `typst` y empaquetado de fuentes/templates.
+  - [x] Configurar bind de host `0.0.0.0` y puerto variable `$PORT` (Railway / Render / Fly.io / VPS).
+- [x] **CORS dinámico en Backend:**
+  - [x] Parametrizar `allow_origins` en `back/api/main.py` mediante variable de entorno `CORS_ORIGINS` / `FRONTEND_URL`.
+- [x] **Setup de Instancia Supabase Cloud:**
+  - [x] Ejecutar migraciones SQL (`supabase/migrations/001_slice_9b_supabase.sql`, `002_profile_mirror.sql`, `003_avatars_storage.sql`) en el SQL Editor de Supabase.
+  - [x] Crear y verificar buckets de Supabase Storage: `cv-snapshots` y `avatars`.
+  - [x] Configurar credenciales en Backend y Frontend.
+- [x] **Deploy Frontend en Vercel:**
+  - [x] Conectar repositorio con `Root Directory: front`.
+  - [x] Configurar variables de entorno de producción (`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
 
-### Paso 1: Restyling del flujo operativo (Dashboard, Perfil, Editor)
+---
+
+## P1 — Bugs Críticos de UX en Editor
+
+- [ ] **Fix visor de PDF en carga inicial (`/editor/[id]`):**
+  - [ ] Resolver delay/congelamiento del visor al entrar por primera vez (actualmente requiere forzar cambio de densidad u otro trigger de estado para despabilar el render).
+- [ ] **Fix detección de foto/avatar en recomendación de template:**
+  - [ ] Corregir la condición en el editor que sigue sugiriendo "se debería usar con foto" aunque el perfil ya tenga un avatar cargado (evitando que requiera un guardado manual para ocultarse).
+
+---
+
+## P2 — Calibración y Legal de Plantillas Typst
+
+- [ ] **Calibración / Decisión template `vercanard`:**
+  - [ ] Evaluar el comportamiento de dos columnas (actualmente tiene significativamente menos % de llenado que el resto y restringe el lateral a skills/contacto/educación).
+  - [ ] Definir si se calibra la distribución de bloques o se remueve del catálogo activo.
+- [ ] **Polish visual general en plantillas Typst:**
+  - [ ] Corregir inconsistencias de espaciado, pesos tipográficos y márgenes detectados en plantillas visuales.
+- [ ] **Auditoría de licencias de plantillas:**
+  - [ ] Chequear y documentar licencias (MIT, Apache 2.0, etc.) de las plantillas incorporadas en `back/engine/templates/`.
+
+---
+
+## P3 — Fase F7: Rediseño Visual & Modernización UI (Dashboard, Perfil, Editor)
 
 - [ ] **Tokens y paleta unificada de color:**
-  - [ ] Adopción de tokens y paleta unificada de color (que siga el estilo de la landing).
+  - [ ] Extender tokens y paleta de la landing (ámbar `#d4973b`, verde sastre `#1b4332`, bg dark sastre) a `/cvs`, `/perfil` y `/editor`.
 - [ ] **Componentes atómicos interactivos:**
-  - [ ] Refactor de componentes atómicos interactivos (cards, modales, botones, micro-interacciones inspiradas en la landing).
-- [ ] **Reacomodación del home sin cvs:**
-  - [ ] Definir si va a haber un solo boton para crear cv (solo con prompt) o dos. 
----
-
-### Paso 2: Landing Page alineada a la nueva identidad
-
-- [x] **Base de la landing page con sistema de tokens versátil:**
-  - [x] Portada del producto integrada en Next.js (`front/src/app/page.tsx` y módulos en `src/components/landing/`).
-  - [x] Bloque central de tokens en `globals.css` que permite cambiar fuentes y paleta completa en pocas líneas sin tocar JSX.
-- [ ] **The Mirror interactivo / comparativa de idiomas:**
-  - [ ] Replantear la sección "The Mirror" para comparar versiones de idiomas (CV en español vs. inglés del espejo bilingüe de Fase 11) o agregar animación interactiva de scroll tipo espejo / slider split-screen de antes/después.
+  - [ ] Refactor de cards, modales, botones y micro-interacciones de la app interna alineadas con la estética de la landing.
+- [ ] **Reacomodación del Dashboard (`/cvs`):**
+  - [ ] Definir UX de creación de CVs en estado vacío (botón unificado con prompt vs doble botón base/adaptado).
 
 ---
 
-## Próximas Fases Planificadas
-
-### Fase F8 — Validación Externa ATS
+## P4 — Fase F8: Validación Externa ATS
 
 - [ ] **Pruebas y compatibilidad ATS:**
   - [ ] Testing de PDFs generados contra plataformas reales (Lever, Greenhouse, Workday) para garantizar 100% de parseabilidad.
@@ -48,6 +61,7 @@
 
 | Fase / Slice | Descripción | Estado |
 |---|---|---|
+| **Landing Page & The Mirror** | Portada completa, tokens versátiles, ScrollReveal y The Mirror con traducción continua y traslado 3D a dock EN. | Concluido |
 | **Slice 1: Tracer Bullet** | Render en vivo a SVG vía Typst, telemetría de llenado A4 y shell Next.js. | Concluido |
 | **Slice 2: Edición Reactiva** | Tarjetas interactivas con toggles de viñetas y debounce sin latencia IA. | Concluido |
 | **Slice 3: Flujo de Adaptación** | Pipeline de tailoring con extracción de oferta, matching ATS y modal de progreso. | Concluido |

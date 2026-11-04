@@ -13,12 +13,6 @@ export function HeroSection() {
           
           {/* Columna Izquierda: Mensaje & CTA */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            
-            {/* Tag de contexto técnico */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border-hairline)] bg-[var(--bg-surface)] text-[var(--accent)] text-xs font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>
-              <span>Typst Engine • Deterministic 1-Page Layout</span>
-            </div>
 
             {/* Titular Principal */}
             <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl text-[var(--text-primary)] font-bold leading-[1.1] tracking-tight">
@@ -51,11 +45,11 @@ export function HeroSection() {
             {/* Badges de rigor técnico */}
             <div className="pt-6 border-t border-[var(--border-hairline)] flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-[var(--text-muted)] font-mono">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[var(--accent)]" />
+                <CheckCircle2 className="w-4 h-4 text-[var(--tailor-green-text)]" />
                 <span>Cero alucinación sobre tu perfil</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[var(--accent)]" />
+                <CheckCircle2 className="w-4 h-4 text-[var(--tailor-green-text)]" />
                 <span>1 Página A4 estricta sin desbordes</span>
               </div>
               <div className="flex items-center gap-2">

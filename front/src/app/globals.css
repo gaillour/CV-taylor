@@ -24,14 +24,21 @@
   --text-secondary: #a8a29e;
   --text-muted: #736e68;
 
-  /* 4. ACENTO ÚNICO (ÁMBAR SASTRE / EDITABLE A CUALQUIER TONO) */
+  /* 4. ACENTO PRINCIPAL (DORADO / WHISKEY / MIEL SASTRE) */
   --accent: #d4973b;
   --accent-hover: #e5a74b;
   --accent-contrast: #0c0b0a;
   --accent-subtle: rgba(212, 151, 59, 0.12);
   --accent-border: rgba(212, 151, 59, 0.35);
 
-  /* 5. HOJA ATS (INMUTABLE - PAPEL BLANCO REAL) */
+  /* 5. DETALLES EN VERDE INGLÉS (SAVILE ROW / TAILORING QUALITY ACCENT) */
+  --tailor-green: #1b3d2b;
+  --tailor-green-light: #24523a;
+  --tailor-green-text: #4eab78;
+  --tailor-green-subtle: rgba(27, 61, 43, 0.28);
+  --tailor-green-border: rgba(36, 82, 58, 0.45);
+
+  /* 6. HOJA ATS (INMUTABLE - PAPEL BLANCO REAL) */
   --sheet-bg: #ffffff;
   --sheet-text: #111827;
 
@@ -63,6 +70,12 @@
   --color-accent-contrast: var(--accent-contrast);
   --color-accent-subtle: var(--accent-subtle);
   --color-accent-border: var(--accent-border);
+
+  --color-tailor-green: var(--tailor-green);
+  --color-tailor-green-light: var(--tailor-green-light);
+  --color-tailor-green-text: var(--tailor-green-text);
+  --color-tailor-green-subtle: var(--tailor-green-subtle);
+  --color-tailor-green-border: var(--tailor-green-border);
 }
 
 body {
@@ -133,6 +146,22 @@ body {
 
 .bg-accent-subtle {
   background-color: var(--accent-subtle);
+}
+
+.text-tailor-green {
+  color: var(--tailor-green-text);
+}
+
+.bg-tailor-green {
+  background-color: var(--tailor-green);
+}
+
+.bg-tailor-green-subtle {
+  background-color: var(--tailor-green-subtle);
+}
+
+.border-tailor-green {
+  border-color: var(--tailor-green-border);
 }
 
 .border-hairline {

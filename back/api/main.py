@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -17,21 +18,39 @@ from back.api.routes.snapshots import router as snapshots_router
 from back.api.routes.tailor import router as tailor_router
 
 app = FastAPI(
-    title="CV Tailor API",
+    title="Taylor API",
     description="Deterministic 1-page Typst CV tailoring engine and interactive API",
     version="0.1.0",
 )
 
-# Enable CORS for local Next.js frontend
+# Configure CORS: support local dev + custom origins via CORS_ORIGINS / FRONTEND_URL
+_default_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+]
+_env_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
+_frontend_url = os.getenv("FRONTEND_URL", "").strip()
+if _frontend_url and _frontend_url not in _env_origins:
+    _env_origins.append(_frontend_url)
+
+_allowed_origins = list(dict.fromkeys(_default_origins + _env_origins))
+
+# Regex for local IPs + Vercel preview/production domains (*.vercel.app)
+_cors_origin_regex = os.getenv(
+    "CORS_ORIGIN_REGEX",
+    r"^(https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?|https://.*\.vercel\.app)$",
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-    ],
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$",
+    allow_origins=_allowed_origins,
+    allow_origin_regex=_cors_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

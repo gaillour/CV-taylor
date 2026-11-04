@@ -149,7 +149,7 @@ export function TopNav() {
             <FileText className="w-3.5 h-3.5" />
           </div>
           <h1 className="text-xs font-semibold tracking-tight text-zinc-100 flex items-center gap-2">
-            cv-tailor
+            Taylor
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-white/[0.08]">
               {cloudEnabled ? "cloud" : "local"}
             </span>

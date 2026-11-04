@@ -26,10 +26,7 @@ export function ScrollReveal({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.unobserve(el);
-        }
+        setIsVisible(entry.isIntersecting);
       },
       {
         root: scrollContainer || null,

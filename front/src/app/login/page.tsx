@@ -124,7 +124,7 @@ export default function LoginPage() {
             <FileText className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-xs font-semibold text-zinc-100">cv-tailor cloud</h1>
+            <h1 className="text-xs font-semibold text-zinc-100">Taylor Cloud</h1>
             <p className="text-[11px] text-zinc-400">
               {mode === "signin"
                 ? "Iniciá sesión para sincronizar tus CVs"
