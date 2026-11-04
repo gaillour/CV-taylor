@@ -41,7 +41,7 @@ export function CvCanvasPreview() {
     >
       {/* Sello de Cera Flotante (Bespoke Stamp) */}
       <div className="absolute -top-3 -right-2 sm:right-2 z-30 w-16 h-16 rounded-full bg-[#181512] border-2 border-[var(--accent)] flex flex-col items-center justify-center shadow-2xl rotate-6 pointer-events-none">
-        <span className="font-script text-xl leading-none text-[var(--accent)]">Bespoke</span>
+        <span className="font-display italic text-lg leading-none text-[var(--accent)]">Bespoke</span>
         <span className="text-[7.5px] font-mono tracking-widest text-zinc-400 uppercase mt-0.5">Typst A4</span>
       </div>
 
@@ -142,7 +142,7 @@ export function CvCanvasPreview() {
           {/* Sello de relieve de sastre */}
           <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded border border-amber-900/15 bg-amber-50/50">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-            <span className="font-script text-[11px] text-amber-950 font-bold leading-none">
+            <span className="font-display italic text-[11px] text-amber-950 font-bold leading-none">
               Bespoke Press
             </span>
           </div>

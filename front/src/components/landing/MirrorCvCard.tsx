@@ -157,12 +157,12 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
 
           {/* Sello de idioma inglés */}
           <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-200">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9.5px] font-mono font-semibold uppercase tracking-wider bg-[var(--accent-subtle)] text-[var(--accent)] border border-[var(--accent-border)]">
-              <Sparkles className="w-3 h-3 text-[var(--accent)]" />
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9.5px] font-mono font-semibold uppercase tracking-wider bg-[var(--green-subtle)] text-[#1e3328] border border-[var(--green-border)]">
+              <Sparkles className="w-3 h-3 text-[#1e3328]" />
               {enCv.badge}
             </span>
-            <span className="text-[9.5px] font-mono text-[var(--tailor-green-text)] flex items-center gap-1 font-semibold">
-              <CheckCircle2 className="w-3 h-3" />
+            <span className="text-[9.5px] font-mono text-[#1e3328] flex items-center gap-1 font-semibold">
+              <CheckCircle2 className="w-3 h-3 text-[#1e3328]" />
               100% Typst Sync
             </span>
           </div>
@@ -186,7 +186,7 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
               <span className="text-[8.5px] font-bold uppercase tracking-wider text-zinc-950">
                 Executive Summary
               </span>
-              <span className="text-[7.5px] font-mono text-[var(--accent)] font-semibold">Native US ATS</span>
+              <span className="text-[7.5px] font-mono text-[#1e3328] font-semibold">Native US ATS</span>
             </div>
             <p className="text-[8px] sm:text-[8.5px] leading-relaxed text-zinc-700 text-justify">
               {enCv.summary}

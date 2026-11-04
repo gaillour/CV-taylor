@@ -1,5 +1,8 @@
 # TODO.md — Roadmap Operativo (`cv-tailor`)
 
+
+
+
 ## P0 — Infraestructura & Despliegue Cloud (Staging / Alpha Privado)
 
 - [x] **Dockerfile Backend (FastAPI):**
@@ -24,6 +27,14 @@
   - [ ] Resolver delay/congelamiento del visor al entrar por primera vez (actualmente requiere forzar cambio de densidad u otro trigger de estado para despabilar el render).
 - [ ] **Fix detección de foto/avatar en recomendación de template:**
   - [ ] Corregir la condición en el editor que sigue sugiriendo "se debería usar con foto" aunque el perfil ya tenga un avatar cargado (evitando que requiera un guardado manual para ocultarse).
+- [ ] **Login**
+  - [ ] Definir si se va a poder usar sin loguearse y como. Actualizar login, que siga el estilo de la landing.
+- [ ] **Landing Page**
+  - [ ] Agreggar feature de versionado (mostrar con animación)
+  - [ ] Sacar el EN verde por dorado en mirror.
+  - [ ] Actualizar textos, mas simples
+  - [ ] los 3 pasos mostrarlos de otra manera.
+
 
 ---
 

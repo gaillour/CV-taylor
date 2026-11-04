@@ -39,7 +39,7 @@ export function WorkflowSection() {
         {/* Cabecera de sección */}
         <ScrollReveal direction="up">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="font-script text-2xl sm:text-3xl text-[var(--accent)] block mb-1">
+            <span className="font-display italic text-lg sm:text-xl text-[var(--accent)] block mb-1">
               Artesanía & Precisión
             </span>
             <h2 className="font-display text-2xl sm:text-4xl text-[var(--text-primary)] font-bold tracking-tight">

@@ -17,12 +17,6 @@ export function HeroSection() {
           {/* Columna Izquierda: Mensaje & CTA */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
 
-            {/* Pill Tag */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent)] text-xs tracking-wider uppercase font-cinzel">
-              <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-              <span>Sastrería Tipográfica • 1 Página A4 Estricta</span>
-            </div>
-
             {/* Titular Principal */}
             <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl text-[var(--text-primary)] font-bold leading-[1.1] tracking-tight">
               Cargá tu carrera una vez. Adaptá tu CV en <span className="foil-shimmer italic">15 segundos</span>.

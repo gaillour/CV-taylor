@@ -5,11 +5,9 @@
      SISTEMA DE DISEÑO / TOKENS CENTRALES (SASTRERÍA & BESPOKE LUXURY)
      ========================================================================== */
 
-  /* 1. TIPOGRAFÍAS (Playfair Display + Cinzel + Pinyon Script + Plus Jakarta Sans) */
+  /* 1. TIPOGRAFÍAS (Playfair Display + Plus Jakarta Sans) */
   --font-display: 'Playfair Display', Georgia, serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-cinzel: 'Cinzel', serif;
-  --font-script: 'Pinyon Script', cursive;
   --font-mono: ui-monospace, SFMono-Regular, monospace;
 
   /* 2. RAMPA NEUTRA (TINTADA SOBRIA - GRAFITO / PAPEL OSCURO) */
@@ -33,12 +31,21 @@
   --accent-border: rgba(212, 151, 59, 0.35);
   --halo-color: rgba(212, 151, 59, 0.12);
 
-  /* 5. DETALLES EN VERDE INGLÉS (SAVILE ROW / TAILORING QUALITY ACCENT) */
-  --tailor-green: #1b3d2b;
-  --tailor-green-light: #24523a;
-  --tailor-green-text: #4eab78;
-  --tailor-green-subtle: rgba(27, 61, 43, 0.28);
-  --tailor-green-border: rgba(36, 82, 58, 0.45);
+  /* 5. ACENTO VERDE SECUNDARIO (CIPRÉS NOCTURNO / BRITISH RACING NIGHT) */
+  --green-accent: #1e3328;
+  --green-hover: #294537;
+  --green-text: #85baa0;
+  --green-contrast: #0c0b0a;
+  --green-subtle: rgba(30, 51, 40, 0.38);
+  --green-border: rgba(52, 88, 70, 0.50);
+  --green-halo: rgba(30, 51, 40, 0.28);
+
+  /* Alias de compatibilidad */
+  --tailor-green: var(--green-accent);
+  --tailor-green-light: var(--green-hover);
+  --tailor-green-text: var(--green-text);
+  --tailor-green-subtle: var(--green-subtle);
+  --tailor-green-border: var(--green-border);
 
   /* 6. HOJA ATS (INMUTABLE - PAPEL BLANCO REAL) */
   --sheet-bg: #ffffff;
@@ -54,8 +61,6 @@
 @theme {
   --font-display: var(--font-display);
   --font-body: var(--font-body);
-  --font-cinzel: var(--font-cinzel);
-  --font-script: var(--font-script);
   --font-mono: var(--font-mono);
 
   --color-canvas: var(--bg-canvas);
@@ -74,11 +79,19 @@
   --color-accent-subtle: var(--accent-subtle);
   --color-accent-border: var(--accent-border);
 
-  --color-tailor-green: var(--tailor-green);
-  --color-tailor-green-light: var(--tailor-green-light);
-  --color-tailor-green-text: var(--tailor-green-text);
-  --color-tailor-green-subtle: var(--tailor-green-subtle);
-  --color-tailor-green-border: var(--tailor-green-border);
+  --color-green-accent: var(--green-accent);
+  --color-green-hover: var(--green-hover);
+  --color-green-text: var(--green-text);
+  --color-green-contrast: var(--green-contrast);
+  --color-green-subtle: var(--green-subtle);
+  --color-green-border: var(--green-border);
+  --color-green-halo: var(--green-halo);
+
+  --color-tailor-green: var(--green-accent);
+  --color-tailor-green-light: var(--green-hover);
+  --color-tailor-green-text: var(--green-text);
+  --color-tailor-green-subtle: var(--green-subtle);
+  --color-tailor-green-border: var(--green-border);
 }
 
 body {
@@ -103,14 +116,6 @@ body {
 
 .font-body {
   font-family: var(--font-body);
-}
-
-.font-cinzel {
-  font-family: var(--font-cinzel);
-}
-
-.font-script {
-  font-family: var(--font-script);
 }
 
 .font-mono-custom {

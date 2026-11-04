@@ -194,7 +194,7 @@ export function TheMirrorSection() {
         
         {/* Cabecera Editorial Compacta */}
         <div className="text-center max-w-2xl mx-auto shrink-0 z-10">
-          <span className="font-script text-xl sm:text-2xl text-[var(--accent)] block -mb-0.5">
+          <span className="font-display italic text-lg sm:text-xl text-[var(--accent)] block -mb-0.5">
             El Espejo Bilingüe
           </span>
           <h2 className="font-display text-xl sm:text-2xl lg:text-3xl text-[var(--text-primary)] font-bold tracking-tight">
@@ -210,9 +210,11 @@ export function TheMirrorSection() {
           
           {/* Halos de luz rasante que acompañan el viaje del documento */}
           <div
-            className="absolute w-72 h-72 sm:w-[480px] sm:h-[480px] rounded-full pointer-events-none transition-all duration-300 -z-10"
+            className="absolute w-72 h-72 sm:w-[480px] sm:h-[480px] rounded-full pointer-events-none transition-all duration-500 -z-10"
             style={{
-              background: `radial-gradient(circle, var(--accent-subtle) 0%, transparent 70%)`,
+              background: progress > 0.45
+                ? `radial-gradient(circle, var(--green-halo) 0%, transparent 70%)`
+                : `radial-gradient(circle, var(--accent-subtle) 0%, transparent 70%)`,
               left: `calc(25% + ${progress * 50}%)`,
               top: "50%",
               transform: `translate(-50%, -50%) scale(${1 + Math.sin(progress * Math.PI) * 0.25})`,
@@ -295,28 +297,28 @@ export function TheMirrorSection() {
               onClick={() => toggleLanguage("en")}
               className={`relative w-full max-w-[320px] sm:max-w-[350px] lg:max-w-[380px] aspect-[210/297] rounded-md border-2 border-dashed transition-all duration-300 p-4 sm:p-5 flex flex-col justify-between cursor-pointer select-none ${
                 progress >= 0.85
-                  ? "border-[var(--tailor-green-border)] bg-[var(--tailor-green-subtle)]/15 shadow-xl"
-                  : "border-[var(--accent)]/50 bg-[var(--accent-subtle)]/5 hover:border-[var(--accent)]"
+                  ? "border-[var(--green-border)] bg-[var(--green-subtle)] shadow-xl"
+                  : "border-[var(--green-border)]/60 bg-[var(--green-subtle)]/30 hover:border-[var(--green-border)]"
               }`}
             >
               {/* Header del Dock EN */}
               <div className="flex items-center justify-between pb-1.5 border-b border-[var(--border-hairline)]">
-                <span className="font-mono text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--accent)] text-[var(--accent-contrast)] uppercase tracking-wider flex items-center gap-1 shadow-xs">
-                  <Sparkles className="w-3 h-3" />
+                <span className="font-mono text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--green-accent)] text-[var(--green-text)] border border-[var(--green-border)] uppercase tracking-wider flex items-center gap-1 shadow-xs">
+                  <Sparkles className="w-3 h-3 text-[var(--green-text)]" />
                   EN • Mirror
                 </span>
-                <span className="text-[9px] font-mono text-[var(--accent)] font-semibold">
+                <span className="text-[9px] font-mono text-[var(--green-text)] font-semibold">
                   International ATS
                 </span>
               </div>
 
               {/* Centro del Dock EN: El cuadro destacado que dice EN */}
               <div className="flex flex-col items-center justify-center my-auto text-center py-4">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-2 border-dashed border-[var(--accent)]/60 bg-[var(--accent-subtle)]/15 flex flex-col items-center justify-center mb-2 shadow-inner">
-                  <span className="font-display text-4xl sm:text-5xl font-black text-[var(--accent)] tracking-tight select-none">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-2 border-dashed border-[var(--green-border)] bg-[var(--green-accent)]/40 flex flex-col items-center justify-center mb-2 shadow-inner">
+                  <span className="font-display text-4xl sm:text-5xl font-black text-[var(--green-text)] tracking-tight select-none">
                     EN
                   </span>
-                  <span className="text-[7.5px] font-mono uppercase tracking-widest text-[var(--accent)] font-bold -mt-1">
+                  <span className="text-[7.5px] font-mono uppercase tracking-widest text-[var(--green-text)] font-bold -mt-1">
                     Target
                   </span>
                 </div>
@@ -329,21 +331,21 @@ export function TheMirrorSection() {
 
                 {/* Wireframe lines simulando la plantilla de destino */}
                 <div className="w-full max-w-[170px] space-y-1.5 mt-3 opacity-40">
-                  <div className="h-1.5 bg-[var(--accent)] rounded-full w-full" />
-                  <div className="h-1.5 bg-[var(--accent)] rounded-full w-4/5 mx-auto" />
-                  <div className="h-1.5 bg-[var(--accent)] rounded-full w-3/5 mx-auto" />
+                  <div className="h-1.5 bg-[var(--green-text)] rounded-full w-full" />
+                  <div className="h-1.5 bg-[var(--green-text)] rounded-full w-4/5 mx-auto" />
+                  <div className="h-1.5 bg-[var(--green-text)] rounded-full w-3/5 mx-auto" />
                 </div>
               </div>
 
               {/* Pie del Dock EN */}
               <div className="pt-2 border-t border-[var(--border-hairline)] flex items-center justify-between text-[8px] sm:text-[9px] font-mono">
                 {progress >= 0.85 ? (
-                  <span className="text-[var(--tailor-green-text)] font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Espejo Acoplado
+                  <span className="text-[var(--green-text)] font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-[var(--green-text)]" /> Espejo Acoplado
                   </span>
                 ) : (
                   <span className="text-[var(--text-muted)] flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--green-text)] animate-pulse" />
                     Esperando documento...
                   </span>
                 )}
@@ -377,7 +379,7 @@ export function TheMirrorSection() {
             onClick={() => toggleLanguage("en")}
             className={`px-3 py-1 rounded transition-colors cursor-pointer ${
               progress >= 0.5
-                ? "text-[var(--accent)] font-bold bg-[var(--accent-subtle)] border border-[var(--accent-border)] shadow-xs"
+                ? "text-[var(--green-text)] font-bold bg-[var(--green-accent)] border border-[var(--green-border)] shadow-xs"
                 : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
