@@ -148,7 +148,15 @@ export const useCvStore = create<CvState>()(
           const seq = ++previewSeq;
           set({ loading: true, error: null });
           try {
-            const targetModel = model ?? get().renderModel;
+            let targetModel = model ?? get().renderModel;
+            const profilePhoto = useProfileStore.getState().profile?.contact?.photo_url;
+            if (targetModel && profilePhoto && !targetModel.contact?.photo_url) {
+              targetModel = {
+                ...targetModel,
+                contact: { ...targetModel.contact, photo_url: profilePhoto },
+                photo_path: profilePhoto,
+              };
+            }
             const res = await apiFetch(`${API_BASE_URL}/api/render/preview`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -332,8 +340,14 @@ export const useCvStore = create<CvState>()(
 
         loadSnapshotDraft: (snapshot: Snapshot) => {
           clearPendingPreview();
+          const profilePhoto = useProfileStore.getState().profile?.contact?.photo_url;
+          const model: RenderModel = { ...snapshot.render_model };
+          if (profilePhoto && !model.contact?.photo_url) {
+            model.contact = { ...model.contact, photo_url: profilePhoto };
+            model.photo_path = profilePhoto;
+          }
           set({
-            renderModel: snapshot.render_model,
+            renderModel: model,
             svg: "",
             loading: false,
             fitReport: null,

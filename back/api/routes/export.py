@@ -83,11 +83,17 @@ class ExportSnapshotResponse(BaseModel):
 @router.post("/pdf")
 def export_pdf(
     payload: ExportPdfRequest,
+    repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
     _user: Annotated[UserContext, Depends(get_current_user)],
 ) -> Response:
     """Compile RenderModel to binary PDF with WYSIWYG fidelity and trigger attachment download."""
     try:
         model = payload.render_model
+        prof = repo.get_profile()
+        if not getattr(model, "photo_path", None) and prof.contact.photo_url:
+            model.photo_path = prof.contact.photo_url
+        if not getattr(model.contact, "photo_url", None) and prof.contact.photo_url:
+            model.contact.photo_url = prof.contact.photo_url
 
         # Ensure design matches density parameters
         model.design = DesignKnobs.from_density(
@@ -132,6 +138,12 @@ def export_snapshot(
 
     try:
         model = payload.render_model
+        prof = repo.get_profile()
+        if not getattr(model, "photo_path", None) and prof.contact.photo_url:
+            model.photo_path = prof.contact.photo_url
+        if not getattr(model.contact, "photo_url", None) and prof.contact.photo_url:
+            model.contact.photo_url = prof.contact.photo_url
+
         model.design = DesignKnobs.from_density(
             model.design.density,
             font_family=model.design.font_family,

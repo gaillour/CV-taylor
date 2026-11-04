@@ -53,16 +53,17 @@ export function TopNav() {
   );
 
   const isProfile = pathname.startsWith("/perfil");
-  const isGallery = pathname === "/";
+  const isGallery = pathname.startsWith("/cvs");
   const isEditor = pathname.startsWith("/editor");
   const isLogin = pathname.startsWith("/login");
+  const isLanding = pathname === "/";
 
   // Rehydrate the persisted draft and check runtime Supabase config on client
   useEffect(() => {
     useCvStore.persist.rehydrate();
     ensureSupabaseConfigLoaded().then((enabled) => {
       setCloudEnabled(enabled);
-      if (enabled && !getStoredSession() && !pathname.startsWith("/login")) {
+      if (enabled && !getStoredSession() && !pathname.startsWith("/login") && pathname !== "/") {
         router.replace("/login");
       }
     });
@@ -138,6 +139,8 @@ export function TopNav() {
 
   const editorHref = `/editor/${draftParentId ?? "nuevo"}`;
 
+  if (isLanding) return null;
+
   return (
     <header className="h-12 shrink-0 border-b border-white/[0.08] bg-[#09090b]/90 backdrop-blur-md px-6 flex items-center justify-between gap-6 z-30">
       <div className="flex items-center gap-6">
@@ -156,7 +159,7 @@ export function TopNav() {
         {!isLogin && (
           <nav className="flex items-center bg-zinc-950 border border-white/[0.08] rounded-md p-0.5">
             <Link
-              href="/"
+              href="/cvs"
               onClick={handleLeaveProfile}
               className={`${tabBase} ${isGallery ? tabActive : tabIdle}`}
             >

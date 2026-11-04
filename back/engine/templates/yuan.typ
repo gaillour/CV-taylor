@@ -102,7 +102,7 @@
         #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
         - #b_text
       ]
-      #v(entry_space, weak: true)
+      #v(entry_space)
     ]
   ]
 }
@@ -116,7 +116,7 @@
         #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
         - #b_text
       ]
-      #v(entry_space, weak: true)
+      #v(entry_space)
     ]
   ]
 }
@@ -137,7 +137,7 @@
           - #b_text
         ]
       ]
-      #v(entry_space, weak: true)
+      #v(entry_space)
     ]
   ]
 }

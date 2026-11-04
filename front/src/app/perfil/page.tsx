@@ -44,6 +44,8 @@ export default function ProfilePage() {
     saving,
     enhancing,
     canEnhanceAfterImport,
+    isManualMode,
+    enableManualMode,
     dirty,
     error,
     fetchProfile,
@@ -86,6 +88,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchProfile();
+    return () => {
+      // Al salir de la vista de perfil sin guardar, descartar sugerencias y prompts efímeros
+      useProfileStore.getState().dismissImportPrompt();
+    };
   }, [fetchProfile]);
 
   const handleSave = async () => {
@@ -125,7 +131,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (profile && isProfileEmpty(profile) && !manualMode) {
+  if (profile && isProfileEmpty(profile) && !manualMode && !isManualMode) {
     return (
       <div className="flex-1 min-h-0 overflow-y-auto bg-[#09090b] text-zinc-100 flex flex-col">
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 max-w-2xl mx-auto w-full">
@@ -142,7 +148,10 @@ export default function ProfilePage() {
 
           <div className="mt-8 text-center">
             <button
-              onClick={() => setManualMode(true)}
+              onClick={() => {
+                setManualMode(true);
+                enableManualMode();
+              }}
               className="text-xs text-zinc-400 hover:text-zinc-200 transition underline underline-offset-4 cursor-pointer"
             >
               Completar perfil manualmente

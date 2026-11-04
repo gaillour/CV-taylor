@@ -47,7 +47,7 @@ export default function LoginPage() {
       if (!active) return;
       const existing = hashSession || getStoredSession();
       if (existing) {
-        router.replace("/");
+        router.replace("/cvs");
       }
     });
 
@@ -65,11 +65,11 @@ export default function LoginPage() {
     try {
       if (mode === "signin") {
         await signInWithPassword(email.trim(), password);
-        router.replace("/");
+        router.replace("/cvs");
       } else {
         const result = await signUpWithPassword(email.trim(), password);
         if (result.session) {
-          router.replace("/");
+          router.replace("/cvs");
         } else if (result.confirmationRequired) {
           setInfoMessage(
             "Cuenta creada. Revisá tu casilla de correo para confirmar el email antes de iniciar sesión."
@@ -106,7 +106,7 @@ export default function LoginPage() {
           </p>
           <button
             type="button"
-            onClick={() => router.replace("/")}
+            onClick={() => router.replace("/cvs")}
             className="w-full py-2 px-4 rounded-md bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-xs transition cursor-pointer"
           >
             Ir a la galería de CVs

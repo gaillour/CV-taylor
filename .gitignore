@@ -18,6 +18,7 @@ next-env.d.ts
 /out/
 /tempo/
 /backups/
+test_pdfs/
 
 # Env & credentials
 .env*

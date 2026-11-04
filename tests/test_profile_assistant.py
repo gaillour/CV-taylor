@@ -239,3 +239,72 @@ def test_enhance_with_llm_filters_forbidden_titles_for_projects() -> None:
 
     # Experience should have the role title
     assert exp_titles == ["Desarrollador Backend"]
+
+
+def test_enhance_with_llm_redirects_empty_improved_facts_to_removal() -> None:
+    profile = Profile(
+        id="p2",
+        full_name="Tester 2",
+        contact=ContactInfo(
+            email="tester2@example.com",
+            phone="+54 11 1234 5678",
+            location="Buenos Aires, Argentina",
+        ),
+        base_lang="es",
+        skills=[],
+        entries=[
+            Entry(
+                id="exp_dup",
+                kind="experience",
+                org="Empresa",
+                start_date="2024-01",
+                context="Trabajo backend",
+                titles=[],
+                facts=[
+                    Fact(
+                        id="f_empty",
+                        entry_id="exp_dup",
+                        text="Viñeta que el LLM quiso vaciar.",
+                        approved=True,
+                    ),
+                    Fact(
+                        id="f_delete",
+                        entry_id="exp_dup",
+                        text="Viñeta que el LLM quiso borrar.",
+                        approved=True,
+                    ),
+                ],
+            ),
+        ],
+    )
+
+    llm_payload = {
+        "detected_skills": [],
+        "redundant_skills": [],
+        "redundant_facts": [],
+        "entries": [
+            {
+                "entry_id": "exp_dup",
+                "distilled_facts": [],
+                "improved_facts": [
+                    {"fact_id": "f_empty", "proposed_text": "   "},
+                    {"fact_id": "f_delete", "proposed_text": "eliminar"},
+                ],
+                "suggested_titles": [],
+            },
+        ],
+    }
+
+    dummy_llm = DummyLLM(llm_payload)
+    resp = enhance_profile(profile, llm=dummy_llm)  # type: ignore
+
+    facts = resp.profile.entries[0].facts
+    f_empty = next(f for f in facts if f.id == "f_empty")
+    f_delete = next(f for f in facts if f.id == "f_delete")
+
+    assert f_empty.marked_for_removal is True
+    assert f_empty.removal_reason == "Viñeta vacía o redundante recomendada para eliminación"
+    assert f_delete.marked_for_removal is True
+    assert f_delete.removal_reason == "Viñeta vacía o redundante recomendada para eliminación"
+    assert resp.stats.redundant_facts_marked == 2
+

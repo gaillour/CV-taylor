@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useCvStore } from "@/store/useCvStore";
-import { ThemeName, LangCode, TailorResponse } from "@/types/cv";
+import { ThemeName, LangCode, TailorResponse, THEMES_REGISTRY } from "@/types/cv";
 import {
   SlidersHorizontal,
   X,
@@ -229,11 +229,22 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
                   <select
                     value={selectedTheme}
                     onChange={(e) => setSelectedTheme(e.target.value as ThemeName)}
-                    className="w-full bg-zinc-900 border border-white/[0.08] rounded-md px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-500 capitalize cursor-pointer"
+                    className="w-full bg-zinc-900 border border-white/[0.08] rounded-md px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-500 cursor-pointer"
                   >
-                    <option value="classic">Classic</option>
-                    <option value="modern">Modern</option>
-                    <option value="engineering">Engineering</option>
+                    <optgroup label="── ATS Strict ──" className="bg-zinc-900 text-zinc-400">
+                      {THEMES_REGISTRY.filter((t) => t.category === "ats").map((t) => (
+                        <option key={t.id} value={t.id} className="bg-zinc-900 text-zinc-200">
+                          {t.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="── Visual / Con Foto ──" className="bg-zinc-900 text-zinc-400">
+                      {THEMES_REGISTRY.filter((t) => t.category === "visual").map((t) => (
+                        <option key={t.id} value={t.id} className="bg-zinc-900 text-zinc-200">
+                          {t.label} (Foto)
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
                 </div>
 

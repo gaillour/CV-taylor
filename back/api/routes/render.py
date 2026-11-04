@@ -38,10 +38,15 @@ def preview_cv(
 ) -> PreviewResponse:
     """Render a RenderModel (or default profile) to SVG with fit telemetry."""
     try:
+        profile = repo.get_profile()
         if payload is not None and payload.render_model is not None:
             active_model = payload.render_model
+            # Fallback sync: if active model draft lacks avatar, inherit from Master Profile
+            if not getattr(active_model, "photo_path", None) and profile.contact.photo_url:
+                active_model.photo_path = profile.contact.photo_url
+            if not getattr(active_model.contact, "photo_url", None) and profile.contact.photo_url:
+                active_model.contact.photo_url = profile.contact.photo_url
         else:
-            profile = repo.get_profile()
             active_model = RenderModel.from_profile(
                 profile, theme="classic", lang=profile.base_lang
             )

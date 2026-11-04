@@ -12,7 +12,19 @@ LangCode = Literal["es", "en"]
 EntryKind = Literal["experience", "project", "education", "certification", "other"]
 DatePrecision = Literal["year", "month", "day"]
 TitleSource = Literal["user", "ai"]
-ThemeName = Literal["classic", "modern", "engineering"]
+ThemeName = Literal[
+    "classic",
+    "modern",
+    "engineering",
+    "basic",
+    "kire",
+    "yuan",
+    "modern-cv",
+    "vercanard",
+    "impressive-impression",
+    "modern-resume",
+    "metronic",
+]
 SectionKey = Literal["summary", "skills", "experience", "projects", "education"]
 
 DEFAULT_SECTION_ORDER: list[SectionKey] = [
@@ -45,6 +57,7 @@ class ContactInfo(BaseModel):
     github: str | None = None
     linkedin: str | None = None
     website: str | None = None
+    photo_url: str | None = None
 
 
 DEFAULT_CATEGORY_TRANSLATIONS: dict[str, dict[LangCode, str]] = {
@@ -493,6 +506,7 @@ class RenderModel(BaseModel):
         default_factory=lambda: list(DEFAULT_SECTION_ORDER)
     )
     design: DesignKnobs = Field(default_factory=DesignKnobs)
+    photo_path: str | None = None
 
     @classmethod
     def from_profile(
@@ -650,6 +664,7 @@ class RenderModel(BaseModel):
             education=education_entries,
             section_order=list(section_order) if section_order else list(DEFAULT_SECTION_ORDER),
             design=design,
+            photo_path=profile.contact.photo_url,
         )
 
 

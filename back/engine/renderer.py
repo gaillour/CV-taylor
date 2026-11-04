@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from .models import FitReport, Profile, RenderModel, ThemeName
 
 ENGINE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = ENGINE_DIR.parent.parent
 FONTS_DIR = ENGINE_DIR / "fonts"
 TEMPLATES_DIR = ENGINE_DIR / "templates"
 
@@ -50,10 +51,59 @@ def _parse_pt(raw_length: str | float | int) -> float:
     return float(cleaned)
 
 
+def _resolve_photo_path(photo_url: str | None) -> str | None:
+    """Resolve an avatar URL/path to a repository-relative path accessible by Typst."""
+    if not photo_url:
+        return None
+
+    # Local file already in out/avatars/ by name (e.g. /api/avatars/x, out/avatars/x, or just filename)
+    clean_name = Path(photo_url.split("?")[0]).name
+    candidate = REPO_ROOT / "out" / "avatars" / clean_name
+    if candidate.is_file():
+        return f"/out/avatars/{clean_name}"
+
+    # Local API endpoint: /api/avatars/xxxx.jpg -> /out/avatars/xxxx.jpg
+    if "/api/avatars/" in photo_url:
+        filename = photo_url.split("/api/avatars/")[-1].split("?")[0]
+        local_file = REPO_ROOT / "out" / "avatars" / filename
+        if local_file.is_file():
+            return f"/out/avatars/{filename}"
+
+    # Already rooted /out/avatars/...
+    if photo_url.startswith("/out/avatars/"):
+        return photo_url
+
+    # Supabase or external HTTP URL
+    if photo_url.startswith(("http://", "https://")):
+        try:
+            import httpx
+
+            filename = photo_url.split("/")[-1].split("?")[0]
+            cache_file = REPO_ROOT / "out" / "avatars" / filename
+            if not cache_file.is_file():
+                cache_file.parent.mkdir(parents=True, exist_ok=True)
+                with httpx.Client(timeout=10.0) as client:
+                    resp = client.get(photo_url)
+                    if resp.status_code == 200:
+                        cache_file.write_bytes(resp.content)
+            if cache_file.is_file():
+                return f"/out/avatars/{filename}"
+        except Exception:
+            return None
+    return None
+
+
 def _create_compiler(render_model: RenderModel) -> typst.Compiler:
     """Instantiate a sandboxed Typst compiler with vendored fonts only."""
     template_path = get_template_path(render_model.theme)
     model_dict = render_model.model_dump(mode="json")
+
+    # Resolve photo path for Typst if present
+    raw_photo = render_model.photo_path or (
+        render_model.contact.photo_url if render_model.contact else None
+    )
+    resolved_photo = _resolve_photo_path(raw_photo)
+    model_dict["photo_path"] = resolved_photo
 
     # Filter unselected entries and bullets for Typst rendering
     for section in ("experience", "projects", "education"):
@@ -72,7 +122,7 @@ def _create_compiler(render_model: RenderModel) -> typst.Compiler:
     )
     return typst.Compiler(
         input=template_path,
-        root=TEMPLATES_DIR,
+        root=REPO_ROOT,
         font_paths=[FONTS_DIR],
         ignore_system_fonts=True,
         sys_inputs={"data": payload_json},

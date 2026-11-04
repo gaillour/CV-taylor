@@ -1,48 +1,46 @@
 # TODO.md — Roadmap Operativo (`cv-tailor`)
 
-## Fase Activa: F5 — Consistencia de Editor, Importación y Normalización
+- Aveces se tilda el visor de pdf en el editor ni bien se entra pero al minimo cambio se actualiza y anda bien. Pej cambio la densidad y al instante se ve bien. 
+- Estoy viendo en este momento la recomendación de q el template se debería usar con foto y mi foto ya esta puesta. Cambiando de templates sigue apareciendo. Guardando se va igual.
+- El template Vercanard tiene considerablemente menos % de relleno q el resto, considerar sacarlo. No permite poner cosas en el lateral. Solo podría ir skills contacto y educación creo. Pero nose. Claro las dos columnas son todo un temita.. pero creo q con decidir q hacer podemos agregar mas templates.
+- Chequear licencias de typst templates!!!!
+- Esta medio raro algunas cosas de los templates, necesita medio un polish.
+- Landing:
+    - El cv del principio esta cuadrado, o rectangularlo o sacarlo.
+    - El logo en la esup izq esta raro
+    - Typst Engine • Deterministic 1-Page Layout Lo sacaría eso
+    - El cv q gira sacar los cosos del costado. Quedo muy pegado abajo al stopscroll, que quede mas arriba.
+    - Podriamos poner una tijera cortando el cv desbordado de cosas q pase a limpio
+    - El nombre q no sea alex morgan
 
-### P0 — Crítico & Bugs Inmediatos
+## Fase Activa: F7 — Rediseño Visual & Modernización UI
 
-- [x] **Fechas idénticas inicio/fin en entradas:**
-  - [x] En `back/engine/models.py` (`Entry.format_date_range`), si `start_str == end_str`, devolver un único punto temporal (ej. `"2024"` o `"03/2024"`) en lugar de duplicar `"2024 - 2024"`.
-  - [x] Validar compatibilidad en diagnósticos ATS y tests de renderizado.
-- [x] **Selección y orden de proyectos al crear CV en blanco:**
-  - [x] En `RenderModel.from_profile`, aplicar criterio de selección determinista para proyectos (orden de perfil, pineados y mayor cantidad de viñetas) limitando a `MAX_PROJECT_ENTRIES`.
-  - [x] Asegurar que el fitting inicial no reduzca a 0 las viñetas de los proyectos seleccionados dejando títulos aislados.
-  - [x] Permitir reordenamiento posicional de entradas (subir/bajar) directamente en el Perfil con persistencia reactiva.
+### Paso 1: Restyling del flujo operativo (Dashboard, Perfil, Editor)
+
+- [ ] **Tokens y paleta unificada de color:**
+  - [ ] Adopción de tokens y paleta unificada de color (que siga el estilo de la landing).
+- [ ] **Componentes atómicos interactivos:**
+  - [ ] Refactor de componentes atómicos interactivos (cards, modales, botones, micro-interacciones inspiradas en la landing).
+- [ ] **Reacomodación del home sin cvs:**
+  - [ ] Definir si va a haber un solo boton para crear cv (solo con prompt) o dos. 
+---
+
+### Paso 2: Landing Page alineada a la nueva identidad
+
+- [x] **Base de la landing page con sistema de tokens versátil:**
+  - [x] Portada del producto integrada en Next.js (`front/src/app/page.tsx` y módulos en `src/components/landing/`).
+  - [x] Bloque central de tokens en `globals.css` que permite cambiar fuentes y paleta completa en pocas líneas sin tocar JSX.
+- [ ] **The Mirror interactivo / comparativa de idiomas:**
+  - [ ] Replantear la sección "The Mirror" para comparar versiones de idiomas (CV en español vs. inglés del espejo bilingüe de Fase 11) o agregar animación interactiva de scroll tipo espejo / slider split-screen de antes/después.
 
 ---
 
-### P1 — Core UX & Modularidad en Editor
+## Próximas Fases Planificadas
 
-- [ ] **Importación integral desde Perfil en Editor:**
-  - [ ] Permitir importar experiencias laborales y categorías de habilidades desde el Perfil (maestro o espejo bilingüe), replicando el flujo ya existente en proyectos.
-- [ ] **Consistencia de acciones y espaciado en Dropdowns:**
-  - [ ] Corregir padding superior de botones de añadir/importar dentro de los dropdowns del editor.
-  - [ ] Unificar diseño y componentes de acción para que experiencias, habilidades y educación compartan el estándar de proyectos.
-- [ ] **Toggle para excluir Resumen Profesional:**
-  - [ ] Incorporar switch o control en el editor para ocultar/excluir la sección de resumen profesional (quitando `summary` de `section_order` o vaciando el texto sin perder datos).
+### Fase F8 — Validación Externa ATS
 
----
-
-### P2 — Calidad de Perfil & Consistencia de Renderizado
-
-- [ ] **Detección y eliminación completa de viñetas redundantes:**
-  - [ ] Refinar prompt en `back/engine/profile_assistant.py` para que ante viñetas idénticas o fuertemente redundantes recomiende su eliminación completa vía `redundant_facts` en vez de reescrituras vacías en `improved_facts`.
-- [ ] **Consistencia de % de llenado entre plantillas Typst:**
-  - [ ] Calibrar márgenes base y espaciados verticales entre las 6 plantillas (`basic`, `classic`, `engineering`, `kire`, `modern`, `yuan`) para reducir saltos drásticos en el porcentaje de llenado (fill ratio) al alternar entre estilos.
-
----
-
-### P3 — Plantillas y Validación Externa
-
-- [ ] **Nuevas plantillas Typst:**
-  - [ ] Diseños editoriales modernos y versátiles (roles de producto, diseño o consultoría) más allá del estilo estrictamente ingenieril.
-- [ ] **Soporte opcional para foto de perfil / avatar (`nth fotos`):**
-  - [ ] Soporte opcional de imagen en cabecera para plantillas compatibles.
-- [ ] **Validación en ATS:**
-  - [ ] Pruebas de compatibilidad y parsing con plataformas ATS de reclutamiento (Lever, Greenhouse, Workday).
+- [ ] **Pruebas y compatibilidad ATS:**
+  - [ ] Testing de PDFs generados contra plataformas reales (Lever, Greenhouse, Workday) para garantizar 100% de parseabilidad.
 
 ---
 
@@ -63,3 +61,5 @@
 | **Slice 11: Perfil Monolingüe & Espejo Bilingüe** | Perfil base SSOT con espejo derivado incremental (`mirror.py`, `translator.py`), glosario determinista e integración en editor/tailoring. | Concluido |
 | **Fase F1 / F2: Fitting & Motor Físico** | Medición física en Typst, poda determinista Bottom-Up y fitting en 1 página A4. | Concluido |
 | **Fase F4: Fitting 85-100%, ATS en vivo y Usabilidad** | Rango garantizado 85-100%, selector binario de idioma, ATS live, reordenamiento de secciones y títulos de artefacto en proyectos. | Concluido |
+| **Fase F5: Consistencia de Editor, Ingesta y Plantillas** | Importación integral en editor, anti-redundancia en asistente IA, calibración de las 6 plantillas Typst, extracción exhaustiva y desacople de edición en perfil. | Concluido |
+| **Fase F6: Plantillas Visuales & Avatar** | Soporte de foto/avatar (local + Supabase), 5 nuevas plantillas Typst (`modern-cv`, `vercanard`, `impressive-impression`, `modern-resume`, `metronic`), selector categorizado y aviso amigable en editor. | Concluido |

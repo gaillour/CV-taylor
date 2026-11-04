@@ -12,6 +12,12 @@
 
 ---
 
+## Identidad Visual y Dirección de Arte (Sartorial Heritage)
+
+* **Metáfora Rectora:** Sastrería de precisión, artesanía británica (*Savile Row*) y atelier tipográfico. Ruptura total con los clichés de terminal hacker (negro puro OLED + verde neón) o clones genéricos de SaaS (degradados violetas).
+
+---
+
 ## Modelo Open Source Comercial (Open Core)
 
 * **Repositorio Público (Self-Hostable):**

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -11,7 +12,6 @@ import httpx
 from fastapi import Depends
 
 from back.api.auth import UserContext, get_current_user, get_supabase_config
-from back.api.routes import export as export_routes
 from back.engine.mirror import ProfileMirror
 from back.engine.models import Fact, Profile
 from back.engine.profile_store import (
@@ -25,6 +25,9 @@ from back.engine.snapshot import Snapshot
 
 DELETED_REGISTRY_FILENAME = "_deleted.json"
 DEFAULT_SNAPSHOTS_BUCKET = "cv-snapshots"
+DEFAULT_SNAPSHOTS_DIR = Path("out/snapshots")
+DEFAULT_AVATARS_BUCKET = "avatars"
+DEFAULT_AVATARS_DIR = Path("out/avatars")
 
 
 class SnapshotSummaryDict(dict):
@@ -61,6 +64,10 @@ class StorageRepository(Protocol):
 
     def soft_delete_snapshot(self, snapshot_id: str) -> str: ...
 
+    def save_avatar(self, content: bytes, extension: str = "jpg") -> str: ...
+
+    def delete_avatar(self) -> None: ...
+
 
 class LocalStorageRepository:
     """Local filesystem repository.
@@ -72,7 +79,7 @@ class LocalStorageRepository:
 
     @property
     def snapshots_dir(self) -> Path:
-        return self._snapshots_dir or export_routes.SNAPSHOTS_DIR
+        return self._snapshots_dir or DEFAULT_SNAPSHOTS_DIR
 
     @snapshots_dir.setter
     def snapshots_dir(self, val: Path | None) -> None:
@@ -198,6 +205,20 @@ class LocalStorageRepository:
         deleted_map[snapshot_id] = now_iso
         self._save_deleted_map(deleted_map)
         return now_iso
+
+    def save_avatar(self, content: bytes, extension: str = "jpg") -> str:
+        DEFAULT_AVATARS_DIR.mkdir(parents=True, exist_ok=True)
+        content_hash = hashlib.sha256(content).hexdigest()[:16]
+        ext = extension.lstrip(".") or "jpg"
+        filename = f"{content_hash}.{ext}"
+        target = DEFAULT_AVATARS_DIR / filename
+        target.write_bytes(content)
+        return f"/api/avatars/{filename}"
+
+    def delete_avatar(self) -> None:
+        prof = self.get_profile()
+        prof.contact.photo_url = None
+        self.save_profile(prof)
 
 
 class SupabaseStorageRepository:
@@ -474,6 +495,33 @@ class SupabaseStorageRepository:
         if not rows:
             raise FileNotFoundError(f"Snapshot not found: {snapshot_id}")
         return str(rows[0].get("deleted_at") or now_iso)
+
+    def save_avatar(self, content: bytes, extension: str = "jpg") -> str:
+        content_hash = hashlib.sha256(content).hexdigest()[:16]
+        ext = extension.lstrip(".") or "jpg"
+        object_path = f"{self.user_id}/{content_hash}.{ext}"
+        content_type = "image/png" if ext.lower() in ("png",) else "image/jpeg"
+
+        with httpx.Client(timeout=20.0, transport=self.transport) as client:
+            res = client.post(
+                f"{self.url}/storage/v1/object/{DEFAULT_AVATARS_BUCKET}/{object_path}",
+                headers=self._headers({
+                    "Content-Type": content_type,
+                    "x-upsert": "true",
+                }),
+                content=content,
+            )
+            if res.status_code not in (200, 201):
+                raise RuntimeError(
+                    f"Error al subir avatar a Supabase Storage ({res.status_code}): {res.text}"
+                )
+
+        return f"{self.url}/storage/v1/object/public/{DEFAULT_AVATARS_BUCKET}/{object_path}"
+
+    def delete_avatar(self) -> None:
+        prof = self.get_profile()
+        prof.contact.photo_url = None
+        self.save_profile(prof)
 
 
 _STORAGE_REPO: StorageRepository | None = None

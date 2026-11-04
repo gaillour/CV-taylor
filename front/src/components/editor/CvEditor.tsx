@@ -71,6 +71,31 @@ export function CvEditor() {
     ),
   };
 
+  const currentOrder: SectionKey[] = renderModel.section_order?.length
+    ? renderModel.section_order
+    : DEFAULT_SECTION_ORDER;
+
+  const isSummaryIncluded = currentOrder.includes("summary");
+
+  const handleToggleSummary = (included: boolean) => {
+    let nextOrder: SectionKey[];
+    if (included) {
+      if (!currentOrder.includes("summary")) {
+        nextOrder = ["summary", ...currentOrder];
+      } else {
+        nextOrder = [...currentOrder];
+      }
+    } else {
+      nextOrder = currentOrder.filter((k) => k !== "summary");
+    }
+    updateModel((prev) => ({ ...prev, section_order: nextOrder }), 0);
+  };
+
+  // Si summary está fuera de section_order, lo mostramos al inicio para permitir editarlo y reactivarlo
+  const displayOrder: SectionKey[] = currentOrder.includes("summary")
+    ? currentOrder
+    : ["summary", ...currentOrder];
+
   const sectionMap: Record<
     SectionKey,
     {
@@ -127,10 +152,16 @@ export function CvEditor() {
       key: "summary",
       title: "Resumen Profesional",
       icon: <FileText className="w-4 h-4 text-purple-400" />,
-      badge: renderModel.summary ? "Activo" : "Vacío",
+      badge: !isSummaryIncluded
+        ? "Excluido"
+        : renderModel.summary
+        ? "Activo"
+        : "Vacío",
       component: (
         <SummarySection
           summary={renderModel.summary || ""}
+          isIncluded={isSummaryIncluded}
+          onToggleIncluded={(included) => handleToggleSummary(included)}
           onChange={(summary, debounceMs) =>
             updateModel((prev) => ({ ...prev, summary }), debounceMs)
           }
@@ -152,10 +183,6 @@ export function CvEditor() {
       ),
     },
   };
-
-  const currentOrder: SectionKey[] = renderModel.section_order?.length
-    ? renderModel.section_order
-    : DEFAULT_SECTION_ORDER;
 
   const moveSection = (key: SectionKey, direction: "up" | "down", e: React.MouseEvent) => {
     e.stopPropagation();
@@ -200,24 +227,29 @@ export function CvEditor() {
         </button>
 
         {openSections[headerSection.key] && (
-          <div className="p-3.5 pt-0 border-t border-zinc-800/40">
+          <div className="p-3.5 pt-3 border-t border-zinc-800/40">
             {headerSection.component}
           </div>
         )}
       </div>
 
       {/* Secciones Reordenables del Cuerpo */}
-      {currentOrder.map((key, idx) => {
+      {displayOrder.map((key, idx) => {
         const sec = sectionMap[key];
         if (!sec) return null;
         const isOpen = openSections[key];
+        const isSectionExcluded = key === "summary" && !isSummaryIncluded;
         const isFirst = idx === 0;
-        const isLast = idx === currentOrder.length - 1;
+        const isLast = idx === displayOrder.length - 1;
 
         return (
           <div
             key={key}
-            className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 overflow-hidden transition"
+            className={`rounded-xl border transition overflow-hidden ${
+              isSectionExcluded
+                ? "border-dashed border-zinc-800 bg-zinc-950/40 opacity-80"
+                : "border-zinc-800/80 bg-zinc-950/60"
+            }`}
           >
             <div
               onClick={() => toggleSection(key)}
@@ -227,7 +259,13 @@ export function CvEditor() {
                 {sec.icon}
                 <span className="text-xs font-semibold text-zinc-200">{sec.title}</span>
                 {sec.badge && (
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+                  <span
+                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                      isSectionExcluded
+                        ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                        : "bg-zinc-900 border-zinc-800 text-zinc-400"
+                    }`}
+                  >
                     {sec.badge}
                   </span>
                 )}
@@ -240,8 +278,8 @@ export function CvEditor() {
                 >
                   <button
                     type="button"
-                    title="Subir sección en el CV"
-                    disabled={isFirst}
+                    title={isSectionExcluded ? "Sección excluida del orden del CV" : "Subir sección en el CV"}
+                    disabled={isSectionExcluded || isFirst}
                     onClick={(e) => moveSection(key, "up", e)}
                     className="p-1 rounded hover:bg-zinc-800 disabled:opacity-20 text-zinc-400 hover:text-zinc-200 transition cursor-pointer disabled:cursor-not-allowed"
                   >
@@ -249,8 +287,8 @@ export function CvEditor() {
                   </button>
                   <button
                     type="button"
-                    title="Bajar sección en el CV"
-                    disabled={isLast}
+                    title={isSectionExcluded ? "Sección excluida del orden del CV" : "Bajar sección en el CV"}
+                    disabled={isSectionExcluded || isLast}
                     onClick={(e) => moveSection(key, "down", e)}
                     className="p-1 rounded hover:bg-zinc-800 disabled:opacity-20 text-zinc-400 hover:text-zinc-200 transition cursor-pointer disabled:cursor-not-allowed"
                   >
@@ -265,7 +303,7 @@ export function CvEditor() {
             </div>
 
             {isOpen && (
-              <div className="p-3.5 pt-0 border-t border-zinc-800/40">
+              <div className="p-3.5 pt-3 border-t border-zinc-800/40">
                 {sec.component}
               </div>
             )}

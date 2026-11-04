@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cv-tailor • Bespoke Resumes & Dossiers</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Playfair Display, Cinzel, Pinyon Script & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Pinyon+Script&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --accent-color: #D4973B;
+      --accent-hover: #E2A64C;
+      --accent-subtle: rgba(212, 151, 59, 0.12);
+      --accent-border: rgba(212, 151, 59, 0.35);
+      --bg-base: #0E0D0C;
+      --bg-panel: #151413;
+      --bg-card: #1A1918;
+      --border-subtle: #2A2724;
+      --halo-color: rgba(212, 151, 59, 0.08);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-base);
+      color: #D3CDC6;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .font-serif-title {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+
+    .font-cinzel {
+      font-family: 'Cinzel', serif;
+    }
+
+    .font-script {
+      font-family: 'Pinyon Script', cursive;
+    }
+
+    /* Traje & Hoja del CV ATS (Siempre Blanca, Inmutable) */
+    .ats-canvas-sheet {
+      background-color: #FFFFFF !important;
+      color: #111827 !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    /* Líneas de costura de sastre */
+    .stitch-border {
+      border: 1px dashed var(--accent-border);
+    }
+
+    /* Brillo de lámpara de club */
+    .ambient-glow {
+      position: absolute;
+      width: 750px;
+      height: 750px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, var(--halo-color) 0%, transparent 70%);
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+      transition: background 0.35s ease;
+    }
+
+    /* Botón con acento dinámico */
+    .btn-bespoke {
+      background-color: var(--accent-color);
+      color: #0E0D0C;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .btn-bespoke:hover {
+      background-color: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px -4px var(--accent-border);
+    }
+
+    .text-accent {
+      color: var(--accent-color);
+    }
+
+    .border-accent {
+      border-color: var(--accent-color);
+    }
+
+    .border-accent-subtle {
+      border-color: var(--accent-border);
+    }
+
+    .bg-accent-subtle {
+      background-color: var(--accent-subtle);
+    }
+  </style>
+</head>
+<body class="selection:bg-stone-800 selection:text-white">
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-[#0E0D0C]/90 border-b border-[#24211D] transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Monograma & Logo -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded border border-accent-subtle flex items-center justify-center bg-accent-subtle transition-all duration-300 group-hover:scale-105">
+          <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="6" cy="6" r="3"></circle>
+            <circle cx="6" cy="18" r="3"></circle>
+            <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+            <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+            <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+          </svg>
+        </div>
+        <div>
+          <span class="font-cinzel text-base tracking-[0.22em] text-white font-bold block leading-none">CV-TAILOR</span>
+          <span class="text-[9px] uppercase tracking-[0.28em] text-zinc-500 font-medium">Bespoke Resumes & Dossiers</span>
+        </div>
+      </a>
+
+      <!-- Enlaces de navegación -->
+      <nav class="hidden md:flex items-center gap-8 text-xs font-medium tracking-wide uppercase text-zinc-400">
+        <a href="#el-corte" class="hover:text-white transition-colors">El Corte</a>
+        <a href="#the-mirror" class="hover:text-white transition-colors">The Mirror</a>
+        <a href="#metodo" class="hover:text-white transition-colors">Método</a>
+        <a href="#tarifas" class="hover:text-white transition-colors">Tarifas</a>
+      </nav>
+
+      <!-- Selector de color + Botón CTA -->
+      <div class="flex items-center gap-3">
+        <!-- SELECTOR DE COLOR DISCRETO Y ELEGANTE -->
+        <div class="flex items-center gap-1 bg-black/60 border border-white/10 rounded-full px-2 py-1" title="Elegí el tono de la marca">
+          <span class="text-[9.5px] uppercase tracking-wider text-zinc-500 font-mono px-1 hidden sm:inline">Tono:</span>
+          
+          <!-- Opción 1: Ámbar Whisky -->
+          <button onclick="setTheme('amber')" id="theme-btn-amber" class="w-5 h-5 rounded-full flex items-center justify-center transition-all ring-1 ring-white/20" style="background-color: #D4973B;">
+            <span class="w-1.5 h-1.5 rounded-full bg-black theme-dot"></span>
+          </button>
+          
+          <!-- Opción 2: Racing Green Vibrante -->
+          <button onclick="setTheme('green')" id="theme-btn-green" class="w-5 h-5 rounded-full flex items-center justify-center transition-all opacity-60 hover:opacity-100" style="background-color: #2ECC71;">
+            <span class="w-1.5 h-1.5 rounded-full bg-black theme-dot hidden"></span>
+          </button>
+
+          <!-- Opción 3: Roble Tostado & Cognac -->
+          <button onclick="setTheme('oak')" id="theme-btn-oak" class="w-5 h-5 rounded-full flex items-center justify-center transition-all opacity-60 hover:opacity-100" style="background-color: #C87D32;">
+            <span class="w-1.5 h-1.5 rounded-full bg-black theme-dot hidden"></span>
+          </button>
+        </div>
+
+        <a href="#tarifas" class="btn-bespoke hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 rounded text-xs tracking-wider uppercase font-cinzel">
+          Confeccionar CV
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= HERO SECTION ================= -->
+  <section class="relative pt-12 pb-20 lg:pt-20 lg:pb-32 overflow-hidden">
+    <!-- Luz difusa de fondo -->
+    <div class="ambient-glow top-0 left-1/2 -translate-x-1/2"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        
+        <!-- Texto Hero (Izquierda) -->
+        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+          
+          <!-- Pill Tag -->
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent-subtle bg-accent-subtle text-accent text-xs tracking-wider uppercase font-cinzel">
+            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+            <span>Savile Row • London Tradition • ATS-Proof</span>
+          </div>
+
+          <!-- Titular principal -->
+          <h1 class="font-serif-title text-3xl sm:text-5xl lg:text-6xl text-white font-bold leading-[1.1] tracking-tight">
+            Un currículum cortado a la <span class="italic text-accent">medida exacta</span> de tu ambición.
+          </h1>
+
+          <!-- Bajada -->
+          <p class="text-zinc-400 text-base sm:text-lg max-w-2xl font-light leading-relaxed mx-auto lg:mx-0">
+            Olvidate de plantillas prefabricadas de Canva o Word. Confeccionamos cada viñeta, métrica de impacto y estructura con el rigor de un sastre de Mayfair y la contundencia de un buen scotch de malta.
+          </p>
+
+          <!-- Acciones Hero -->
+          <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+            <a href="#tarifas" class="btn-bespoke w-full sm:w-auto px-7 py-3 rounded text-sm uppercase tracking-wider font-cinzel flex items-center justify-center gap-2 shadow-lg">
+              <span>Iniciar Medición</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </a>
+            <a href="#the-mirror" class="w-full sm:w-auto px-6 py-3 rounded text-sm uppercase tracking-wider font-cinzel border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white transition-colors flex items-center justify-center gap-2 bg-white/[0.02]">
+              Ver Muestra
+            </a>
+          </div>
+
+          <!-- Badges de confianza -->
+          <div class="pt-6 border-t border-white/10 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-zinc-400 font-mono">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              <span>100% Parsing ATS Garantizado</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>Entrega de Prueba en 48h</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Muestra Visual Hero: La Hoja del CV ATS Flotante (Derecha) -->
+        <div class="lg:col-span-5 flex justify-center relative">
+          
+          <!-- Sello de Cera Flotante (Bespoke Stamp) -->
+          <div class="absolute -top-4 -right-2 sm:right-6 z-20 w-16 h-16 rounded-full bg-[#181512] border-2 border-accent flex flex-col items-center justify-center shadow-2xl rotate-6 pointer-events-none">
+            <span class="font-script text-xl leading-none text-accent">Bespoke</span>
+            <span class="text-[8px] font-mono tracking-widest text-zinc-400 uppercase mt-0.5">London</span>
+          </div>
+
+          <!-- Hoja Blanca Inmutable del CV con ángulo sutil -->
+          <div class="ats-canvas-sheet w-full max-w-[390px] p-6 sm:p-7 rounded shadow-2xl transform lg:rotate-1 hover:rotate-0 transition-transform duration-300 relative text-left">
+            
+            <div class="border-b border-gray-300 pb-2 mb-3 text-center">
+              <h2 class="text-base font-bold text-gray-900 tracking-tight leading-none mb-1">Juan Ignacio Gaillour</h2>
+              <p class="text-[9.5px] text-gray-600 font-mono">juangaillour.8@gmail.com | Mar del Plata, AR | github.com/gaillour</p>
+            </div>
+
+            <div class="mb-3">
+              <span class="text-[9px] font-bold uppercase tracking-wider text-gray-900 border-b border-gray-900 pb-0.5 block mb-1">Resumen Profesional</span>
+              <p class="text-[9px] leading-relaxed text-gray-800 text-justify">
+                Desarrollador enfocado en arquitectura desacoplada, alta disponibilidad e inmutabilidad de datos históricos en entornos cloud.
+              </p>
+            </div>
+
+            <div class="mb-3">
+              <span class="text-[9px] font-bold uppercase tracking-wider text-gray-900 border-b border-gray-900 pb-0.5 block mb-1">Experiencia Laboral</span>
+              <div class="text-[9px] font-semibold text-gray-900 flex justify-between">
+                <span>Desarrollador Software — SimpleMDQ</span>
+                <span class="text-gray-500 font-normal">Presente</span>
+              </div>
+              <ul class="list-disc ml-3 text-[8.5px] text-gray-700 space-y-0.5 mt-0.5 leading-tight">
+                <li>Diseño de sistema de gestión desacoplado con Next.js y FastAPI.</li>
+                <li>Despliegue serverless en Vercel y orquestación backend en Fly.io.</li>
+              </ul>
+            </div>
+
+            <div>
+              <span class="text-[9px] font-bold uppercase tracking-wider text-gray-900 border-b border-gray-900 pb-0.5 block mb-1">Habilidades Clave</span>
+              <p class="text-[8.5px] text-gray-700 leading-snug">
+                <strong>Lenguajes:</strong> Java, Python, SQL, TypeScript • <strong>DevOps:</strong> Docker, Fly.io, Tailscale
+              </p>
+            </div>
+
+            <!-- Badge inferior de validación técnica -->
+            <div class="mt-4 pt-2 border-t border-gray-200 flex items-center justify-between text-[8px] text-gray-500 font-mono">
+              <span class="flex items-center gap-1 text-emerald-800 font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> ATS 100% Passed
+              </span>
+              <span>1 Page Format</span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SECCIÓN: LOS 3 PASOS DEL SASTRE ================= -->
+  <section id="metodo" class="py-20 border-t border-[#24211D] bg-[#121110] relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-14">
+        <span class="font-script text-2xl text-accent block mb-1">Artesanía de Mayfair</span>
+        <h2 class="font-serif-title text-2xl sm:text-4xl text-white font-bold tracking-tight">El Oficio: Confección en 3 Pasos</h2>
+        <div class="w-12 h-0.5 bg-accent mx-auto mt-3"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Paso 1 -->
+        <div class="p-6 rounded-lg bg-[#181615] border border-white/5 relative group hover:border-accent-subtle transition-all">
+          <span class="font-cinzel text-3xl font-bold text-accent/30 absolute top-4 right-5">01</span>
+          <div class="w-10 h-10 rounded border border-accent-subtle bg-accent-subtle flex items-center justify-center text-accent mb-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+          </div>
+          <h3 class="font-serif-title text-lg text-white font-semibold mb-2">La Medida (The Fitting)</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed font-light">
+            Auditamos tu trayectoria actual, rol objetivo y seniority. Detectamos logros ocultos y extraemos las métricas cuantificables que los reclutadores buscan.
+          </p>
+        </div>
+
+        <!-- Paso 2 -->
+        <div class="p-6 rounded-lg bg-[#181615] border border-white/5 relative group hover:border-accent-subtle transition-all">
+          <span class="font-cinzel text-3xl font-bold text-accent/30 absolute top-4 right-5">02</span>
+          <div class="w-10 h-10 rounded border border-accent-subtle bg-accent-subtle flex items-center justify-center text-accent mb-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+          </div>
+          <h3 class="font-serif-title text-lg text-white font-semibold mb-2">El Patrón (The Pattern)</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed font-light">
+            Estructuramos la jerarquía visual de lectura. Redactamos viñetas orientadas a resultados usando verbos de acción precisos y palabras clave indexables por software ATS.
+          </p>
+        </div>
+
+        <!-- Paso 3 -->
+        <div class="p-6 rounded-lg bg-[#181615] border border-white/5 relative group hover:border-accent-subtle transition-all">
+          <span class="font-cinzel text-3xl font-bold text-accent/30 absolute top-4 right-5">03</span>
+          <div class="w-10 h-10 rounded border border-accent-subtle bg-accent-subtle flex items-center justify-center text-accent mb-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 13l4 4L19 7"></path></svg>
+          </div>
+          <h3 class="font-serif-title text-lg text-white font-semibold mb-2">La Prueba Final (Final Press)</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed font-light">
+            Ajustes finos contigo, validación técnica de legibilidad en 1 página y entrega del PDF final impecable junto con el código fuente para futuras ediciones.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= THE MIRROR: ANTES Y DESPUES ================= -->
+  <section id="the-mirror" class="py-20 border-t border-[#24211D]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <span class="font-cinzel text-xs text-accent uppercase tracking-widest block mb-1">Comparativa Visual</span>
+        <h2 class="font-serif-title text-2xl sm:text-4xl text-white font-bold">The Mirror: Genérico vs. Confeccionado</h2>
+        <p class="text-xs sm:text-sm text-zinc-400 mt-2">La diferencia entre un currículum que pasa desapercibido y uno que consigue entrevistas inmediatas.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+        
+        <!-- Tarjeta Antes (El CV Genérico) -->
+        <div class="p-6 rounded-lg bg-[#141312] border border-red-950/40 relative flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-red-950/40 mb-4">
+              <span class="text-xs font-mono uppercase tracking-wider text-red-400 font-semibold flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-red-500"></span> CV Genérico / Plantilla
+              </span>
+              <span class="text-[10px] text-zinc-500 font-mono">Rechazo común</span>
+            </div>
+            
+            <div class="space-y-3 text-xs text-zinc-400 opacity-75 font-mono">
+              <div class="p-2.5 rounded bg-black/40 border border-white/5">
+                <p class="text-zinc-500 line-through">"Responsable de programar el backend y ayudar al equipo con tareas de soporte."</p>
+                <span class="text-[10px] text-red-400 block mt-1">✗ Sin métricas, tono pasivo, sin impacto de negocio.</span>
+              </div>
+              <div class="p-2.5 rounded bg-black/40 border border-white/5">
+                <p class="text-zinc-500 line-through">Plantillas de dos columnas con barras de porcentaje ("Python 80%").</p>
+                <span class="text-[10px] text-red-400 block mt-1">✗ Bloqueado o ilegible para 7 de cada 10 softwares ATS.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-3 border-t border-white/5 text-[11px] text-zinc-500 flex justify-between">
+            <span>Tasa de respuesta promedio:</span>
+            <span class="text-red-400 font-mono">~ 4%</span>
+          </div>
+        </div>
+
+        <!-- Tarjeta Después (El Corte Bespoke) -->
+        <div class="p-6 rounded-lg bg-[#181614] border border-accent-subtle relative flex flex-col justify-between shadow-xl">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-accent-subtle mb-4">
+              <span class="text-xs font-mono uppercase tracking-wider text-accent font-semibold flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-current"></span> Confección Bespoke
+              </span>
+              <span class="text-[10px] text-accent font-mono">Aprobado</span>
+            </div>
+
+            <div class="space-y-3 text-xs text-zinc-300 font-sans">
+              <div class="p-2.5 rounded bg-black/50 border border-accent/20">
+                <p class="text-zinc-200">"Diseño e implementación de arquitectura desacoplada en Next.js y FastAPI, reduciendo la latencia de respuesta en un 38%."</p>
+                <span class="text-[10px] text-accent block mt-1">✓ Logro cuantificable, stack relevante, rol protagónico.</span>
+              </div>
+              <div class="p-2.5 rounded bg-black/50 border border-accent/20">
+                <p class="text-zinc-200">Estructura editorial británica estricta en 1 página limpia, indexable y legible.</p>
+                <span class="text-[10px] text-accent block mt-1">✓ 100% de compatibilidad con Greenhouse, Lever y Workday.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-3 border-t border-accent-subtle text-[11px] text-zinc-400 flex justify-between">
+            <span>Tasa de entrevistas promedio:</span>
+            <span class="text-accent font-bold font-mono">~ 34% a 45%</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= TARIFAS: LA CARTA DEL SASTRE ================= -->
+  <section id="tarifas" class="py-20 border-t border-[#24211D] bg-[#121110]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-14">
+        <span class="font-script text-2xl text-accent block mb-1">Corte & Confección</span>
+        <h2 class="font-serif-title text-2xl sm:text-4xl text-white font-bold">La Carta del Sastre</h2>
+        <p class="text-xs sm:text-sm text-zinc-400 mt-2">Inversión transparente para dar el salto de calidad profesional que tu trayectoria merece.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+        
+        <!-- Plan 1 -->
+        <div class="p-6 sm:p-8 rounded-lg bg-[#181615] border border-white/5 flex flex-col justify-between hover:border-white/20 transition-all">
+          <div>
+            <span class="font-cinzel text-xs uppercase tracking-widest text-zinc-400 block mb-2">Pret-a-porter</span>
+            <h3 class="font-serif-title text-xl text-white font-bold">El Traje Esencial</h3>
+            <p class="text-xs text-zinc-400 mt-2 mb-6">Para perfiles Junior o Semi-Senior que buscan ordenar su trayectoria con rigor profesional.</p>
+            
+            <div class="text-2xl font-serif-title text-white font-bold mb-6 font-mono">
+              $45 <span class="text-xs text-zinc-500 font-sans font-normal">USD</span>
+            </div>
+
+            <ul class="text-xs text-zinc-300 space-y-2.5 mb-8">
+              <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Reescritura completa de 1 CV</li>
+              <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Optimización ATS estricta</li>
+              <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Entrega en PDF + editable</li>
+            </ul>
+          </div>
+
+          <a href="#" class="w-full py-2.5 rounded border border-zinc-700 hover:border-zinc-400 text-white text-xs font-cinzel uppercase tracking-wider text-center transition-colors">
+            Elegir Esencial
+          </a>
+        </div>
+
+        <!-- Plan 2 (Destacado) -->
+        <div class="p-6 sm:p-8 rounded-lg bg-[#1C1A18] border-2 border-accent flex flex-col justify-between relative shadow-2xl scale-105 z-10">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-accent text-[#0E0D0C] text-[10px] font-cinzel font-bold uppercase tracking-wider">
+            Más Solicitado
+          </div>
+
+          <div>
+            <span class="font-cinzel text-xs uppercase tracking-widest text-accent block mb-2">Bespoke Executive</span>
+            <h3 class="font-serif-title text-xl text-white font-bold">El Dos Piezas</h3>
+            <p class="text-xs text-zinc-400 mt-2 mb-6">El estándar dorado para Desarrolladores Senior, Tech Leads y Managers.</p>
+            
+            <div class="text-2xl font-serif-title text-white font-bold mb-6 font-mono">
+              $85 <span class="text-xs text-zinc-500 font-sans font-normal">USD</span>
+            </div>
+
+            <ul class="text-xs text-zinc-200 space-y-2.5 mb-8">
+              <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> <strong>Todo lo del plan Esencial</strong></li>
+              <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Optimización integral de perfil LinkedIn</li>
+              <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Carta de presentación (Cover Letter) a tono</li>
+              <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Sesión 1 a 1 de calibración (30 min)</li>
+            </ul>
+          </div>
+
+          <a href="#" class="btn-bespoke w-full py-2.5 rounded text-xs font-cinzel uppercase tracking-wider text-center shadow">
+            Confeccionar Dos Piezas
+          </a>
+        </div>
+
+        <!-- Plan 3 -->
+        <div class="p-6 sm:p-8 rounded-lg bg-[#181615] border border-white/5 flex flex-col justify-between hover:border-white/20 transition-all">
+          <div>
+            <span class="font-cinzel text-xs uppercase tracking-widest text-zinc-400 block mb-2">Highland Reserve</span>
+            <h3 class="font-serif-title text-xl text-white font-bold">El Tres Piezas C-Level</h3>
+            <p class="text-xs text-zinc-400 mt-2 mb-6">Para Directores, VP y fundadores que requieren un dossier ejecutivo de alto impacto.</p>
+            
+            <div class="text-2xl font-serif-title text-white font-bold mb-6 font-mono">
+              $140 <span class="text-xs text-zinc-500 font-sans font-normal">USD</span>
+            </div>
+
+            <ul class="text-xs text-zinc-300 space-y-2.5 mb-8">
+              <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Executive Dossier completo (2 versiones)</li>
+              <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Estrategia de marca personal y titular</li>
+              <li class="flex items-center gap-2"><svg class="w-3.5 h-3.5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Revisiones ilimitadas por 30 días</li>
+            </ul>
+          </div>
+
+          <a href="#" class="w-full py-2.5 rounded border border-zinc-700 hover:border-zinc-400 text-white text-xs font-cinzel uppercase tracking-wider text-center transition-colors">
+            Elegir Tres Piezas
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="py-12 border-t border-[#24211D] text-xs text-zinc-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-cinzel text-zinc-300 font-bold tracking-widest">CV-TAILOR</span>
+        <span>• Sastrería de carrera & dossiers profesionales.</span>
+      </div>
+      <p class="font-mono text-[11px]">Inspirado en Savile Row & destilerías de malta.</p>
+    </div>
+  </footer>
+
+  <!-- ================= LOGICA DEL SELECTOR DE TONOS ================= -->
+  <script>
+    const themePalettes = {
+      // 1. Ámbar Whisky / Oro (Elegante y cálido)
+      amber: {
+        accent: '#D4973B',
+        accentHover: '#E5A74B',
+        accentSubtle: 'rgba(212, 151, 59, 0.12)',
+        accentBorder: 'rgba(212, 151, 59, 0.35)',
+        halo: 'rgba(212, 151, 59, 0.08)'
+      },
+      // 2. British Racing Green Llamativo (Acento vibrante sobre fondo neutro carbón)
+      green: {
+        accent: '#2ECC71',
+        accentHover: '#38D980',
+        accentSubtle: 'rgba(46, 204, 113, 0.12)',
+        accentBorder: 'rgba(46, 204, 113, 0.38)',
+        halo: 'rgba(46, 204, 113, 0.09)'
+      },
+      // 3. Roble Tostado & Cognac (Madera noble y tabaco)
+      oak: {
+        accent: '#C87D32',
+        accentHover: '#D98E43',
+        accentSubtle: 'rgba(200, 125, 50, 0.12)',
+        accentBorder: 'rgba(200, 125, 50, 0.35)',
+        halo: 'rgba(200, 125, 50, 0.08)'
+      }
+    };
+
+    function setTheme(key) {
+      const p = themePalettes[key];
+      const r = document.documentElement;
+
+      r.style.setProperty('--accent-color', p.accent);
+      r.style.setProperty('--accent-hover', p.accentHover);
+      r.style.setProperty('--accent-subtle', p.accentSubtle);
+      r.style.setProperty('--accent-border', p.accentBorder);
+      r.style.setProperty('--halo-color', p.halo);
+
+      // Actualizar estado de los botones del selector
+      ['amber', 'green', 'oak'].forEach(k => {
+        const btn = document.getElementById(`theme-btn-${k}`);
+        const dot = btn.querySelector('.theme-dot');
+        if (k === key) {
+          btn.classList.remove('opacity-60');
+          btn.classList.add('ring-2', 'ring-white');
+          dot.classList.remove('hidden');
+        } else {
+          btn.classList.add('opacity-60');
+          btn.classList.remove('ring-2', 'ring-white');
+          dot.classList.add('hidden');
+        }
+      });
+    }
+
+    // Inicializar en Ámbar Whisky
+    window.onload = function() {
+      setTheme('amber');
+    };
+  </script>
+
+</body>
+</html>

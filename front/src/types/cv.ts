@@ -1,4 +1,40 @@
-export type ThemeName = "classic" | "modern" | "engineering";
+export type ThemeCategory = "ats" | "visual";
+
+export type ThemeName =
+  | "classic"
+  | "modern"
+  | "engineering"
+  | "basic"
+  | "kire"
+  | "yuan"
+  | "modern-cv"
+  | "vercanard"
+  | "impressive-impression"
+  | "modern-resume"
+  | "metronic";
+
+export interface ThemeMeta {
+  id: ThemeName;
+  label: string;
+  category: ThemeCategory;
+  hasPhoto: boolean;
+  description: string;
+}
+
+export const THEMES_REGISTRY: ThemeMeta[] = [
+  { id: "classic", label: "Classic", category: "ats", hasPhoto: false, description: "Serif tradicional y balanceado" },
+  { id: "modern", label: "Modern", category: "ats", hasPhoto: false, description: "Sans-serif limpio y contemporáneo" },
+  { id: "engineering", label: "Engineering", category: "ats", hasPhoto: false, description: "Tipografía técnica y compacta" },
+  { id: "basic", label: "Basic", category: "ats", hasPhoto: false, description: "Minimalismo extremo 100% ATS" },
+  { id: "kire", label: "Kire", category: "ats", hasPhoto: false, description: "Elegante y estructurado" },
+  { id: "yuan", label: "Yuan", category: "ats", hasPhoto: false, description: "Líneas geométricas y espaciado claro" },
+  { id: "vercanard", label: "Vercanard", category: "visual", hasPhoto: true, description: "Sidebar lateral con foto y contacto" },
+  { id: "modern-cv", label: "Modern CV", category: "visual", hasPhoto: true, description: "Header visual con avatar integrado" },
+  { id: "impressive-impression", label: "Impressive", category: "visual", hasPhoto: true, description: "Acentos modernos con avatar destacado" },
+  { id: "modern-resume", label: "Modern Resume", category: "visual", hasPhoto: true, description: "Editorial semi-compacto con foto" },
+  { id: "metronic", label: "Metronic", category: "visual", hasPhoto: true, description: "Tarjeta personal compacta y avatar" },
+];
+
 export type LangCode = "es" | "en";
 export type EntryKind = "experience" | "project" | "education";
 export type DatePrecision = "year" | "month" | "day";
@@ -20,6 +56,7 @@ export interface ContactInfo {
   github?: string | null;
   linkedin?: string | null;
   website?: string | null;
+  photo_url?: string | null;
 }
 
 export interface Skill {
@@ -192,6 +229,7 @@ export interface RenderModel {
   education: RenderEntry[];
   section_order?: SectionKey[];
   design: DesignKnobs;
+  photo_path?: string | null;
 }
 
 export interface FitReport {

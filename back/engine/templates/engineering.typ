@@ -33,7 +33,7 @@
   #text(size: font_size + 6.5pt, weight: "bold")[#it.body]
 ]
 
-#show heading.where(level: 2): it => block(above: sec_space, below: 5.5pt, sticky: true, width: 100%)[
+#show heading.where(level: 2): it => block(above: sec_space, below: 5.0pt, sticky: true, width: 100%)[
   #text(size: font_size + 1.0pt, weight: "bold")[#smallcaps(it.body)]
   #v(-2.5pt)
   #line(length: 100%, stroke: 0.6pt + black)
@@ -57,18 +57,25 @@
   )
 }
 
+#let c = data.at("contact", default: (:))
 #let contact_parts = ()
-#contact_parts.push(link("mailto:" + data.contact.email)[#data.contact.email])
-#contact_parts.push(data.contact.phone)
-#contact_parts.push(data.contact.location)
-#if data.contact.at("linkedin", default: none) != none and data.contact.linkedin != "" {
-  contact_parts.push(link("https://" + data.contact.linkedin)[#data.contact.linkedin])
+#if c.at("email", default: none) != none and c.email != "" {
+  contact_parts.push(link("mailto:" + c.email)[#c.email])
 }
-#if data.contact.at("github", default: none) != none and data.contact.github != "" {
-  contact_parts.push(link("https://" + data.contact.github)[#data.contact.github])
+#if c.at("phone", default: none) != none and c.phone != "" {
+  contact_parts.push(c.phone)
 }
-#if data.contact.at("website", default: none) != none and data.contact.website != "" {
-  contact_parts.push(link("https://" + data.contact.website)[#data.contact.website])
+#if c.at("location", default: none) != none and c.location != "" {
+  contact_parts.push(c.location)
+}
+#if c.at("linkedin", default: none) != none and c.linkedin != "" {
+  contact_parts.push(link("https://" + c.linkedin)[#c.linkedin])
+}
+#if c.at("github", default: none) != none and c.github != "" {
+  contact_parts.push(link("https://" + c.github)[#c.github])
+}
+#if c.at("website", default: none) != none and c.website != "" {
+  contact_parts.push(link("https://" + c.website)[#c.website])
 }
 
 = #data.full_name
@@ -84,7 +91,7 @@
 }
 
 #let render_experience() = {
-  if data.experience.len() > 0 [
+  if data.at("experience", default: ()).len() > 0 [
     == #labels.experience
     #for exp in data.experience [
       #let exp_meta = if exp.at("location", default: none) != none and exp.location != "" {
@@ -94,7 +101,8 @@
       }
       #block(below: 4.5pt, sticky: true)[*#exp.title* — #emph(exp.org) | #text(size: font_size - 0.5pt)[#exp_meta]]
       #for b in exp.bullets [
-        - #b.text
+        #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
+        - #b_text
       ]
       #v(entry_space)
     ]
@@ -102,12 +110,13 @@
 }
 
 #let render_projects() = {
-  if data.projects.len() > 0 [
+  if data.at("projects", default: ()).len() > 0 [
     == #labels.projects
     #for proj in data.projects [
       #block(below: 4.5pt, sticky: true)[*#proj.title*#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#proj.link]] | #text(size: font_size - 0.5pt)[#proj.date_label]]
       #for b in proj.bullets [
-        - #b.text
+        #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
+        - #b_text
       ]
       #v(entry_space)
     ]
@@ -115,7 +124,7 @@
 }
 
 #let render_education() = {
-  if data.education.len() > 0 [
+  if data.at("education", default: ()).len() > 0 [
     == #labels.education
     #for edu in data.education [
       #let edu_meta = if edu.at("location", default: none) != none and edu.location != "" {
@@ -124,9 +133,10 @@
         edu.date_label
       }
       #block(below: 4.5pt, sticky: true)[*#edu.title* — #emph(edu.org) | #text(size: font_size - 0.5pt)[#edu_meta]]
-      #if edu.bullets.len() > 0 [
+      #if edu.at("bullets", default: ()).len() > 0 [
         #for b in edu.bullets [
-          - #b.text
+          #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
+          - #b_text
         ]
       ]
       #v(entry_space)
@@ -135,7 +145,7 @@
 }
 
 #let render_skills() = {
-  if data.skills.len() > 0 [
+  if data.at("skills", default: ()).len() > 0 [
     == #labels.skills
     #for hab in data.skills [
       - *#hab.category:* #hab.items

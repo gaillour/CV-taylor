@@ -38,7 +38,7 @@ export function ExportActions() {
     }
     await revertDraft();
     if (!draftParentId) {
-      router.replace("/");
+      router.replace("/cvs");
     } else {
       showToast({
         type: "success",

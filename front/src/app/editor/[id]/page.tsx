@@ -9,7 +9,7 @@ import { FillGauge } from "@/components/preview/FillGauge";
 import { AtsGauge } from "@/components/editor/AtsGauge";
 import { CvEditor } from "@/components/editor/CvEditor";
 import { ExportActions } from "@/components/toolbar/ExportActions";
-import { Snapshot, ThemeName } from "@/types/cv";
+import { Snapshot, ThemeName, THEMES_REGISTRY } from "@/types/cv";
 import { RefreshCw, Palette, Loader2, Pencil } from "lucide-react";
 
 const DISCARD_PROMPT =
@@ -48,6 +48,7 @@ function EditorContent() {
   // If a model is loaded in memory and we're editing a draft, we're ready
   const isCurrentDraftLoaded = renderModel !== null;
   const ready = hydrated && isCurrentDraftLoaded;
+  const selectedThemeMeta = THEMES_REGISTRY.find((t) => t.id === renderModel?.theme);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -59,7 +60,7 @@ function EditorContent() {
       sessionStorage.removeItem("cv_discard_pending");
       if (id === "nuevo" || !state.draftParentId) {
         state.discardDraft();
-        router.replace("/");
+        router.replace("/cvs");
         return;
       }
       apiFetch(`${API_BASE_URL}/api/snapshots/${id}`)
@@ -73,7 +74,7 @@ function EditorContent() {
         })
         .catch(() => {
           state.discardDraft();
-          router.replace("/");
+          router.replace("/cvs");
         });
       return;
     }
@@ -89,7 +90,7 @@ function EditorContent() {
     handledIdRef.current = id;
 
     if (id === "nuevo") {
-      if (!state.renderModel) router.replace("/");
+      if (!state.renderModel) router.replace("/cvs");
       else if (state.draftParentId) router.replace(`/editor/${state.draftParentId}`);
       else fetchPreview();
       return;
@@ -117,7 +118,7 @@ function EditorContent() {
         fetchPreview();
       })
       .catch(() => {
-        if (handledIdRef.current === id) router.replace("/");
+        if (handledIdRef.current === id) router.replace("/cvs");
       });
   }, [hydrated, id, router, fetchPreview, draftParentId]);
 
@@ -189,21 +190,28 @@ function EditorContent() {
           <FillGauge fitReport={fitReport} loading={loading} />
 
           {/* Theme Selector */}
-          <div className="flex items-center bg-zinc-900 border border-white/[0.08] rounded-md p-0.5 text-xs font-mono">
-            <Palette className="w-3.5 h-3.5 text-zinc-500 ml-1.5 mr-1" />
-            {(["classic", "modern", "engineering"] as ThemeName[]).map((t) => (
-              <button
-                key={t}
-                onClick={() => handleThemeChange(t)}
-                className={`px-2 py-0.5 rounded capitalize transition cursor-pointer ${
-                  renderModel?.theme === t
-                    ? "bg-zinc-800 text-zinc-100 font-medium border border-white/[0.06]"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
+          <div className="flex items-center bg-zinc-900 border border-white/[0.08] rounded-md px-2 py-1 text-xs font-mono">
+            <Palette className="w-3.5 h-3.5 text-zinc-500 mr-1.5 shrink-0" />
+            <select
+              value={renderModel?.theme || "classic"}
+              onChange={(e) => handleThemeChange(e.target.value as ThemeName)}
+              className="bg-transparent text-zinc-200 text-xs font-mono focus:outline-none cursor-pointer"
+            >
+              <optgroup label="── ATS Strict (1 col) ──" className="bg-zinc-900 text-zinc-400 font-sans">
+                {THEMES_REGISTRY.filter((t) => t.category === "ats").map((t) => (
+                  <option key={t.id} value={t.id} className="bg-zinc-900 text-zinc-200 font-mono">
+                    {t.label}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="── Visual / Con Foto ──" className="bg-zinc-900 text-zinc-400 font-sans">
+                {THEMES_REGISTRY.filter((t) => t.category === "visual").map((t) => (
+                  <option key={t.id} value={t.id} className="bg-zinc-900 text-zinc-200 font-mono">
+                    {t.label} (Foto)
+                  </option>
+                ))}
+              </optgroup>
+            </select>
           </div>
 
           {/* Export Actions: Save Version + Download PDF */}
@@ -219,6 +227,25 @@ function EditorContent() {
           </button>
         </div>
       </header>
+
+      {/* Notice banner for visual theme without photo */}
+      {selectedThemeMeta?.hasPhoto && !renderModel?.contact?.photo_url && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-1.5 flex items-center justify-between text-xs text-amber-300">
+          <span className="flex items-center gap-1.5">
+            <span>💡</span>
+            <span>
+              La plantilla <strong>{selectedThemeMeta.label}</strong> destaca con foto de perfil.
+              Podés subir una en tu Perfil para verla en el diseño.
+            </span>
+          </span>
+          <button
+            onClick={() => router.push("/perfil")}
+            className="underline text-amber-200 hover:text-white transition cursor-pointer font-medium text-[11px]"
+          >
+            Ir a Perfil
+          </button>
+        </div>
+      )}
 
       {/* Main Split Screen Container */}
       <main className="flex-1 flex overflow-hidden p-4 gap-4">

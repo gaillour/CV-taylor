@@ -1,23 +1,204 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
-  --surface: #121215;
-  --surface-raised: #18181b;
+  /* ==========================================================================
+     SISTEMA DE DISEÑO / TOKENS CENTRALES (EDITABLE EN 10 LÍNEAS)
+     Modificá acá para cambiar todo el tema y fuentes de la landing.
+     ========================================================================== */
+
+  /* 1. TIPOGRAFÍAS (Playfair Display + Inter + Pinyon Script para detalles de sastre) */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-script: 'Pinyon Script', cursive;
+  --font-mono: 'Inter', ui-monospace, SFMono-Regular, monospace;
+
+  /* 2. RAMPA NEUTRA (TINTADA SOBRIA - GRAFITO / PAPEL OSCURO) */
+  --bg-canvas: #0c0b0a;
+  --bg-surface: #141312;
+  --bg-surface-raised: #1c1a18;
   --border-hairline: rgba(255, 255, 255, 0.08);
   --border-subtle: rgba(255, 255, 255, 0.14);
+
+  /* 3. ROLES DE TEXTO (JERARQUÍA ESTRICTA /unslop) */
+  --text-primary: #f5f3ef;
+  --text-secondary: #a8a29e;
+  --text-muted: #736e68;
+
+  /* 4. ACENTO ÚNICO (ÁMBAR SASTRE / EDITABLE A CUALQUIER TONO) */
+  --accent: #d4973b;
+  --accent-hover: #e5a74b;
+  --accent-contrast: #0c0b0a;
+  --accent-subtle: rgba(212, 151, 59, 0.12);
+  --accent-border: rgba(212, 151, 59, 0.35);
+
+  /* 5. HOJA ATS (INMUTABLE - PAPEL BLANCO REAL) */
+  --sheet-bg: #ffffff;
+  --sheet-text: #111827;
+
+  /* Compatibilidad con el resto de la app */
+  --background: var(--bg-canvas);
+  --foreground: var(--text-primary);
+  --surface: var(--bg-surface);
+  --surface-raised: var(--bg-surface-raised);
+}
+
+@theme {
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-script: var(--font-script);
+  --font-mono: var(--font-mono);
+
+  --color-canvas: var(--bg-canvas);
+  --color-surface: var(--bg-surface);
+  --color-surface-raised: var(--bg-surface-raised);
+  --color-hairline: var(--border-hairline);
+  --color-subtle: var(--border-subtle);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-border: var(--accent-border);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-body);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+  background-color: var(--accent-subtle);
+  color: var(--accent);
+}
+
+/* Clases utilitarias de marca */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.font-script {
+  font-family: var(--font-script);
+}
+
+.font-mono-custom {
+  font-family: var(--font-mono);
+}
+
+/* Efecto Foil / Oro Metálico de Lujo */
+@keyframes foil-sweep {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.foil-shimmer {
+  background: linear-gradient(
+    115deg,
+    var(--accent) 0%,
+    var(--accent) 30%,
+    #fff8e7 45%,
+    #ffffff 50%,
+    #fff8e7 55%,
+    var(--accent) 70%,
+    var(--accent) 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: foil-sweep 7s ease-in-out infinite;
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+.bg-accent {
+  background-color: var(--accent);
+}
+
+.bg-accent-subtle {
+  background-color: var(--accent-subtle);
+}
+
+.border-hairline {
+  border-color: var(--border-hairline);
+}
+
+.border-accent {
+  border-color: var(--accent);
+}
+
+.border-accent-border {
+  border-color: var(--accent-border);
+}
+
+.btn-accent {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+  font-family: var(--font-display);
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-accent::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -70%;
+  width: 45%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.45),
+    transparent
+  );
+  transform: rotate(25deg);
+  pointer-events: none;
+}
+
+.btn-accent:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn-accent:hover::after {
+  left: 140%;
+  transition: left 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-secondary {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background-color: var(--bg-surface-raised);
+}
+
+/* Hoja A4 estricta con microtipografía nítida */
+.ats-sheet-canvas {
+  background-color: var(--sheet-bg);
+  color: var(--sheet-text);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
 }

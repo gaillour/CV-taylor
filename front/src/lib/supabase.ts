@@ -4,7 +4,11 @@ let runtimeUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").replace(/\/+$/, ""
 let runtimeAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
 let configFetchPromise: Promise<boolean> | null = null;
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== "undefined" && window.location.hostname
+    ? `http://${window.location.hostname}:8000`
+    : "http://127.0.0.1:8000");
 
 const SESSION_STORAGE_KEY = "cv_tailor_supabase_session";
 

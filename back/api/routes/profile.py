@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -32,6 +33,14 @@ from back.engine.storage import StorageRepository, get_repo_for_user
 
 router = APIRouter()
 MAX_IMPORT_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+MAX_AVATAR_FILE_SIZE = 2 * 1024 * 1024  # 2 MB
+ALLOWED_AVATAR_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
+
+class AvatarUploadResponse(BaseModel):
+    """Response payload after avatar upload."""
+
+    photo_url: str
 
 
 @router.get("", response_model=Profile)
@@ -311,3 +320,40 @@ def enhance_master_profile(
             status_code=500,
             detail=f"Error al enriquecer el perfil con IA: {exc}",
         ) from exc
+
+
+@router.post("/avatar", response_model=AvatarUploadResponse)
+async def upload_avatar(
+    file: Annotated[UploadFile, File(...)],
+    repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
+) -> AvatarUploadResponse:
+    """Upload and persist candidate avatar (max 2MB, JPEG/PNG/WebP)."""
+    if file.content_type not in ALLOWED_AVATAR_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail="Formato no soportado. Debe ser JPEG, PNG o WebP.",
+        )
+    content = await file.read()
+    if len(content) > MAX_AVATAR_FILE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail="La imagen excede el tamaño máximo permitido de 2 MB.",
+        )
+
+    ext = Path(file.filename or "avatar.jpg").suffix.lstrip(".") or "jpg"
+    photo_url = repo.save_avatar(content, extension=ext)
+
+    prof = repo.get_profile()
+    prof.contact.photo_url = photo_url
+    repo.save_profile(prof)
+
+    return AvatarUploadResponse(photo_url=photo_url)
+
+
+@router.delete("/avatar")
+def delete_avatar(
+    repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
+) -> dict[str, bool]:
+    """Delete candidate avatar and unset photo_url in Master Profile."""
+    repo.delete_avatar()
+    return {"deleted": True}

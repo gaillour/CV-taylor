@@ -530,12 +530,13 @@ def _enhance_with_llm(
         "Include `name` and a concise `reason` in the profile's language.\n"
         "3. `redundant_facts`: Bullets that are duplicates, near-duplicates, or redundant "
         "with another bullet in the candidate's profile. Include `fact_id` and a concise "
-        "`reason` in the profile's language explaining why it should be removed.\n"
+        "`reason` in the profile's language explaining why it should be removed. "
+        "CRITICAL: If a bullet should be removed, ALWAYS list it here. NEVER return an empty proposed_text in `improved_facts`.\n"
         "4. `entries`: For each entry:\n"
         "   - `distilled_facts`: If `context` contains achievements not yet in `facts`, "
         "extract 1-3 atomic bullets (16-24 words, nominal/action style).\n"
         "   - `improved_facts`: For existing `facts` that can be phrased with stronger ATS "
-        "impact, provide `fact_id` and `proposed_text`.\n"
+        "impact, provide `fact_id` and `proposed_text`. (STRICT: `proposed_text` must NEVER be empty or a deletion placeholder; use `redundant_facts` instead).\n"
         "   - `suggested_titles`: Up to 2 alternative titles tailored to "
         "archetypes (`backend`, `frontend`, `fullstack`, `data`, `devops`).\n"
         "     * For `experience` entries: Suggest job/role titles tailored to archetypes (e.g. 'Backend Engineer', 'Desarrollador Full Stack').\n"
@@ -688,8 +689,27 @@ def _enhance_with_llm(
                 fid = str(imp.get("fact_id", ""))
                 prop_text = str(imp.get("proposed_text", "")).strip()
                 target_fact = facts_by_id.get(fid)
-                if not target_fact or not prop_text:
+                if not target_fact:
                     continue
+
+                # Si el LLM devolvió proposed_text vacío o palabras clave de eliminación,
+                # redirigir defensivamente a marked_for_removal
+                if not prop_text or prop_text.lower() in (
+                    "eliminar",
+                    "borrar",
+                    "delete",
+                    "remove",
+                    "n/a",
+                    "none",
+                    "redundante",
+                    "duplicada",
+                ):
+                    if not target_fact.marked_for_removal:
+                        target_fact.marked_for_removal = True
+                        target_fact.removal_reason = "Viñeta vacía o redundante recomendada para eliminación"
+                        stats.redundant_facts_marked += 1
+                    continue
+
                 if prop_text.lower().rstrip(".") == target_fact.text.lower().strip().rstrip("."):
                     continue
                 if _is_valid_rewrite(

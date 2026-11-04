@@ -1,21 +1,69 @@
 "use client";
 
 import React, { useState } from "react";
-import { RenderEntry, RenderBullet } from "@/types/cv";
+import { RenderEntry, RenderBullet, Entry } from "@/types/cv";
+import { useProfileStore } from "@/store/useProfileStore";
+import { useCvStore } from "@/store/useCvStore";
 import { BulletList } from "./BulletList";
 import { BufferedInput } from "./BufferedFields";
-import { Plus, Trash2, Check, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  ArrowUp,
+  ArrowDown,
+  GraduationCap,
+  FileCode2,
+  X,
+} from "lucide-react";
 
 interface EducationSectionProps {
   entries: RenderEntry[];
   onChange: (entries: RenderEntry[], debounceMs?: number) => void;
 }
 
+function createEducationId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `edu_${crypto.randomUUID()}`;
+  }
+  return `edu_${Date.now()}`;
+}
+
 export function EducationSection({ entries, onChange }: EducationSectionProps) {
   const [collapsedEntries, setCollapsedEntries] = useState<Record<string, boolean>>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const profile = useProfileStore((s) => s.profile);
+  const mirror = useProfileStore((s) => s.mirror);
+  const loadMirror = useProfileStore((s) => s.loadMirror);
+  const cvLang = (useCvStore((s) => s.renderModel?.lang) as "es" | "en") || "es";
+  const [importLang, setImportLang] = useState<"es" | "en">(cvLang);
+
+  const sourceProfile =
+    profile && importLang !== profile.base_lang ? mirror || profile : profile;
+
+  const availableProfileEducation = (sourceProfile?.entries || []).filter(
+    (e): e is Entry => e.kind === "education"
+  );
 
   const toggleCollapse = (id: string) => {
     setCollapsedEntries((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleOpenModal = () => {
+    setImportLang(cvLang);
+    if (profile && cvLang !== profile.base_lang && !mirror) {
+      loadMirror();
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSelectImportLang = (lang: "es" | "en") => {
+    setImportLang(lang);
+    if (profile && lang !== profile.base_lang && !mirror) {
+      loadMirror();
+    }
   };
 
   const handleToggleEntry = (index: number) => {
@@ -54,8 +102,58 @@ export function EducationSection({ entries, onChange }: EducationSectionProps) {
     onChange(updated, 0);
   };
 
-  const handleAdd = () => {
-    const newId = `edu_${Date.now()}`;
+  const scrollToNewEducation = (id: string) => {
+    setCollapsedEntries((prev) => ({ ...prev, [id]: false }));
+    setTimeout(() => {
+      const el = document.getElementById(`editor-education-${id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 60);
+  };
+
+  const handleAddFromProfile = (edu: Entry) => {
+    const title =
+      edu.titles?.find((t) => t.is_default)?.title ||
+      edu.titles?.[0]?.title ||
+      edu.org ||
+      "Título / Carrera";
+
+    const dateLabel = edu.end_date
+      ? `${edu.start_date} - ${edu.end_date}`
+      : edu.start_date || "";
+
+    const bullets: RenderBullet[] = (edu.facts || []).map((f, i) => ({
+      text: f.text,
+      selected: true,
+      priority: f.weight || 100,
+      pinned: f.pinned || false,
+      position: f.position ?? (i + 1),
+      fact_ids: [f.id],
+      skill_ids: f.skill_ids || [],
+      suggested_alternatives: [],
+    }));
+
+    const newId = createEducationId();
+    const newEntry: RenderEntry = {
+      entry_id: newId,
+      title,
+      org: edu.org,
+      date_label: dateLabel,
+      location: edu.location || "",
+      selected: true,
+      min_bullets: edu.min_bullets || 0,
+      max_bullets: edu.max_bullets || 2,
+      bullets,
+    };
+
+    onChange([...entries, newEntry], 0);
+    setIsModalOpen(false);
+    scrollToNewEducation(newId);
+  };
+
+  const handleAddBlank = () => {
+    const newId = createEducationId();
     const newEntry: RenderEntry = {
       entry_id: newId,
       title: "Título / Carrera",
@@ -68,24 +166,156 @@ export function EducationSection({ entries, onChange }: EducationSectionProps) {
       bullets: [],
     };
     onChange([...entries, newEntry], 0);
+    setIsModalOpen(false);
+    scrollToNewEducation(newId);
   };
 
   return (
     <div className="space-y-3 text-xs">
+      {/* Cabecera de la sección */}
       <div className="flex items-center justify-between text-[11px] text-zinc-400 font-medium">
         <span>
           Educación ({entries.filter((e) => e.selected !== false).length}/{entries.length} activas)
         </span>
         <button
           type="button"
-          onClick={handleAdd}
-          className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 transition"
+          onClick={handleOpenModal}
+          className="flex items-center gap-1.5 px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-zinc-100 rounded-lg text-[11px] font-medium transition cursor-pointer shadow-sm"
         >
-          <Plus className="w-3 h-3" />
-          <span>Añadir educación</span>
+          <Plus className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Agregar educación</span>
         </button>
       </div>
 
+      {/* Modal de Importación de Educación */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-100">
+                  Agregar Formación Académica
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Insertá una carrera o curso desde tu perfil o creá una entrada personalizada para este CV.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="text-zinc-500 hover:text-zinc-300 p-1 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Selector de Idioma */}
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800">
+              <div>
+                <span className="text-xs font-medium text-zinc-200 block">Idioma de origen</span>
+                <span className="text-[10px] text-zinc-400">
+                  CV configurado en: <strong className="uppercase text-zinc-300">{cvLang}</strong>
+                </span>
+              </div>
+              <div className="flex items-center bg-zinc-950 border border-zinc-800 p-0.5 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => handleSelectImportLang("es")}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition cursor-pointer ${
+                    importLang === "es"
+                      ? "bg-zinc-800 text-zinc-100 shadow-sm border border-zinc-700/60"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  ES
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectImportLang("en")}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition cursor-pointer ${
+                    importLang === "en"
+                      ? "bg-zinc-800 text-zinc-100 shadow-sm border border-zinc-700/60"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  EN
+                </button>
+              </div>
+            </div>
+
+            {/* Bloques desde el Perfil */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
+                Educación en tu Perfil ({availableProfileEducation.length})
+              </span>
+
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {availableProfileEducation.map((edu) => {
+                  const eduTitle =
+                    edu.titles?.find((t) => t.is_default)?.title ||
+                    edu.titles?.[0]?.title ||
+                    edu.org;
+                  const alreadyInCv = entries.some(
+                    (e) => e.title.toLowerCase() === eduTitle.toLowerCase() || e.org === edu.org
+                  );
+
+                  return (
+                    <div
+                      key={edu.id}
+                      className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/80 hover:border-zinc-700 transition gap-3 group"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <GraduationCap className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <p className="font-medium text-xs text-zinc-200 truncate">{eduTitle}</p>
+                          <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-zinc-800 text-zinc-400 uppercase">
+                            {importLang}
+                          </span>
+                          {alreadyInCv && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                              En CV
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-zinc-500 truncate mt-0.5">
+                          {edu.org} {edu.location ? `· ${edu.location}` : ""} · {edu.start_date || ""}{edu.end_date ? ` - ${edu.end_date}` : ""}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAddFromProfile(edu)}
+                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition cursor-pointer shrink-0"
+                      >
+                        + Insertar ({importLang.toUpperCase()})
+                      </button>
+                    </div>
+                  );
+                })}
+
+                {availableProfileEducation.length === 0 && (
+                  <div className="text-center py-5 border border-dashed border-zinc-800/80 rounded-xl text-zinc-500 text-xs">
+                    No tenés educación cargada en tu perfil todavía.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Opción En Blanco */}
+            <div className="pt-3 border-t border-zinc-800/80">
+              <button
+                type="button"
+                onClick={handleAddBlank}
+                className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 text-xs font-medium transition cursor-pointer"
+              >
+                <FileCode2 className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Crear educación en blanco</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lista de Educación en el CV */}
       <div className="space-y-3">
         {entries.map((entry, idx) => {
           const isSelected = entry.selected !== false;
@@ -94,6 +324,7 @@ export function EducationSection({ entries, onChange }: EducationSectionProps) {
           return (
             <div
               key={entry.entry_id || idx}
+              id={`editor-education-${entry.entry_id}`}
               className={`rounded-xl border transition p-3 space-y-3 ${
                 isSelected
                   ? "bg-zinc-900/60 border-zinc-800/80 shadow-sm"
@@ -206,7 +437,7 @@ export function EducationSection({ entries, onChange }: EducationSectionProps) {
                     </div>
                   </div>
 
-                  {/* Bullet list for education (optional awards/honors) */}
+                  {/* Bullet list for this entry */}
                   <BulletList
                     bullets={entry.bullets}
                     sectionKey="education"

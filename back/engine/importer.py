@@ -88,7 +88,7 @@ Extract the candidate's profile into structured JSON matching this exact schema:
   },
   "skills": [
     {
-      "name": "Skill Name (canonical casing, e.g. PostgreSQL, React, Docker)",
+      "name": "Skill Name (canonical casing, e.g. PostgreSQL, React, Docker, Spring Boot)",
       "category": "Category name (e.g. Lenguajes, Backend, Frontend, Cloud & DevOps, Herramientas)",
       "level": "Avanzado / Intermedio / null"
     }
@@ -107,7 +107,16 @@ Extract the candidate's profile into structured JSON matching this exact schema:
     }
   ]
 }
+PARSING & EXTRACTION DIRECTIVES:
+1. EXHAUSTIVE BULLET EXTRACTION:
+   - Extract 100% of all bullet points and accomplishments from EVERY entry (experiences, projects, education).
+   - NEVER truncate, summarize, merge, or omit older experiences or bullets. Even if an experience has 10+ bullets, extract all of them as separate atomic items in `bullets`. (The master profile is an exhaustive Single Source of Truth; bullet pruning happens downstream).
+2. SKILLS GRANULARITY & NORMALIZATION:
+   - Extract specific, recognized frameworks, libraries, tools, and platforms (e.g., if the CV lists Spring technologies, preserve distinct relevant frameworks like 'Spring Boot', 'Spring Security', 'Spring MVC' rather than just a generic 'Spring', but avoid noise for basic theoretical patterns like 'IOC' or 'AOP').
+   - Keep canonical naming (e.g. 'PostgreSQL', 'TypeScript', 'Node.js', 'Docker', 'Kubernetes').
 Return ONLY valid JSON without markdown wrapping or commentary."""
+
+MAX_RESUME_CHARS: int = 60_000
 
 
 def _extract_page_spans(page: Any) -> list[dict[str, float | str]]:
@@ -762,7 +771,7 @@ def parse_profile_from_text(
     if llm is not None and llm.is_configured:
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": clean_text[:12000]},
+            {"role": "user", "content": clean_text[:MAX_RESUME_CHARS]},
         ]
         try:
             data = llm.parse_json_completion(messages, temperature=0.1)

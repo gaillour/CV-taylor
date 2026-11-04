@@ -21,10 +21,16 @@ export { API_BASE_URL };
 
 export function isProfileEmpty(profile: Profile | null): boolean {
   if (!profile) return true;
+  const hasContact = Boolean(
+    profile.contact?.email?.trim() ||
+    profile.contact?.phone?.trim() ||
+    profile.contact?.location?.trim()
+  );
   return (
     !profile.full_name?.trim() &&
     profile.entries.length === 0 &&
-    profile.skills.length === 0
+    profile.skills.length === 0 &&
+    !hasContact
   );
 }
 
@@ -66,6 +72,7 @@ interface ProfileState {
   lastEnhanceStats: EnhanceStats | null;
   lastImportInfo: { detectedLang: LangCode; translatedToBase: boolean } | null;
   dirty: boolean;
+  isManualMode: boolean;
   error: string | null;
 
   setViewLang: (lang: LangCode) => Promise<void>;
@@ -76,6 +83,8 @@ interface ProfileState {
   importProfile: (file: File, sourceLang?: "auto" | LangCode) => Promise<boolean>;
   enhanceProfile: () => Promise<boolean>;
   dismissImportPrompt: () => void;
+  discardUnsavedChanges: () => Promise<void>;
+  enableManualMode: () => void;
   setProfile: (updater: (prev: Profile) => Profile) => void;
 
   updateContact: (contact: Partial<ContactInfo>) => void;
@@ -131,6 +140,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   lastEnhanceStats: null,
   lastImportInfo: null,
   dirty: false,
+  isManualMode: false,
   error: null,
 
   setViewLang: async (lang) => {
@@ -191,12 +201,17 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         throw new Error(`HTTP ${res.status}: ${await res.text()}`);
       }
       const data = (await res.json()) as Profile;
+      const hasData = !isProfileEmpty(data);
       set({
         profile: data,
         viewLang: data.base_lang || "es",
         loading: false,
         initialized: true,
         dirty: false,
+        canEnhanceAfterImport: false,
+        lastImportInfo: null,
+        lastEnhanceStats: null,
+        isManualMode: hasData,
       });
     } catch (err: unknown) {
       set({
@@ -244,6 +259,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
           translatedToBase: data.translated_to_base,
         },
         dirty: true,
+        isManualMode: true,
         error: null,
       });
       return true;
@@ -283,6 +299,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         lastEnhanceStats: data.stats,
         enhancing: false,
         dirty: true,
+        isManualMode: true,
         error: null,
       });
       return true;
@@ -297,7 +314,17 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   dismissImportPrompt: () => {
-    set({ canEnhanceAfterImport: false });
+    set({ canEnhanceAfterImport: false, lastImportInfo: null });
+  },
+
+  discardUnsavedChanges: async () => {
+    set({
+      canEnhanceAfterImport: false,
+      lastImportInfo: null,
+      lastEnhanceStats: null,
+      dirty: false,
+    });
+    await get().fetchProfile();
   },
 
   saveProfile: async () => {
@@ -329,10 +356,14 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
   },
 
+  enableManualMode: () => {
+    set({ isManualMode: true });
+  },
+
   setProfile: (updater) => {
     const { profile } = get();
     if (!profile) return;
-    set({ profile: updater(profile), dirty: true });
+    set({ profile: updater(profile), dirty: true, isManualMode: true });
   },
 
   updateFullName: (full_name) => {
