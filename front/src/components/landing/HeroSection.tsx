@@ -7,12 +7,21 @@ import { CvCanvasPreview } from "./CvCanvasPreview";
 
 export function HeroSection() {
   return (
-    <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-[var(--border-hairline)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-[var(--border-hairline)] overflow-hidden">
+      {/* Luz difusa de fondo cálida */}
+      <div className="ambient-glow top-0 left-1/2 -translate-x-1/2 pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           {/* Columna Izquierda: Mensaje & CTA */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+
+            {/* Pill Tag */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent)] text-xs tracking-wider uppercase font-cinzel">
+              <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+              <span>Sastrería Tipográfica • 1 Página A4 Estricta</span>
+            </div>
 
             {/* Titular Principal */}
             <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl text-[var(--text-primary)] font-bold leading-[1.1] tracking-tight">

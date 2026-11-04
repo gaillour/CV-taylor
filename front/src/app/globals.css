@@ -1,16 +1,17 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Pinyon+Script&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
   /* ==========================================================================
-     SISTEMA DE DISEÑO / TOKENS CENTRALES (EDITABLE EN 10 LÍNEAS)
-     Modificá acá para cambiar todo el tema y fuentes de la landing.
+     SISTEMA DE DISEÑO / TOKENS CENTRALES (SASTRERÍA & BESPOKE LUXURY)
      ========================================================================== */
 
-  /* 1. TIPOGRAFÍAS (Playfair Display + Inter + Pinyon Script para detalles de sastre) */
+  /* 1. TIPOGRAFÍAS (Playfair Display + Cinzel + Pinyon Script + Plus Jakarta Sans) */
   --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-cinzel: 'Cinzel', serif;
   --font-script: 'Pinyon Script', cursive;
-  --font-mono: 'Inter', ui-monospace, SFMono-Regular, monospace;
+  --font-mono: ui-monospace, SFMono-Regular, monospace;
 
   /* 2. RAMPA NEUTRA (TINTADA SOBRIA - GRAFITO / PAPEL OSCURO) */
   --bg-canvas: #0c0b0a;
@@ -19,17 +20,19 @@
   --border-hairline: rgba(255, 255, 255, 0.08);
   --border-subtle: rgba(255, 255, 255, 0.14);
 
-  /* 3. ROLES DE TEXTO (JERARQUÍA ESTRICTA /unslop) */
+  /* 3. ROLES DE TEXTO (JERARQUÍA ESTRICTA) */
   --text-primary: #f5f3ef;
   --text-secondary: #a8a29e;
   --text-muted: #736e68;
 
   /* 4. ACENTO PRINCIPAL (DORADO / WHISKEY / MIEL SASTRE) */
   --accent: #d4973b;
+  --accent-color: #d4973b;
   --accent-hover: #e5a74b;
   --accent-contrast: #0c0b0a;
   --accent-subtle: rgba(212, 151, 59, 0.12);
   --accent-border: rgba(212, 151, 59, 0.35);
+  --halo-color: rgba(212, 151, 59, 0.12);
 
   /* 5. DETALLES EN VERDE INGLÉS (SAVILE ROW / TAILORING QUALITY ACCENT) */
   --tailor-green: #1b3d2b;
@@ -52,6 +55,7 @@
 @theme {
   --font-display: var(--font-display);
   --font-body: var(--font-body);
+  --font-cinzel: var(--font-cinzel);
   --font-script: var(--font-script);
   --font-mono: var(--font-mono);
 
@@ -93,12 +97,17 @@ body {
 }
 
 /* Clases utilitarias de marca */
-.font-display {
+.font-display,
+.font-serif-title {
   font-family: var(--font-display);
 }
 
 .font-body {
   font-family: var(--font-body);
+}
+
+.font-cinzel {
+  font-family: var(--font-cinzel);
 }
 
 .font-script {
@@ -107,6 +116,32 @@ body {
 
 .font-mono-custom {
   font-family: var(--font-mono);
+}
+
+/* Resplandor cálido de sastre / Savile Row club ambient */
+.ambient-glow {
+  position: absolute;
+  width: 750px;
+  height: 750px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, var(--halo-color) 0%, transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  transition: background 0.35s ease;
+}
+
+.btn-bespoke {
+  background-color: var(--accent);
+  color: #0e0d0c;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-bespoke:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -4px var(--accent-border);
 }
 
 /* Efecto Foil / Oro Metálico de Lujo */

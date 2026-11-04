@@ -39,12 +39,10 @@ export function CvCanvasPreview() {
       className="relative w-full max-w-[350px] sm:max-w-[370px] mx-auto select-none py-2 cursor-default"
       style={{ perspective: "1200px" }}
     >
-      {/* Sello técnico flotante con acento reflectivo */}
-      <div className="absolute top-0 right-2 z-30 px-3 py-1 rounded bg-[var(--bg-surface-raised)] border border-[var(--accent-border)] flex items-center gap-1.5 shadow-lg backdrop-blur-sm transition-transform duration-300 hover:scale-105">
-        <Sparkles className="w-3.5 h-3.5 text-[var(--accent)] animate-pulse" />
-        <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--accent)] font-semibold">
-          1 Page Strict • Typst
-        </span>
+      {/* Sello de Cera Flotante (Bespoke Stamp) */}
+      <div className="absolute -top-3 -right-2 sm:right-2 z-30 w-16 h-16 rounded-full bg-[#181512] border-2 border-[var(--accent)] flex flex-col items-center justify-center shadow-2xl rotate-6 pointer-events-none">
+        <span className="font-script text-xl leading-none text-[var(--accent)]">Bespoke</span>
+        <span className="text-[7.5px] font-mono tracking-widest text-zinc-400 uppercase mt-0.5">Typst A4</span>
       </div>
 
       {/* Hoja A4 ATS Rectangular con inclinación física 3D y brillo especular */}
