@@ -67,10 +67,10 @@ export function CvCanvasPreview() {
         {/* Cabecera del CV */}
         <div className="border-b border-gray-300 pb-2.5 mb-3 text-center relative z-10">
           <h2 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight leading-none mb-1">
-            Santiago Rossi
+            Juan Carlos Pérez
           </h2>
           <p className="text-[9px] text-gray-600 font-mono">
-            santiago.rossi@dev.io • Buenos Aires, AR • github.com/santi-dev
+            juan.perez@dev.io • Buenos Aires, AR • github.com/juan-perez
           </p>
         </div>
 

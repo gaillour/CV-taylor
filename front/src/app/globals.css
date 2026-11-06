@@ -19,6 +19,7 @@
 
   /* 3. ROLES DE TEXTO (JERARQUÍA ESTRICTA) */
   --text-primary: #f5f3ef;
+  --text-ivory: #f6efe4; /* Marfil / blanquito cremita cálido sutil (cálido distinguible sin ser amarillento) */
   --text-secondary: #a8a29e;
   --text-muted: #736e68;
 
@@ -70,6 +71,7 @@
   --color-subtle: var(--border-subtle);
 
   --color-text-primary: var(--text-primary);
+  --color-text-ivory: var(--text-ivory);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
 
@@ -112,6 +114,8 @@ body {
 .font-display,
 .font-serif-title {
   font-family: var(--font-display);
+  font-feature-settings: normal;
+  font-variant-numeric: lining-nums;
 }
 
 .font-body {

@@ -1,6 +1,8 @@
 # TODO.md — Roadmap Operativo (`cv-tailor`)
 
+- [ ] Saca lo de scrollea para...
 
+- [ ] Diseñar el onboarding, di va a ser desde la landing o que ( / -> /onboarding -> /login) o como
 
 
 ## P0 — Infraestructura, Despliegue & Landing Page

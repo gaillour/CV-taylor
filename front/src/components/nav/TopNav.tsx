@@ -6,13 +6,13 @@ import React, { useEffect, useState, useSyncExternalStore } from "react";
 import {
   CloudUpload,
   FileStack,
-  FileText,
   Loader2,
   LogIn,
   LogOut,
   PenSquare,
   UserRound,
 } from "lucide-react";
+import { TailorScissors } from "@/components/landing/TailoringIcons";
 import { useCvStore } from "@/store/useCvStore";
 import { useProfileStore } from "@/store/useProfileStore";
 import { apiFetch, API_BASE_URL } from "@/lib/api";
@@ -144,17 +144,17 @@ export function TopNav() {
   return (
     <header className="h-12 shrink-0 border-b border-white/[0.08] bg-[#09090b]/90 backdrop-blur-md px-6 flex items-center justify-between gap-6 z-30">
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300">
-            <FileText className="w-3.5 h-3.5" />
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-7 h-7 rounded-md border border-[var(--accent-border)] bg-[var(--accent-subtle)] flex items-center justify-center text-[var(--accent)] transition-all duration-200 group-hover:border-[var(--accent)] shadow-sm">
+            <TailorScissors size={15} strokeWidth={1.8} />
           </div>
-          <h1 className="text-xs font-semibold tracking-tight text-zinc-100 flex items-center gap-2">
-            Taylor
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-white/[0.08]">
+          <h1 className="text-xs font-semibold tracking-[0.12em] text-zinc-100 flex items-center gap-2 font-mono">
+            CV-TAILOR
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-white/[0.08] tracking-normal">
               {cloudEnabled ? "cloud" : "local"}
             </span>
           </h1>
-        </div>
+        </Link>
 
         {!isLogin && (
           <nav className="flex items-center bg-zinc-950 border border-white/[0.08] rounded-md p-0.5">

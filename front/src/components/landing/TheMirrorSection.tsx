@@ -8,10 +8,10 @@ import type { MirrorCvData } from "./types";
 const ES_SAMPLE_CV: MirrorCvData = {
   lang: "es",
   badge: "Español (Base)",
-  name: "Santiago Rossi",
+  name: "Juan Carlos Pérez",
   title: "Líder Técnico & Desarrollador Principal",
   location: "Buenos Aires, AR",
-  contact: "santiago.rossi@dev.io • linkedin.com/in/santiago-rossi",
+  contact: "juan.perez@dev.io • linkedin.com/in/juan-carlos-perez",
   summary:
     "Especialista en arquitectura distribuida, optimización de rendimiento y dirección técnica de equipos de ingeniería. Enfoque riguroso en resiliencia de producto, estándares de calidad y desarrollo escalable.",
   experience: [
@@ -49,10 +49,10 @@ const ES_SAMPLE_CV: MirrorCvData = {
 const EN_SAMPLE_CV: MirrorCvData = {
   lang: "en",
   badge: "English (Mirror)",
-  name: "Santiago Rossi",
+  name: "Juan Carlos Pérez",
   title: "Staff Software Engineer & Technical Lead",
   location: "Buenos Aires, AR (Remote US/EU)",
-  contact: "santiago.rossi@dev.io • linkedin.com/in/santiago-rossi",
+  contact: "juan.perez@dev.io • linkedin.com/in/juan-carlos-perez",
   summary:
     "Software Engineer specializing in distributed system design, high-performance services, and engineering leadership. Proven track record building resilient products and scalable architectures.",
   experience: [

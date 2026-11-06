@@ -117,7 +117,7 @@ export function PricingSection() {
                     </p>
 
                     <div className="mb-6 pb-6 border-b border-[var(--border-hairline)]">
-                      <span className="text-4xl font-display font-bold text-[var(--text-primary)] font-mono">
+                      <span className="text-4xl font-mono font-bold text-[var(--text-primary)]">
                         {tier.price}
                       </span>
                       <span className="text-xs text-[var(--text-muted)] block mt-1 font-mono">

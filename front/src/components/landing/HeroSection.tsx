@@ -4,11 +4,6 @@ import React from "react";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
 import { CvCanvasPreview } from "./CvCanvasPreview";
-import {
-  TailorScissors,
-  SpoolWithThread,
-  TailorButton,
-} from "./TailoringIcons";
 
 export function HeroSection() {
   return (
@@ -23,8 +18,8 @@ export function HeroSection() {
           <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
 
             {/* Titular Principal */}
-            <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl text-[var(--text-primary)] font-bold leading-[1.05] tracking-tight">
-              Cargá tu carrera una vez. Adaptá tu CV en <span className="foil-shimmer italic">15 segundos</span>.
+            <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl text-[var(--text-ivory)] font-semibold leading-[1.08] tracking-tight">
+              Cargá tu carrera una vez. Adaptá tu CV en <span className="text-[var(--accent)]">15 segundos</span>.
             </h1>
 
             {/* Bajada */}
@@ -44,7 +39,7 @@ export function HeroSection() {
               
               <a
                 href="#metodo"
-                className="btn-secondary w-full sm:w-auto px-6 py-3.5 rounded text-xs uppercase tracking-wider font-display flex items-center justify-center gap-2"
+                className="btn-secondary w-full sm:w-auto px-6 py-3.5 rounded text-xs uppercase tracking-wider font-medium flex items-center justify-center gap-2"
               >
                 <span>Ver Cómo Funciona</span>
               </a>
@@ -68,31 +63,8 @@ export function HeroSection() {
 
           </div>
 
-          {/* Columna Derecha: El Momento Visual (Hoja Typst) con elementos sastre */}
+          {/* Columna Derecha: El Momento Visual (Hoja Typst) */}
           <div className="lg:col-span-5 flex justify-center relative">
-            {/* Tijeras de sastre flotantes bien visibles */}
-            <div
-              className="absolute -top-10 -left-4 sm:-left-8 pointer-events-none z-20 text-[var(--accent)] opacity-85 animate-float-gentle select-none rotate-[-12deg] drop-shadow-md"
-              title="Tijeras de sastre artesanal"
-            >
-              <TailorScissors size={84} strokeWidth={1.35} />
-            </div>
-
-            {/* Carrete con hilo y aguja flotante bien visibles */}
-            <div
-              className="absolute -bottom-8 -right-4 sm:-right-8 pointer-events-none z-20 text-[var(--accent)] opacity-85 animate-float-reverse select-none rotate-[8deg] drop-shadow-md"
-              title="Carrete e hilo de seda"
-            >
-              <SpoolWithThread size={70} strokeWidth={1.35} />
-            </div>
-
-            {/* Botón sastre nítido en la base */}
-            <div
-              className="absolute -bottom-4 left-6 pointer-events-none z-20 text-[var(--accent)] opacity-60 select-none rotate-[20deg]"
-            >
-              <TailorButton size={26} strokeWidth={1.4} />
-            </div>
-
             <CvCanvasPreview />
           </div>
 

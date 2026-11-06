@@ -221,7 +221,7 @@ export function VersionTimelineSection() {
               {/* Encabezado del CV */}
               <div className="mb-4">
                 <span className="text-lg sm:text-xl font-display font-bold text-zinc-900 block">
-                  Santiago Rossi
+                  Juan Carlos Pérez
                 </span>
                 <span className="text-xs font-mono font-semibold text-[#935f18] block mt-0.5">
                   {current.cvTitle}
