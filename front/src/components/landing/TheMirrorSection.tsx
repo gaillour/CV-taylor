@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Sparkles, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { MirrorCvCard } from "./MirrorCvCard";
 import type { MirrorCvData } from "./types";
 
@@ -9,40 +9,40 @@ const ES_SAMPLE_CV: MirrorCvData = {
   lang: "es",
   badge: "Español (Base)",
   name: "Santiago Rossi",
-  title: "Tech Lead Backend & Arquitecturas Distribuidas",
+  title: "Líder Técnico & Desarrollador Principal",
   location: "Buenos Aires, AR",
   contact: "santiago.rossi@dev.io • linkedin.com/in/santiago-rossi",
   summary:
-    "Ingeniero de Software enfocado en arquitectura de baja latencia, contratos inmutables y procesamiento distribuido de alto rendimiento. Conducción técnica de equipos cross-functional y diseño de microservicios resilientes.",
+    "Especialista en arquitectura distribuida, optimización de rendimiento y dirección técnica de equipos de ingeniería. Enfoque riguroso en resiliencia de producto, estándares de calidad y desarrollo escalable.",
   experience: [
     {
       role: "Tech Lead",
-      company: "Prisma Cloud Logistics",
+      company: "Prisma Logistics",
       period: "2023 — Presente",
       bullets: [
-        "Rediseño de pipeline transaccional en Go y FastAPI, reduciendo latencia p99 en 38% sobre 15M req/día.",
-        "Migración sin downtime de base relacional a PostgreSQL particionado, optimizando costos cloud en $24k/año.",
+        "Liderazgo en la modernización de servicios centrales, aumentando el rendimiento general en un 40%.",
+        "Optimización de infraestructura y almacenamiento en la nube con ahorro comprobado de $24k anuales.",
       ],
     },
     {
       role: "Senior Backend Developer",
-      company: "Aura Fintech",
+      company: "Aura Pay",
       period: "2021 — 2023",
       bullets: [
-        "Implementación de arquitectura hexagonal para procesamiento de pagos concurrentes con garantías de idempotencia.",
-        "Diseño e instrumentación de observabilidad distribuida con OpenTelemetry y Prometheus.",
+        "Diseño de procesamiento de pagos transaccionales con garantías de alta disponibilidad.",
+        "Implementación de estándares de observabilidad y monitoreo continuo entre servicios clave.",
       ],
     },
   ],
   skills: [
-    "Go",
     "Python",
-    "FastAPI",
+    "Go",
     "PostgreSQL",
-    "Kubernetes",
-    "Kafka",
-    "Typst",
-    "Arquitectura Hexagonal",
+    "Cloud Architecture",
+    "Distributed Systems",
+    "System Design",
+    "Team Leadership",
+    "API Design",
   ],
 };
 
@@ -50,40 +50,40 @@ const EN_SAMPLE_CV: MirrorCvData = {
   lang: "en",
   badge: "English (Mirror)",
   name: "Santiago Rossi",
-  title: "Staff Backend Engineer & Distributed Systems Lead",
+  title: "Staff Software Engineer & Technical Lead",
   location: "Buenos Aires, AR (Remote US/EU)",
   contact: "santiago.rossi@dev.io • linkedin.com/in/santiago-rossi",
   summary:
-    "Software Engineer specializing in low-latency distributed architectures, immutable data contracts, and high-throughput transaction pipelines. Proven track record leading cross-functional teams and designing fault-tolerant microservices.",
+    "Software Engineer specializing in distributed system design, high-performance services, and engineering leadership. Proven track record building resilient products and scalable architectures.",
   experience: [
     {
       role: "Tech Lead",
-      company: "Prisma Cloud Logistics",
+      company: "Prisma Logistics",
       period: "2023 — Present",
       bullets: [
-        "Architected core high-throughput pipeline using Go & FastAPI, slashing p99 latency by 38% across 15M daily requests.",
-        "Spearheaded zero-downtime migration to partitioned PostgreSQL, trimming cloud spend by $24k annually.",
+        "Spearheaded core services modernization, driving a 40% overall throughput increase.",
+        "Optimized cloud infrastructure and data workflows, reducing operational costs by $24k annually.",
       ],
     },
     {
       role: "Senior Backend Developer",
-      company: "Aura Fintech",
+      company: "Aura Pay",
       period: "2021 — 2023",
       bullets: [
-        "Built hexagonal architecture for concurrent payment settlement with strict idempotency guarantees.",
-        "Instrumented end-to-end distributed tracing using OpenTelemetry & Prometheus across 30+ services.",
+        "Architected reliable payment processing pipelines with strict high-availability standards.",
+        "Engineered end-to-end monitoring and system observability across critical business services.",
       ],
     },
   ],
   skills: [
-    "Go",
     "Python",
-    "FastAPI",
+    "Go",
     "PostgreSQL",
-    "Kubernetes",
-    "Kafka",
-    "Typst",
+    "Cloud Architecture",
     "Distributed Systems",
+    "System Design",
+    "Team Leadership",
+    "API Design",
   ],
 };
 
@@ -114,18 +114,21 @@ export function TheMirrorSection() {
   // Medición de la distancia horizontal entre el Slot ES y el Slot EN
   const measureDistance = useCallback(() => {
     if (!slotEsRef.current || !slotEnRef.current) return;
-    const esLeft = slotEsRef.current.offsetLeft;
-    const enLeft = slotEnRef.current.offsetLeft;
-    const offsetDiff = enLeft - esLeft;
-    if (offsetDiff > 0) {
-      setDeltaX(offsetDiff);
-      return;
-    }
     const esRect = slotEsRef.current.getBoundingClientRect();
     const enRect = slotEnRef.current.getBoundingClientRect();
-    const rectDiff = enRect.left - esRect.left;
-    if (rectDiff > 0) {
-      setDeltaX(rectDiff);
+
+    // Obtenemos el ancho sin escala del elemento
+    const offsetWidth = slotEsRef.current.offsetWidth || esRect.width;
+
+    // Si el contenedor padre tiene escala CSS (scale-[0.8] o similar),
+    // la escala real computada es esRect.width / offsetWidth
+    const currentScale = offsetWidth > 0 ? esRect.width / offsetWidth : 1;
+
+    // Distancia exacta requerida en coordenadas locales del contenedor
+    const exactLocalDistance = (enRect.left - esRect.left) / (currentScale || 1);
+
+    if (exactLocalDistance > 0) {
+      setDeltaX(exactLocalDistance);
     }
   }, []);
 
@@ -135,6 +138,17 @@ export function TheMirrorSection() {
     // Disparar en frame inicial
     handleScroll();
     measureDistance();
+
+    // ResizeObserver para recalcular dinámicamente si cambia cualquier tamaño o escala
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        measureDistance();
+      });
+      if (slotEsRef.current) resizeObserver.observe(slotEsRef.current);
+      if (slotEnRef.current) resizeObserver.observe(slotEnRef.current);
+      if (containerRef.current) resizeObserver.observe(containerRef.current);
+    }
 
     let ticking = false;
     const onScroll = () => {
@@ -156,10 +170,16 @@ export function TheMirrorSection() {
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize, { passive: true });
 
-    const timer = setTimeout(measureDistance, 80);
+    // Timers escalonados para atrapar cualquier transición o carga de fuentes tardía
+    const timer1 = setTimeout(measureDistance, 60);
+    const timer2 = setTimeout(measureDistance, 250);
+    const timer3 = setTimeout(measureDistance, 600);
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      if (resizeObserver) resizeObserver.disconnect();
       scrollParent.removeEventListener("scroll", onScroll);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
@@ -197,11 +217,11 @@ export function TheMirrorSection() {
           <span className="font-display italic text-lg sm:text-xl text-[var(--accent)] block -mb-0.5">
             El Espejo Bilingüe
           </span>
-          <h2 className="font-display text-xl sm:text-2xl lg:text-3xl text-[var(--text-primary)] font-bold tracking-tight">
-            The Mirror: Un Perfil, Dos Culturas Profesionales
+          <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl text-[var(--text-primary)] font-bold tracking-tight">
+            Un solo perfil. Dos idiomas.
           </h2>
-          <p className="text-[11px] sm:text-xs text-[var(--text-secondary)] mt-1 max-w-lg mx-auto">
-            Editá tu carrera en tu idioma base. Mientras scrolleás, el motor traslada y espeja tu dossier a inglés técnico nativo directo al cuadro de destino ATS.
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-2 max-w-xl mx-auto">
+            Escribí tu experiencia en español. Al scrollear, el sistema genera la versión en inglés adaptada a los estándares del mercado internacional.
           </p>
         </div>
 
@@ -212,9 +232,7 @@ export function TheMirrorSection() {
           <div
             className="absolute w-72 h-72 sm:w-[480px] sm:h-[480px] rounded-full pointer-events-none transition-all duration-500 -z-10"
             style={{
-              background: progress > 0.45
-                ? `radial-gradient(circle, var(--green-halo) 0%, transparent 70%)`
-                : `radial-gradient(circle, var(--accent-subtle) 0%, transparent 70%)`,
+              background: `radial-gradient(circle, var(--halo-color) 0%, transparent 70%)`,
               left: `calc(25% + ${progress * 50}%)`,
               top: "50%",
               transform: `translate(-50%, -50%) scale(${1 + Math.sin(progress * Math.PI) * 0.25})`,
@@ -233,8 +251,8 @@ export function TheMirrorSection() {
             >
               {/* Header del Dock ES */}
               <div className="flex items-center justify-between pb-1.5 border-b border-[var(--border-hairline)]">
-                <span className="font-mono text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--bg-surface-raised)] text-[var(--text-secondary)] border border-[var(--border-hairline)] uppercase tracking-wider">
-                  ES • Base
+                <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                  ES • Base Original
                 </span>
                 <span className="text-[9px] font-mono text-[var(--text-muted)]">
                   Origen
@@ -272,7 +290,7 @@ export function TheMirrorSection() {
                   <span className={`w-1.5 h-1.5 rounded-full ${progress < 0.15 ? "bg-[var(--accent)]" : "bg-zinc-600"}`} />
                   Fuente editable
                 </span>
-                <span>Typst A4</span>
+                <span>Formato A4</span>
               </div>
 
               {/* LA TARJETA FLOTANTE QUE VIAJA AL DOCK EN */}
@@ -303,12 +321,11 @@ export function TheMirrorSection() {
             >
               {/* Header del Dock EN */}
               <div className="flex items-center justify-between pb-1.5 border-b border-[var(--border-hairline)]">
-                <span className="font-mono text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--green-accent)] text-[var(--green-text)] border border-[var(--green-border)] uppercase tracking-wider flex items-center gap-1 shadow-xs">
-                  <Sparkles className="w-3 h-3 text-[var(--green-text)]" />
-                  EN • Mirror
+                <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-[var(--green-text)] uppercase tracking-wider">
+                  EN • Internacional
                 </span>
                 <span className="text-[9px] font-mono text-[var(--green-text)] font-semibold">
-                  International ATS
+                  Versión en Inglés
                 </span>
               </div>
 
@@ -319,14 +336,14 @@ export function TheMirrorSection() {
                     EN
                   </span>
                   <span className="text-[7.5px] font-mono uppercase tracking-widest text-[var(--green-text)] font-bold -mt-1">
-                    Target
+                    Mirror
                   </span>
                 </div>
                 <span className="text-[10px] sm:text-[11px] font-semibold text-[var(--text-primary)]">
-                  Cuadro de Destino
+                  Perfil Adaptado
                 </span>
                 <p className="text-[8.5px] text-[var(--text-muted)] max-w-[180px] mt-0.5 font-mono">
-                  Traducción contextual a inglés técnico
+                  Adaptación al estándar profesional en inglés
                 </p>
 
                 {/* Wireframe lines simulando la plantilla de destino */}
@@ -349,7 +366,7 @@ export function TheMirrorSection() {
                     Esperando documento...
                   </span>
                 )}
-                <span className="text-[var(--text-muted)]">100% Typst Sync</span>
+                <span className="text-[var(--text-muted)]">Alineación Total</span>
               </div>
             </div>
 
@@ -371,7 +388,7 @@ export function TheMirrorSection() {
           </button>
           <span className="text-[var(--border-hairline)]">•</span>
           <span className="text-[9.5px] sm:text-[10px] text-[var(--text-muted)]">
-            Scrolleá para trasladar y rotar hacia EN
+            Scrolleá para trasladar hacia inglés
           </span>
           <span className="text-[var(--border-hairline)]">•</span>
           <button
@@ -379,11 +396,11 @@ export function TheMirrorSection() {
             onClick={() => toggleLanguage("en")}
             className={`px-3 py-1 rounded transition-colors cursor-pointer ${
               progress >= 0.5
-                ? "text-[var(--green-text)] font-bold bg-[var(--green-accent)] border border-[var(--green-border)] shadow-xs"
+                ? "text-[var(--green-text)] font-bold bg-[var(--green-subtle)] border border-[var(--green-border)] shadow-xs"
                 : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
-            Mirror (EN) →
+            Internacional (EN) →
           </button>
         </div>
 

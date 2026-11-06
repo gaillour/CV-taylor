@@ -3,7 +3,7 @@
 
 
 
-## P0 — Infraestructura & Despliegue Cloud (Staging / Alpha Privado)
+## P0 — Infraestructura, Despliegue & Landing Page
 
 - [x] **Dockerfile Backend (FastAPI):**
   - [x] Crear Dockerfile multi-stage con Python 3.12 y `uv`.
@@ -18,6 +18,13 @@
 - [x] **Deploy Frontend en Vercel:**
   - [x] Conectar repositorio con `Root Directory: front`.
   - [x] Configurar variables de entorno de producción (`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
+- [x] **Landing Page (Polish Scroll-Driven & Simplificación):**
+  - [x] Corregir alineación del CV en el bloque EN al scrollear en The Mirror.
+  - [x] Reducir tamaño del sello/botón Bespoke en Hero.
+  - [x] Sacar regla/cinta de "Corte milimétrico A4" en Hero.
+  - [x] Sacar el EN verde por dorado en The Mirror.
+  - [x] Los 3 pasos: simplificar al extremo y animar 100% con scroll continuo (01 -> 02 -> 03) sin sobrecarga ni frenos.
+  - [x] Versionado: rediseñar con animación por scroll, sin tecnicismos, con V1/V2/V3/V4 bien grandes (Base -> Junior -> Semi Senior -> Senior) y evolución visual evidente.
 
 ---
 
@@ -27,13 +34,8 @@
   - [ ] Resolver delay/congelamiento del visor al entrar por primera vez (actualmente requiere forzar cambio de densidad u otro trigger de estado para despabilar el render).
 - [ ] **Fix detección de foto/avatar en recomendación de template:**
   - [ ] Corregir la condición en el editor que sigue sugiriendo "se debería usar con foto" aunque el perfil ya tenga un avatar cargado (evitando que requiera un guardado manual para ocultarse).
-- [ ] **Login**
+- [ ] **Login:**
   - [ ] Definir si se va a poder usar sin loguearse y como. Actualizar login, que siga el estilo de la landing.
-- [ ] **Landing Page**
-  - [ ] Agreggar feature de versionado (mostrar con animación)
-  - [ ] Sacar el EN verde por dorado en mirror.
-  - [ ] Actualizar textos, mas simples
-  - [ ] los 3 pasos mostrarlos de otra manera.
 
 
 ---

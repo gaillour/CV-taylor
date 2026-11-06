@@ -2,8 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Terminal } from "lucide-react";
+import { ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
 import { CvCanvasPreview } from "./CvCanvasPreview";
+import {
+  TailorScissors,
+  SpoolWithThread,
+  TailorButton,
+} from "./TailoringIcons";
 
 export function HeroSection() {
   return (
@@ -15,23 +20,23 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           {/* Columna Izquierda: Mensaje & CTA */}
-          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+          <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
 
             {/* Titular Principal */}
-            <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl text-[var(--text-primary)] font-bold leading-[1.1] tracking-tight">
+            <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl text-[var(--text-primary)] font-bold leading-[1.05] tracking-tight">
               Cargá tu carrera una vez. Adaptá tu CV en <span className="foil-shimmer italic">15 segundos</span>.
             </h1>
 
             {/* Bajada */}
             <p className="text-[var(--text-secondary)] text-base sm:text-lg max-w-2xl font-normal leading-relaxed mx-auto lg:mx-0">
-              Olvidate de maquetar a mano en Word o Canva para cada postulación. Compilamos tu trayectoria en Typst con rigor tipográfico suizo, garantía física de 1 página A4 y adaptación con IA sobre tus datos reales.
+              Olvidate de pelear con plantillas rotas de Word. Cargás tu experiencia una sola vez y generás un currículum adaptado a cada puesto, en exactamente 1 página A4 y sin inventar nada.
             </p>
 
             {/* Acciones */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
               <Link
                 href="/cvs"
-                className="btn-accent w-full sm:w-auto px-7 py-3 rounded text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm"
+                className="btn-accent w-full sm:w-auto px-7 py-3.5 rounded text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm font-medium"
               >
                 <span>Probar Ahora</span>
                 <ArrowRight className="w-4 h-4" />
@@ -39,32 +44,55 @@ export function HeroSection() {
               
               <a
                 href="#metodo"
-                className="btn-secondary w-full sm:w-auto px-6 py-3 rounded text-xs uppercase tracking-wider font-display flex items-center justify-center gap-2"
+                className="btn-secondary w-full sm:w-auto px-6 py-3.5 rounded text-xs uppercase tracking-wider font-display flex items-center justify-center gap-2"
               >
                 <span>Ver Cómo Funciona</span>
               </a>
             </div>
 
-            {/* Badges de rigor técnico */}
+            {/* Badges de rigor con verde sastre */}
             <div className="pt-6 border-t border-[var(--border-hairline)] flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-[var(--text-muted)] font-mono">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[var(--tailor-green-text)]" />
-                <span>Cero alucinación sobre tu perfil</span>
+                <CheckCircle2 className="w-4 h-4 text-[var(--green-text)]" />
+                <span>1 página A4 sin desbordes</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[var(--tailor-green-text)]" />
-                <span>1 Página A4 estricta sin desbordes</span>
+                <CheckCircle2 className="w-4 h-4 text-[var(--green-text)]" />
+                <span>Fiel a tus datos reales</span>
               </div>
               <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-[var(--accent)]" />
-                <span>Self-hostable con Docker</span>
+                <ShieldCheck className="w-4 h-4 text-[var(--green-text)]" />
+                <span>Privacidad y código abierto</span>
               </div>
             </div>
 
           </div>
 
-          {/* Columna Derecha: El Momento Visual (Hoja Typst) */}
-          <div className="lg:col-span-5 flex justify-center">
+          {/* Columna Derecha: El Momento Visual (Hoja Typst) con elementos sastre */}
+          <div className="lg:col-span-5 flex justify-center relative">
+            {/* Tijeras de sastre flotantes bien visibles */}
+            <div
+              className="absolute -top-10 -left-4 sm:-left-8 pointer-events-none z-20 text-[var(--accent)] opacity-85 animate-float-gentle select-none rotate-[-12deg] drop-shadow-md"
+              title="Tijeras de sastre artesanal"
+            >
+              <TailorScissors size={84} strokeWidth={1.35} />
+            </div>
+
+            {/* Carrete con hilo y aguja flotante bien visibles */}
+            <div
+              className="absolute -bottom-8 -right-4 sm:-right-8 pointer-events-none z-20 text-[var(--accent)] opacity-85 animate-float-reverse select-none rotate-[8deg] drop-shadow-md"
+              title="Carrete e hilo de seda"
+            >
+              <SpoolWithThread size={70} strokeWidth={1.35} />
+            </div>
+
+            {/* Botón sastre nítido en la base */}
+            <div
+              className="absolute -bottom-4 left-6 pointer-events-none z-20 text-[var(--accent)] opacity-60 select-none rotate-[20deg]"
+            >
+              <TailorButton size={26} strokeWidth={1.4} />
+            </div>
+
             <CvCanvasPreview />
           </div>
 

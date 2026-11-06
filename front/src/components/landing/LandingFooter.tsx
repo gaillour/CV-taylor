@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Scissors } from "lucide-react";
+import { TailorScissors } from "./TailoringIcons";
 
 export function LandingFooter() {
   return (
@@ -11,13 +11,13 @@ export function LandingFooter() {
         
         <div className="flex items-center gap-3">
           <div className="w-6 h-6 rounded border border-[var(--border-hairline)] flex items-center justify-center text-[var(--accent)]">
-            <Scissors className="w-3 h-3" />
+            <TailorScissors size={14} strokeWidth={1.8} />
           </div>
           <span className="font-display text-[var(--text-primary)] font-bold tracking-widest text-xs">
             CV-TAILOR
           </span>
           <span className="text-[var(--text-muted)] font-mono text-[11px]">
-            • Compilación tipográfica en Typst & IA contextual.
+            • Confección tipográfica en Typst sin alucinaciones.
           </span>
         </div>
 

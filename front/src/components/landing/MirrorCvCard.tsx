@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, Globe2, CheckCircle2 } from "lucide-react";
+import { Globe2, CheckCircle2 } from "lucide-react";
 import type { MirrorCvData } from "./types";
 
 interface MirrorCvCardProps {
@@ -37,7 +37,7 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
       >
         {/* CARA FRONTAL: ESPAÑOL (BASE) */}
         <div
-          className="absolute inset-0 w-full h-full bg-white text-zinc-900 rounded-sm p-4 sm:p-5 flex flex-col justify-between overflow-hidden border border-zinc-200 shadow-md"
+          className="absolute inset-0 w-full h-full bg-white text-zinc-900 rounded-md p-4 sm:p-5 flex flex-col justify-between overflow-hidden border border-zinc-200 shadow-md"
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
@@ -54,8 +54,7 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
 
           {/* Sello de idioma */}
           <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-200">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9.5px] font-mono font-semibold uppercase tracking-wider bg-zinc-100 text-zinc-700 border border-zinc-300/80">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>
+            <span className="font-mono text-[9.5px] font-semibold uppercase tracking-wider text-zinc-700">
               {esCv.badge}
             </span>
             <span className="text-[9.5px] font-mono text-zinc-500 flex items-center gap-1">
@@ -139,7 +138,7 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
 
         {/* CARA DORSAL: INGLÉS (ESPEJO DERIVADO) */}
         <div
-          className="absolute inset-0 w-full h-full bg-white text-zinc-900 rounded-sm p-4 sm:p-5 flex flex-col justify-between overflow-hidden border border-zinc-200 shadow-md"
+          className="absolute inset-0 w-full h-full bg-white text-zinc-900 rounded-md p-4 sm:p-5 flex flex-col justify-between overflow-hidden border border-zinc-200 shadow-md"
           style={{
             transform: "rotateY(180deg)",
             backfaceVisibility: "hidden",
@@ -157,12 +156,11 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
 
           {/* Sello de idioma inglés */}
           <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-zinc-200">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[9.5px] font-mono font-semibold uppercase tracking-wider bg-[var(--green-subtle)] text-[#1e3328] border border-[var(--green-border)]">
-              <Sparkles className="w-3 h-3 text-[#1e3328]" />
+            <span className="font-mono text-[9.5px] font-semibold uppercase tracking-wider text-emerald-800">
               {enCv.badge}
             </span>
-            <span className="text-[9.5px] font-mono text-[#1e3328] flex items-center gap-1 font-semibold">
-              <CheckCircle2 className="w-3 h-3 text-[#1e3328]" />
+            <span className="text-[9.5px] font-mono text-emerald-800 flex items-center gap-1 font-semibold">
+              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
               100% Typst Sync
             </span>
           </div>
@@ -233,8 +231,8 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
 
           {/* Footer de Sincronización Inmutable */}
           <div className="mt-auto pt-1.5 border-t border-zinc-200 flex items-center justify-between text-[7.5px] font-mono text-zinc-500">
-            <span className="flex items-center gap-1 text-[var(--tailor-green-text)] font-semibold">
-              <CheckCircle2 className="w-2.5 h-2.5" /> Deterministic 1-Page Layout
+            <span className="flex items-center gap-1 text-emerald-800 font-semibold">
+              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" /> Deterministic 1-Page Layout
             </span>
             <span>Typst v0.14 Engine</span>
           </div>

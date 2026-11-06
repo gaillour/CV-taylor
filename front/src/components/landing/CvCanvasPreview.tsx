@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useCallback } from "react";
-import { Check, FileCode, Sparkles } from "lucide-react";
+import { Check, FileCode } from "lucide-react";
 
 export function CvCanvasPreview() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,9 +40,9 @@ export function CvCanvasPreview() {
       style={{ perspective: "1200px" }}
     >
       {/* Sello de Cera Flotante (Bespoke Stamp) */}
-      <div className="absolute -top-3 -right-2 sm:right-2 z-30 w-16 h-16 rounded-full bg-[#181512] border-2 border-[var(--accent)] flex flex-col items-center justify-center shadow-2xl rotate-6 pointer-events-none">
-        <span className="font-display italic text-lg leading-none text-[var(--accent)]">Bespoke</span>
-        <span className="text-[7.5px] font-mono tracking-widest text-zinc-400 uppercase mt-0.5">Typst A4</span>
+      <div className="absolute -top-2.5 -right-2 sm:right-1 z-30 w-12 h-12 rounded-full bg-[#181512] border border-[var(--accent)] flex flex-col items-center justify-center shadow-xl rotate-6 pointer-events-none px-1">
+        <span className="font-display italic text-[11px] leading-tight text-[var(--accent)] tracking-normal">Bespoke</span>
+        <span className="text-[6px] font-mono tracking-wider text-zinc-400 uppercase mt-0.5">Typst A4</span>
       </div>
 
       {/* Hoja A4 ATS Rectangular con inclinación física 3D y brillo especular */}

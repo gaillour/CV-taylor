@@ -2,10 +2,10 @@
 
 import React from "react";
 import Link from "next/link";
-import { Scissors, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import { TailorScissors } from "./TailoringIcons";
 
 export function LandingNav() {
-  const [scrollPercent, setScrollPercent] = React.useState(0);
   const [isVisible, setIsVisible] = React.useState(true);
   const lastScrollY = React.useRef(0);
 
@@ -15,16 +15,10 @@ export function LandingNav() {
 
     const onScroll = () => {
       let current = 0;
-      let total = 0;
       if (scrollContainer) {
         current = scrollContainer.scrollTop;
-        total = scrollContainer.scrollHeight - scrollContainer.clientHeight;
       } else {
         current = window.scrollY;
-        total = document.documentElement.scrollHeight - window.innerHeight;
-      }
-      if (total > 0) {
-        setScrollPercent(Math.min(100, Math.max(0, (current / total) * 100)));
       }
 
       // Auto-hide al scrollear hacia abajo, reaparece suave al subir
@@ -53,10 +47,10 @@ export function LandingNav() {
         {/* Monograma & Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="w-7 h-7 rounded-md border border-[var(--accent-border)] bg-[var(--accent-subtle)] flex items-center justify-center text-[var(--accent)] transition-all duration-200 group-hover:border-[var(--accent)] shadow-sm">
-            <Scissors className="w-3.5 h-3.5" />
+            <TailorScissors size={15} strokeWidth={1.8} />
           </div>
           <span className="text-sm font-semibold tracking-[0.16em] text-[var(--text-primary)] font-mono">
-            TAYLOR
+            CV-TAILOR
           </span>
         </Link>
 
@@ -67,6 +61,9 @@ export function LandingNav() {
           </a>
           <a href="#the-mirror" className="hover:text-[var(--text-primary)] transition-colors">
             The Mirror
+          </a>
+          <a href="#versiones" className="hover:text-[var(--text-primary)] transition-colors">
+            Versiones
           </a>
           <a href="#tarifas" className="hover:text-[var(--text-primary)] transition-colors">
             Tarifas
@@ -96,17 +93,6 @@ export function LandingNav() {
           </Link>
         </div>
 
-      </div>
-
-      {/* Cinta métrica de sastre (Scroll Progress Indicator) */}
-      <div className="absolute -bottom-[1px] left-0 w-full h-[2px] bg-white/[0.04] overflow-hidden pointer-events-none">
-        <div
-          className="h-full bg-gradient-to-r from-[var(--accent)] via-[#fff8e7] to-[var(--accent)] transition-all duration-75 ease-out relative"
-          style={{ width: `${scrollPercent}%` }}
-        >
-          {/* Destello en la punta de la cinta métrica */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#fff8e7] shadow-[0_0_8px_var(--accent)]" />
-        </div>
       </div>
     </header>
   );

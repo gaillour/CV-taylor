@@ -4,8 +4,8 @@ import "./globals.css";
 import { TopNav } from "@/components/nav/TopNav";
 
 export const metadata: Metadata = {
-  title: "Taylor — Sastrería Determinista de CVs en Typst",
-  description: "Cargá toda tu carrera una vez. Compilación tipográfica de 1 página estricta y adaptaciones IA para ingenieros.",
+  title: "CV-Tailor — Tu CV adaptado a cada oferta en 1 página A4",
+  description: "Cargá tu experiencia una sola vez y generá currículums adaptados a cada oferta laboral en exactamente 1 página A4.",
 };
 
 export default function RootLayout({
