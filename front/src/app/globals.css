@@ -52,6 +52,17 @@
   --sheet-bg: #ffffff;
   --sheet-text: #111827;
 
+  /* 7. ESTADOS Y ADVERTENCIAS (OXBLOOD & ROSA SASTRE) */
+  --danger: #b5525c;
+  --danger-hover: #c9626d;
+  --danger-subtle: rgba(181, 82, 92, 0.15);
+  --danger-border: rgba(181, 82, 92, 0.35);
+
+  --warning: #c9908a;
+  --warning-hover: #d69f99;
+  --warning-subtle: rgba(201, 144, 138, 0.14);
+  --warning-border: rgba(201, 144, 138, 0.35);
+
   /* Compatibilidad con el resto de la app */
   --background: var(--bg-canvas);
   --foreground: var(--text-primary);
@@ -94,6 +105,16 @@
   --color-tailor-green-text: var(--green-text);
   --color-tailor-green-subtle: var(--green-subtle);
   --color-tailor-green-border: var(--green-border);
+
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-border: var(--danger-border);
+
+  --color-warning: var(--warning);
+  --color-warning-hover: var(--warning-hover);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-border: var(--warning-border);
 }
 
 body {
@@ -315,4 +336,15 @@ body {
   border-style: dashed;
   border-width: 1px;
   border-color: rgba(212, 151, 59, 0.35);
+}
+
+.focus-ring {
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.focus-ring:focus,
+.focus-ring:focus-within {
+  border-color: var(--accent-border) !important;
+  box-shadow: 0 0 0 1px var(--accent-border);
 }

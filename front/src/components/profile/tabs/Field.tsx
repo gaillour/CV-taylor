@@ -11,7 +11,7 @@ export function Field({
 }) {
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <label className="text-xs font-medium text-zinc-400 block">{label}</label>
+      <label className="text-xs font-medium text-text-secondary block">{label}</label>
       {children}
     </div>
   );

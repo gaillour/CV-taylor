@@ -127,8 +127,8 @@ export function EntriesTab({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-100">{title}</h2>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <h2 className="text-sm font-medium text-text-ivory">{title}</h2>
+          <p className="text-xs text-text-secondary mt-0.5">
             {kind === "experience"
               ? "Cargos e historial laboral con logros clave."
               : kind === "project"
@@ -139,7 +139,7 @@ export function EntriesTab({
         {!readOnly && (
           <button
             onClick={handleCreateEntry}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition cursor-pointer shrink-0 shadow-sm"
+            className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer shrink-0"
           >
             <Plus className="w-3.5 h-3.5" />
             Nueva entrada
@@ -184,7 +184,7 @@ export function EntriesTab({
         })}
 
         {entries.length === 0 && (
-          <div className="text-center py-10 border border-dashed border-zinc-800 rounded-xl text-zinc-500 text-xs">
+          <div className="text-center py-10 border border-dashed border-hairline rounded-xl text-text-muted text-xs">
             No tenés registros de {title.toLowerCase()} cargados todavía.
           </div>
         )}
@@ -301,40 +301,40 @@ function EntryCardItem({
   return (
     <div
       id={`entry-card-${entry.id}`}
-      className={`rounded-xl overflow-hidden transition-all duration-300 border ${
+      className={`rounded-xl overflow-hidden transition-colors border ${
         isHighlighted
-          ? "border-emerald-500/80 ring-2 ring-emerald-500/20 bg-emerald-500/[0.04]"
+          ? "border-accent-border ring-2 ring-accent-subtle bg-accent-subtle/20"
           : isExpanded
-            ? "bg-zinc-950 border-zinc-800"
-            : "bg-zinc-950/60 hover:bg-zinc-900/40 border-zinc-800/60"
+            ? "bg-surface border-hairline"
+            : "bg-surface/60 hover:bg-surface-raised/40 border-hairline"
       }`}
     >
       {/* Resumen / Fila de Acordeón */}
       <div
         onClick={onToggle}
-        className="px-4 py-3 flex items-center justify-between gap-3 cursor-pointer select-none transition"
+        className="px-4 py-3 flex items-center justify-between gap-3 cursor-pointer select-none transition-colors"
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <button
             type="button"
-            className="text-zinc-500 hover:text-zinc-300 p-0.5 shrink-0"
+            className="text-text-muted hover:text-text-primary p-0.5 shrink-0"
             aria-label="Expandir/colapsar"
           >
             {isExpanded ? (
-              <ChevronDown className="w-4 h-4 text-zinc-300" />
+              <ChevronDown className="w-4 h-4 text-text-primary" />
             ) : (
               <ChevronRight className="w-4 h-4" />
             )}
           </button>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-zinc-100 truncate">
+              <span className="text-xs font-medium text-text-ivory truncate">
                 {displayTitle}
               </span>
-              <span className="text-xs text-zinc-600">·</span>
-              <span className="text-xs text-zinc-400 truncate">{entry.org}</span>
+              <span className="text-xs text-text-muted">·</span>
+              <span className="text-xs text-text-secondary truncate">{entry.org}</span>
             </div>
-            <div className="text-[11px] text-zinc-500 flex items-center gap-2 mt-0.5">
+            <div className="text-[11px] text-text-muted flex items-center gap-2 mt-0.5">
               <span>
                 {entry.end_date
                   ? entry.end_date === entry.start_date
@@ -347,14 +347,14 @@ function EntryCardItem({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0">
           {totalPending > 0 && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
+            <span className="inline-flex items-center gap-1 text-[11px] font-mono text-warning">
               <Sparkles className="w-3 h-3" />
-              {totalPending}
+              <span>{totalPending}</span>
             </span>
           )}
-          <span className="text-[10px] text-zinc-500 font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800">
+          <span className="text-[11px] text-text-muted font-mono tabular-nums">
             {entry.facts.length} {entry.facts.length === 1 ? "logro" : "logros"}
           </span>
           {!readOnly && onMoveEntry && (
@@ -363,7 +363,7 @@ function EntryCardItem({
                 type="button"
                 disabled={isFirst}
                 onClick={() => onMoveEntry(entry.id, "up")}
-                className="p-1 rounded hover:bg-zinc-800 disabled:opacity-20 text-zinc-400 hover:text-zinc-200 transition cursor-pointer disabled:cursor-not-allowed"
+                className="p-1 rounded hover:bg-surface-raised disabled:opacity-20 text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:cursor-not-allowed"
                 title="Subir prioridad en perfil"
               >
                 <ArrowUp className="w-3.5 h-3.5" />
@@ -372,7 +372,7 @@ function EntryCardItem({
                 type="button"
                 disabled={isLast}
                 onClick={() => onMoveEntry(entry.id, "down")}
-                className="p-1 rounded hover:bg-zinc-800 disabled:opacity-20 text-zinc-400 hover:text-zinc-200 transition cursor-pointer disabled:cursor-not-allowed"
+                className="p-1 rounded hover:bg-surface-raised disabled:opacity-20 text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:cursor-not-allowed"
                 title="Bajar prioridad en perfil"
               >
                 <ArrowDown className="w-3.5 h-3.5" />
@@ -386,7 +386,7 @@ function EntryCardItem({
                 e.stopPropagation();
                 onRemoveEntry(entry.id);
               }}
-              className="text-zinc-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition cursor-pointer"
+              className="text-text-muted hover:text-danger p-1.5 rounded-lg hover:bg-danger-subtle transition-colors cursor-pointer"
               title="Eliminar entrada completa"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -397,7 +397,7 @@ function EntryCardItem({
 
       {/* Cuerpo Desplegable */}
       {isExpanded && (
-        <div className="px-4 pb-4 pt-2 border-t border-zinc-900 space-y-5 bg-zinc-950/40">
+        <div className="px-4 pb-4 pt-2 border-t border-hairline space-y-5 bg-surface-raised/30">
           {/* Título y Rol */}
           <div className="pt-2">
             <Field label="Título / Puesto">
@@ -408,7 +408,7 @@ function EntryCardItem({
                 disabled={readOnly}
                 onChange={(e) => onUpsertEntryTitle?.(entry.id, e.target.value)}
                 placeholder="Desarrollador Backend"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 disabled:opacity-70"
+                className="w-full bg-canvas border border-hairline rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring disabled:opacity-70 font-mono"
               />
             </Field>
           </div>
@@ -423,7 +423,7 @@ function EntryCardItem({
                 readOnly={readOnly}
                 disabled={readOnly}
                 onChange={(e) => onUpdateEntry(entry.id, { org: e.target.value })}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 disabled:opacity-70"
+                className="w-full bg-canvas border border-hairline rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring disabled:opacity-70 font-mono"
               />
             </Field>
             <Field label="Ubicación">
@@ -434,7 +434,7 @@ function EntryCardItem({
                 disabled={readOnly}
                 onChange={(e) => onUpdateEntry(entry.id, { location: e.target.value })}
                 placeholder="Ciudad, País o Remoto"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 disabled:opacity-70"
+                className="w-full bg-canvas border border-hairline rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring disabled:opacity-70 font-mono"
               />
             </Field>
             <Field label="Fecha Inicio">
@@ -445,7 +445,7 @@ function EntryCardItem({
                 disabled={readOnly}
                 placeholder="YYYY-MM"
                 onChange={(e) => onUpdateEntry(entry.id, { start_date: e.target.value })}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 disabled:opacity-70"
+                className="w-full bg-canvas border border-hairline rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring disabled:opacity-70 font-mono"
               />
             </Field>
             <Field label="Fecha Fin">
@@ -456,7 +456,7 @@ function EntryCardItem({
                 disabled={readOnly}
                 placeholder="YYYY-MM o present"
                 onChange={(e) => onUpdateEntry(entry.id, { end_date: e.target.value })}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 disabled:opacity-70"
+                className="w-full bg-canvas border border-hairline rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring disabled:opacity-70 font-mono"
               />
             </Field>
           </div>
@@ -470,21 +470,21 @@ function EntryCardItem({
               readOnly={readOnly}
               disabled={readOnly}
               onChange={(e) => onUpdateEntry(entry.id, { context: e.target.value })}
-              className="w-full bg-zinc-900/60 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500/50 resize-y disabled:opacity-70"
+              className="w-full bg-canvas border border-hairline rounded-lg p-2.5 text-xs text-text-primary placeholder:text-text-muted focus-ring resize-y disabled:opacity-70"
             />
           </Field>
 
           {/* Títulos / Variantes */}
-          <div className="space-y-2 pt-2 border-t border-zinc-900">
+          <div className="space-y-2 pt-2 border-t border-hairline">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-zinc-300">
+              <span className="text-xs font-medium text-text-secondary">
                 Títulos o roles alternativos
               </span>
               {!readOnly && (
                 <button
                   type="button"
                   onClick={() => setShowNewTitle(!showNewTitle)}
-                  className="text-xs text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-accent hover:underline inline-flex items-center gap-1 cursor-pointer font-mono"
                 >
                   <Plus className="w-3 h-3" />
                   Agregar variante de título
@@ -495,25 +495,25 @@ function EntryCardItem({
             {!readOnly && showNewTitle && (
               <form
                 onSubmit={handleAddTitleSubmit}
-                className="flex items-center gap-2 bg-zinc-900/80 p-2 rounded-lg border border-zinc-800"
+                className="flex items-center gap-2 bg-surface p-2 rounded-lg border border-hairline"
               >
                 <input
                   type="text"
                   placeholder="Título (ej: Fullstack Engineer)"
                   value={newTitleText}
                   onChange={(e) => setNewTitleText(e.target.value)}
-                  className="flex-1 bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50"
+                  className="flex-1 bg-canvas border border-hairline rounded px-2.5 py-1 text-xs text-text-primary placeholder:text-text-muted focus-ring"
                 />
                 <input
                   type="text"
                   placeholder="Arquetipo (ej: backend)"
                   value={newTitleArchetype}
                   onChange={(e) => setNewTitleArchetype(e.target.value)}
-                  className="w-32 bg-zinc-950 border border-zinc-800 rounded px-2.5 py-1 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50"
+                  className="w-32 bg-canvas border border-hairline rounded px-2.5 py-1 text-xs text-text-primary placeholder:text-text-muted focus-ring"
                 />
                 <button
                   type="submit"
-                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded font-medium cursor-pointer"
+                  className="btn-secondary px-3 py-1 text-xs rounded font-medium cursor-pointer"
                 >
                   Guardar
                 </button>
@@ -528,15 +528,15 @@ function EntryCardItem({
                     key={t.id}
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs border ${
                       isPending
-                        ? "bg-amber-500/10 border-amber-500/40 text-amber-200"
+                        ? "bg-warning-subtle border-warning-border text-warning"
                         : t.is_default
-                          ? "bg-zinc-800 border-zinc-700 text-zinc-100 font-medium"
-                          : "bg-zinc-900 border-zinc-800 text-zinc-300"
+                          ? "bg-surface-raised border-hairline text-text-ivory font-medium"
+                          : "bg-surface border-hairline text-text-secondary"
                     }`}
                   >
                     <span>{t.title}</span>
                     {t.archetype && (
-                      <span className="text-[10px] text-zinc-400 font-mono">
+                      <span className="text-[10px] text-text-muted font-mono">
                         ({t.archetype})
                       </span>
                     )}
@@ -547,7 +547,7 @@ function EntryCardItem({
                           <button
                             type="button"
                             onClick={() => onApproveTitle(entry.id, t.id)}
-                            className="text-emerald-400 hover:text-emerald-300 p-0.5 cursor-pointer"
+                            className="text-green-text hover:bg-green-subtle p-0.5 rounded cursor-pointer"
                             title="Aprobar título"
                           >
                             <Check className="w-3 h-3" />
@@ -555,7 +555,7 @@ function EntryCardItem({
                           <button
                             type="button"
                             onClick={() => onRejectTitle(entry.id, t.id)}
-                            className="text-red-400 hover:text-red-300 p-0.5 cursor-pointer"
+                            className="text-danger hover:bg-danger/20 p-0.5 rounded cursor-pointer"
                             title="Descartar título"
                           >
                             <X className="w-3 h-3" />
@@ -566,7 +566,7 @@ function EntryCardItem({
                           <button
                             type="button"
                             onClick={() => onRemoveTitle(entry.id, t.id)}
-                            className="text-zinc-500 hover:text-red-400 ml-1 cursor-pointer"
+                            className="text-text-muted hover:text-danger ml-1 cursor-pointer"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -579,16 +579,16 @@ function EntryCardItem({
           </div>
 
           {/* Logros / Viñetas */}
-          <div className="space-y-3 pt-2 border-t border-zinc-900">
+          <div className="space-y-3 pt-2 border-t border-hairline">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-zinc-300">
+              <span className="text-xs font-medium text-text-secondary">
                 Logros y viñetas verificables
               </span>
               {!readOnly && (
                 <button
                   type="button"
                   onClick={() => setShowNewFact(!showNewFact)}
-                  className="text-xs text-emerald-400 hover:text-emerald-300 inline-flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-accent hover:underline inline-flex items-center gap-1 cursor-pointer font-mono"
                 >
                   <Plus className="w-3 h-3" />
                   Agregar logro
@@ -599,38 +599,38 @@ function EntryCardItem({
             {!readOnly && showNewFact && (
               <form
                 onSubmit={handleAddFactSubmit}
-                className="space-y-2 bg-zinc-900/60 p-3 rounded-lg border border-zinc-800"
+                className="space-y-2 bg-surface p-3 rounded-lg border border-hairline"
               >
                 <textarea
                   rows={2}
                   placeholder="Describí tu impacto, métrica o hito técnico logrado..."
                   value={newFactText}
                   onChange={(e) => setNewFactText(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 resize-y"
+                  className="w-full bg-canvas border border-hairline rounded p-2 text-xs text-text-primary placeholder:text-text-muted focus-ring resize-y font-mono"
                 />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-zinc-400">Prioridad:</span>
+                    <span className="text-[11px] text-text-muted font-mono">Prioridad:</span>
                     <input
                       type="number"
                       min="1"
                       max="100"
                       value={newFactPriority}
                       onChange={(e) => setNewFactPriority(Number(e.target.value))}
-                      className="w-16 bg-zinc-950 border border-zinc-800 rounded px-2 py-0.5 text-xs text-zinc-100"
+                      className="w-16 bg-canvas border border-hairline rounded px-2 py-0.5 text-xs text-text-primary focus-ring font-mono"
                     />
                   </div>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => setShowNewFact(false)}
-                      className="px-2.5 py-1 text-xs text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                      className="px-2.5 py-1 text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded font-medium cursor-pointer"
+                      className="btn-secondary px-3 py-1 text-xs rounded font-medium cursor-pointer"
                     >
                       Guardar logro
                     </button>
@@ -649,28 +649,28 @@ function EntryCardItem({
                     key={fact.id}
                     className={`rounded-lg p-2.5 text-xs transition border group ${
                       isNewAiFact
-                        ? "bg-amber-500/10 border-amber-500/40"
+                        ? "bg-warning-subtle border-warning-border"
                         : hasProposal
-                          ? "bg-violet-500/10 border-violet-500/40"
-                          : "bg-zinc-900/40 hover:bg-zinc-900/80 border-zinc-800/60"
+                          ? "bg-accent-subtle/30 border-accent-border"
+                          : "bg-surface-raised/40 hover:bg-surface-raised/80 border-hairline"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 space-y-1.5">
                         {isNewAiFact && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-warning-subtle text-warning border border-warning-border">
                               ✨ Sugerencia IA pendiente
                             </span>
                           </div>
                         )}
                         {!readOnly && fact.marked_for_removal && (
-                          <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                          <div className="p-2.5 rounded-lg bg-warning-subtle border border-warning-border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                             <div className="space-y-0.5">
-                              <span className="font-semibold text-amber-300 flex items-center gap-1.5 text-[11px]">
+                              <span className="font-medium text-warning flex items-center gap-1.5 text-[11px]">
                                 ⚠️ Sugerencia IA: Viñeta redundante o repetida
                               </span>
-                              <p className="text-zinc-300 text-[11px]">
+                              <p className="text-text-secondary text-[11px]">
                                 {fact.removal_reason || "Contenido repetido con otra viñeta."}
                               </p>
                             </div>
@@ -678,14 +678,14 @@ function EntryCardItem({
                               <button
                                 type="button"
                                 onClick={() => onConfirmFactRemoval?.(entry.id, fact.id)}
-                                className="px-2.5 py-1 rounded bg-red-600 hover:bg-red-500 text-white text-[11px] font-medium transition cursor-pointer"
+                                className="px-2.5 py-1 rounded bg-danger hover:bg-danger-hover text-white text-[11px] font-medium transition-colors cursor-pointer"
                               >
                                 Eliminar
                               </button>
                               <button
                                 type="button"
                                 onClick={() => onDismissFactRemoval?.(entry.id, fact.id)}
-                                className="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px] transition cursor-pointer"
+                                className="btn-secondary px-2.5 py-1 rounded text-[11px] transition-colors cursor-pointer"
                               >
                                 Conservar
                               </button>
@@ -702,24 +702,24 @@ function EntryCardItem({
                             onUpdateFactText?.(entry.id, fact.id, e.target.value)
                           }
                           placeholder="Describí tu impacto, métrica o hito técnico logrado..."
-                          className={`w-full bg-zinc-950/80 border rounded-lg p-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 resize-y transition disabled:opacity-70 ${
+                          className={`w-full bg-canvas border rounded-lg p-2 text-xs text-text-primary placeholder:text-text-muted focus-ring resize-y transition disabled:opacity-70 font-mono ${
                             hasProposal
-                              ? "line-through text-zinc-400 border-zinc-800"
-                              : "border-zinc-800"
+                              ? "line-through text-text-muted border-hairline"
+                              : "border-hairline"
                           }`}
                         />
 
                         {hasProposal && (
-                          <div className="p-2 rounded bg-zinc-950/90 border border-violet-500/30 space-y-1.5">
+                          <div className="p-2.5 rounded bg-surface border border-accent-border space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-mono text-violet-300">
+                              <span className="text-[10px] font-mono text-accent">
                                 ✨ Redacción mejorada sugerida:
                               </span>
                               <div className="flex items-center gap-1.5">
                                 <button
                                   type="button"
                                   onClick={() => onApproveFact(entry.id, fact.id)}
-                                  className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-medium transition cursor-pointer"
+                                  className="btn-accent flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-medium cursor-pointer"
                                 >
                                   <Check className="w-3 h-3" />
                                   Aceptar
@@ -727,14 +727,14 @@ function EntryCardItem({
                                 <button
                                   type="button"
                                   onClick={() => onRejectFact(entry.id, fact.id)}
-                                  className="flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px] transition cursor-pointer"
+                                  className="btn-secondary flex items-center gap-1 px-2 py-0.5 rounded text-[11px] transition-colors cursor-pointer"
                                 >
                                   <X className="w-3 h-3" />
                                   Conservar
                                 </button>
                               </div>
                             </div>
-                            <p className="text-zinc-100 font-medium">{fact.proposed_text}</p>
+                            <p className="text-text-ivory font-medium font-mono">{fact.proposed_text}</p>
                           </div>
                         )}
                       </div>
@@ -745,7 +745,7 @@ function EntryCardItem({
                             <button
                               type="button"
                               onClick={() => onApproveFact(entry.id, fact.id)}
-                              className="flex items-center gap-1 px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-medium transition cursor-pointer"
+                              className="btn-accent flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-medium cursor-pointer"
                               title="Aprobar logro"
                             >
                               <Check className="w-3 h-3" />
@@ -754,7 +754,7 @@ function EntryCardItem({
                             <button
                               type="button"
                               onClick={() => onRejectFact(entry.id, fact.id)}
-                              className="p-1 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 transition cursor-pointer"
+                              className="p-1 rounded bg-danger-subtle hover:bg-danger/20 text-danger transition-colors cursor-pointer"
                               title="Descartar logro"
                             >
                               <X className="w-3.5 h-3.5" />
@@ -764,7 +764,7 @@ function EntryCardItem({
                           <button
                             type="button"
                             onClick={() => onRemoveFact(entry.id, fact.id)}
-                            className="text-zinc-600 hover:text-red-400 opacity-40 group-hover:opacity-100 transition p-1 cursor-pointer"
+                            className="text-text-muted hover:text-danger opacity-40 group-hover:opacity-100 transition p-1 cursor-pointer"
                             title="Eliminar logro"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -776,7 +776,7 @@ function EntryCardItem({
               })}
 
               {entry.facts.length === 0 && (
-                <div className="text-[11px] text-zinc-500 italic py-1">
+                <div className="text-[11px] text-text-muted italic py-1">
                   Esta entrada aún no tiene viñetas o logros agregados.
                 </div>
               )}

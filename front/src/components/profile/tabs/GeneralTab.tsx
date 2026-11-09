@@ -63,8 +63,8 @@ export function GeneralTab({
           photo_path: data.photo_url,
         }));
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || "Error al subir avatar");
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Error al subir avatar");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -90,8 +90,8 @@ export function GeneralTab({
           photo_path: null,
         }));
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || "Error al eliminar foto");
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Error al eliminar foto");
     } finally {
       setUploading(false);
     }
@@ -108,15 +108,15 @@ export function GeneralTab({
       {/* Datos Personales y Contacto */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-100">Datos Personales y Contacto</h2>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <h2 className="text-sm font-medium text-text-ivory">Datos Personales y Contacto</h2>
+          <p className="text-xs text-text-secondary mt-0.5">
             Información de cabecera para tus CVs y enlaces de contacto.
           </p>
         </div>
 
         {/* Avatar / Foto de Perfil */}
-        <div className="flex items-center gap-4 p-3 bg-zinc-900/60 border border-zinc-800/80 rounded-xl">
-          <div className="relative w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700/80 overflow-hidden shrink-0 flex items-center justify-center">
+        <div className="flex items-center gap-4 p-3 bg-surface-raised/60 border border-hairline rounded-xl">
+          <div className="relative w-16 h-16 rounded-full bg-surface border border-hairline overflow-hidden shrink-0 flex items-center justify-center">
             {avatarDisplayUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -125,21 +125,21 @@ export function GeneralTab({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <User className="w-8 h-8 text-zinc-500" />
+              <User className="w-8 h-8 text-text-muted" />
             )}
             {uploading && (
-              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />
+              <div className="absolute inset-0 bg-canvas/60 flex items-center justify-center">
+                <Loader2 className="w-5 h-5 text-accent animate-spin" />
               </div>
             )}
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium text-zinc-200">Foto / Avatar</div>
-            <p className="text-[11px] text-zinc-400 mt-0.5">
+            <div className="text-xs font-medium text-text-primary">Foto / Avatar</div>
+            <p className="text-[11px] text-text-secondary mt-0.5">
               Utilizada en plantillas visuales con foto (JPG, PNG o WebP, máx 2 MB).
             </p>
-            {errorMsg && <p className="text-[11px] text-rose-400 mt-1">{errorMsg}</p>}
+            {errorMsg && <p className="text-[11px] text-danger mt-1">{errorMsg}</p>}
 
             {!readOnly && (
               <div className="flex items-center gap-2 mt-2">
@@ -154,7 +154,7 @@ export function GeneralTab({
                   type="button"
                   disabled={uploading}
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 rounded-md transition cursor-pointer disabled:opacity-50"
+                  className="btn-secondary inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <Camera className="w-3.5 h-3.5" />
                   {contact.photo_url ? "Cambiar foto" : "Subir foto"}
@@ -165,7 +165,7 @@ export function GeneralTab({
                     type="button"
                     disabled={uploading}
                     onClick={handleDeleteAvatar}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/50 text-rose-300 rounded-md transition cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-danger-subtle hover:bg-danger/20 border border-danger-border text-danger rounded transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     Quitar
@@ -184,7 +184,7 @@ export function GeneralTab({
               readOnly={readOnly}
               disabled={readOnly}
               onChange={(e) => onUpdateFullName(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
+              className="w-full bg-canvas border border-hairline rounded-lg px-3 py-2 text-xs text-text-primary placeholder:text-text-muted focus-ring transition disabled:opacity-70"
               placeholder="Juan Pérez"
             />
           </Field>
@@ -196,7 +196,7 @@ export function GeneralTab({
               readOnly={readOnly}
               disabled={readOnly}
               onChange={(e) => onUpdateContact({ email: e.target.value })}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
+              className="w-full bg-canvas border border-hairline rounded-lg px-3 py-2 text-xs text-text-primary placeholder:text-text-muted focus-ring transition disabled:opacity-70"
               placeholder="juan@ejemplo.com"
             />
           </Field>
@@ -208,7 +208,7 @@ export function GeneralTab({
               readOnly={readOnly}
               disabled={readOnly}
               onChange={(e) => onUpdateContact({ phone: e.target.value })}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
+              className="w-full bg-canvas border border-hairline rounded-lg px-3 py-2 text-xs text-text-primary placeholder:text-text-muted focus-ring transition disabled:opacity-70"
               placeholder="+54 9 11 1234-5678"
             />
           </Field>
@@ -220,7 +220,7 @@ export function GeneralTab({
               readOnly={readOnly}
               disabled={readOnly}
               onChange={(e) => onUpdateContact({ location: e.target.value })}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
+              className="w-full bg-canvas border border-hairline rounded-lg px-3 py-2 text-xs text-text-primary placeholder:text-text-muted focus-ring transition disabled:opacity-70"
               placeholder="Buenos Aires, Argentina"
             />
           </Field>
@@ -233,7 +233,7 @@ export function GeneralTab({
               disabled={readOnly}
               onChange={(e) => onUpdateContact({ github: e.target.value })}
               placeholder="github.com/usuario"
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
+              className="w-full bg-canvas border border-hairline rounded-lg px-3 py-2 text-xs text-text-primary placeholder:text-text-muted focus-ring transition disabled:opacity-70 font-mono"
             />
           </Field>
 
@@ -245,17 +245,17 @@ export function GeneralTab({
               disabled={readOnly}
               onChange={(e) => onUpdateContact({ linkedin: e.target.value })}
               placeholder="linkedin.com/in/usuario"
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 transition disabled:opacity-70"
+              className="w-full bg-canvas border border-hairline rounded-lg px-3 py-2 text-xs text-text-primary placeholder:text-text-muted focus-ring transition disabled:opacity-70 font-mono"
             />
           </Field>
         </div>
       </section>
 
       {/* Resumen Profesional */}
-      <section className="pt-6 border-t border-zinc-800/80 space-y-4">
+      <section className="pt-6 border-t border-hairline space-y-4">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-100">Resumen Profesional</h2>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <h2 className="text-sm font-medium text-text-ivory">Resumen Profesional</h2>
+          <p className="text-xs text-text-secondary mt-0.5">
             Párrafo de introducción profesional para tus CVs.
           </p>
         </div>
@@ -268,7 +268,7 @@ export function GeneralTab({
             disabled={readOnly}
             onChange={(e) => onUpdateSummary(e.target.value)}
             placeholder="Desarrollador de software con experiencia en..."
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs text-zinc-100 focus:outline-none focus:border-emerald-500/50 resize-y transition disabled:opacity-70"
+            className="w-full bg-canvas border border-hairline rounded-lg p-3 text-xs text-text-primary placeholder:text-text-muted focus-ring resize-y transition disabled:opacity-70"
           />
         </Field>
       </section>

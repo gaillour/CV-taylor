@@ -44,6 +44,10 @@ RUN groupadd -g 1001 appgroup && \
 COPY --from=builder --chown=appuser:appgroup /app/.venv /app/.venv
 COPY --from=builder --chown=appuser:appgroup /app/back /app/back
 
+# Ensure writable workspace directories and ownership for non-root runtime
+RUN mkdir -p /app/out/avatars /app/out/snapshots && \
+    chown -R appuser:appgroup /app
+
 # Environment settings
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONPATH="/app" \

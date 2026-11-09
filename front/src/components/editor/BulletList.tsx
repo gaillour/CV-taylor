@@ -73,12 +73,12 @@ export function BulletList({ bullets, onChange, sectionKey, entryId }: BulletLis
 
   return (
     <div className="space-y-2 mt-2">
-      <div className="flex items-center justify-between text-[11px] text-zinc-400 font-medium">
+      <div className="flex items-center justify-between text-[11px] text-text-secondary font-medium">
         <span>Viñetas ({bullets.filter((b) => b.selected !== false).length}/{bullets.length} activas)</span>
         <button
           type="button"
           onClick={handleAdd}
-          className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 transition"
+          className="flex items-center gap-1 text-[11px] text-accent hover:underline transition-colors cursor-pointer font-mono"
         >
           <Plus className="w-3 h-3" />
           <span>Añadir viñeta</span>
@@ -95,20 +95,20 @@ export function BulletList({ bullets, onChange, sectionKey, entryId }: BulletLis
           return (
             <div
               key={idx}
-              className={`group flex items-start gap-2 p-2 rounded-lg border transition ${
+              className={`group flex items-start gap-2 p-2 rounded-lg border transition-colors ${
                 isSelected
-                  ? "bg-zinc-900/60 border-zinc-800/80"
-                  : "bg-zinc-950/40 border-zinc-900 opacity-60"
+                  ? "bg-surface border-hairline"
+                  : "bg-canvas border-hairline opacity-60"
               }`}
             >
               {/* Checkbox toggle */}
               <button
                 type="button"
                 onClick={() => handleToggle(idx)}
-                className={`mt-1 w-4 h-4 rounded flex items-center justify-center shrink-0 border transition ${
+                className={`mt-1 w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-colors cursor-pointer ${
                   isSelected
-                    ? "bg-emerald-500 border-emerald-500 text-black shadow-sm"
-                    : "bg-zinc-900 border-zinc-700 text-transparent hover:border-zinc-500"
+                    ? "bg-accent border-accent text-accent-contrast shadow-xs"
+                    : "bg-canvas border-hairline text-transparent hover:border-accent-border"
                 }`}
                 title={isSelected ? "Desactivar viñeta" : "Activar viñeta"}
               >
@@ -121,13 +121,13 @@ export function BulletList({ bullets, onChange, sectionKey, entryId }: BulletLis
                   rows={2}
                   value={bullet.text}
                   onCommit={(text) => handleTextChange(idx, text)}
-                  className={`w-full bg-transparent text-xs text-zinc-200 resize-y focus:outline-none focus:ring-1 focus:ring-emerald-500/50 rounded p-1 transition leading-relaxed ${
-                    !isSelected ? "line-through text-zinc-500" : ""
+                  className={`w-full bg-transparent text-xs text-text-primary resize-y focus-ring rounded p-1 transition leading-relaxed ${
+                    !isSelected ? "line-through text-text-muted" : ""
                   }`}
                   placeholder="Texto de la viñeta..."
                 />
                 {err && (
-                  <p className="text-[10px] text-rose-400 mt-1">{err}</p>
+                  <p className="text-[10px] text-danger mt-1 font-mono">{err}</p>
                 )}
               </div>
 
@@ -138,10 +138,10 @@ export function BulletList({ bullets, onChange, sectionKey, entryId }: BulletLis
                     type="button"
                     onClick={() => handleSaveToProfile(idx)}
                     disabled={isSaving}
-                    className={`p-1 rounded transition text-xs flex items-center justify-center ${
+                    className={`p-1 rounded transition-colors text-xs flex items-center justify-center cursor-pointer ${
                       isSaved
-                        ? "text-emerald-400 bg-emerald-500/10"
-                        : "text-zinc-500 hover:text-emerald-400 hover:bg-zinc-800"
+                        ? "text-green-text bg-green-subtle"
+                        : "text-text-muted hover:text-green-text hover:bg-surface-raised"
                     }`}
                     title={
                       isSaved
@@ -152,23 +152,23 @@ export function BulletList({ bullets, onChange, sectionKey, entryId }: BulletLis
                     }
                   >
                     {isSaving ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-accent" />
                     ) : isSaved ? (
-                      <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <CheckCheck className="w-3.5 h-3.5 text-green-text" />
                     ) : (
                       <BookmarkPlus className="w-3.5 h-3.5" />
                     )}
                   </button>
                 )}
                 {bullet.pinned && (
-                  <span title="Fijada" className="text-amber-400">
-                    <Pin className="w-3 h-3 fill-amber-400" />
+                  <span title="Fijada" className="text-accent">
+                    <Pin className="w-3 h-3 fill-accent" />
                   </span>
                 )}
                 <button
                   type="button"
                   onClick={() => handleDelete(idx)}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-zinc-500 hover:text-rose-400 rounded transition"
+                  className="opacity-0 group-hover:opacity-100 p-1 text-text-muted hover:text-danger rounded transition-colors cursor-pointer"
                   title="Eliminar viñeta"
                 >
                   <Trash2 className="w-3 h-3" />

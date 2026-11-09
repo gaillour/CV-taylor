@@ -50,8 +50,8 @@ export function SkillsTab({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-sm font-semibold text-zinc-100">Habilidades y Herramientas</h2>
-        <p className="text-xs text-zinc-400 mt-0.5">
+        <h2 className="text-sm font-medium text-text-ivory">Habilidades y Herramientas</h2>
+        <p className="text-xs text-text-secondary mt-0.5">
           Tecnologías y competencias que el motor utiliza para validar y redactar tus CVs.
         </p>
       </div>
@@ -60,32 +60,32 @@ export function SkillsTab({
       {!readOnly && (
         <form
           onSubmit={handleAdd}
-          className="flex flex-wrap items-center gap-2 bg-zinc-950 border border-zinc-800 p-2.5 rounded-lg"
+          className="flex flex-wrap items-center gap-2 bg-surface border border-hairline p-2.5 rounded-lg"
         >
           <input
             type="text"
             placeholder="Habilidad (ej: FastAPI, Docker)"
             value={newSkillName}
             onChange={(e) => setNewSkillName(e.target.value)}
-            className="flex-1 min-w-[150px] bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50"
+            className="flex-1 min-w-[150px] bg-canvas border border-hairline rounded-md px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring"
           />
           <input
             type="text"
             placeholder="Categoría (ej: Lenguajes, DevOps)"
             value={newSkillCat}
             onChange={(e) => setNewSkillCat(e.target.value)}
-            className="w-36 bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50"
+            className="w-36 bg-canvas border border-hairline rounded-md px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring"
           />
           <input
             type="text"
             placeholder="Nivel (opcional)"
             value={newSkillLevel}
             onChange={(e) => setNewSkillLevel(e.target.value)}
-            className="w-28 bg-zinc-900 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/50"
+            className="w-28 bg-canvas border border-hairline rounded-md px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring"
           />
           <button
             type="submit"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-md transition cursor-pointer shrink-0"
+            className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer shrink-0"
           >
             <Plus className="w-3.5 h-3.5" />
             Agregar
@@ -100,8 +100,8 @@ export function SkillsTab({
           return (
             <div key={cat} className="space-y-2.5">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-zinc-300">{cat}</span>
-                <span className="text-[10px] text-zinc-500 font-mono">({catSkills.length})</span>
+                <span className="text-xs font-medium text-text-secondary">{cat}</span>
+                <span className="text-[10px] text-text-muted font-mono">({catSkills.length})</span>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -113,21 +113,21 @@ export function SkillsTab({
                       key={skill.id}
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition border group ${
                         isRemoval
-                          ? "bg-red-500/10 border-red-500/40 text-red-200"
+                          ? "bg-danger-subtle border-danger-border text-danger"
                           : isPending
-                            ? "bg-amber-500/10 border-amber-500/40 text-amber-200"
-                            : "bg-zinc-950 border-zinc-800 text-zinc-200 hover:border-zinc-700"
+                            ? "bg-warning-subtle border-warning-border text-warning"
+                            : "bg-surface border-hairline text-text-primary hover:border-hairline"
                       }`}
                       title={skill.removal_reason || undefined}
                     >
                       <span className="font-medium">{skill.name}</span>
                       {skill.level && (
-                        <span className="text-[10px] text-zinc-500 font-normal">
+                        <span className="text-[10px] text-text-muted font-normal">
                           · {skill.level}
                         </span>
                       )}
                       {isRemoval && (
-                        <span className="text-[10px] font-mono px-1 rounded bg-red-500/20 text-red-300">
+                        <span className="text-[10px] font-mono px-1 rounded bg-danger-subtle text-danger">
                           Duplicado
                         </span>
                       )}
@@ -138,7 +138,7 @@ export function SkillsTab({
                             <button
                               type="button"
                               onClick={() => onConfirmSkillRemoval?.(skill.id)}
-                              className="p-0.5 rounded text-red-400 hover:text-red-300 hover:bg-red-500/20 cursor-pointer"
+                              className="p-0.5 rounded text-danger hover:bg-danger/20 cursor-pointer"
                               title="Eliminar habilidad duplicada"
                             >
                               <X className="w-3 h-3" />
@@ -146,7 +146,7 @@ export function SkillsTab({
                             <button
                               type="button"
                               onClick={() => onDismissSkillRemoval?.(skill.id)}
-                              className="p-0.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 cursor-pointer"
+                              className="p-0.5 rounded text-text-muted hover:text-text-primary hover:bg-surface-raised cursor-pointer"
                               title="Conservar habilidad"
                             >
                               <Check className="w-3 h-3" />
@@ -157,7 +157,7 @@ export function SkillsTab({
                             <button
                               type="button"
                               onClick={() => onApproveSkill(skill.id)}
-                              className="p-0.5 rounded text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 cursor-pointer"
+                              className="p-0.5 rounded text-green-text hover:bg-green-subtle cursor-pointer"
                               title="Aprobar habilidad sugerida"
                             >
                               <Check className="w-3 h-3" />
@@ -165,7 +165,7 @@ export function SkillsTab({
                             <button
                               type="button"
                               onClick={() => onRejectSkill(skill.id)}
-                              className="p-0.5 rounded text-red-400 hover:text-red-300 hover:bg-red-500/20 cursor-pointer"
+                              className="p-0.5 rounded text-danger hover:bg-danger/20 cursor-pointer"
                               title="Descartar sugerencia"
                             >
                               <X className="w-3 h-3" />
@@ -175,7 +175,7 @@ export function SkillsTab({
                           <button
                             type="button"
                             onClick={() => onRemoveSkill(skill.id)}
-                            className="text-zinc-600 hover:text-red-400 opacity-60 group-hover:opacity-100 transition ml-0.5 cursor-pointer"
+                            className="text-text-muted hover:text-danger opacity-60 group-hover:opacity-100 transition ml-0.5 cursor-pointer"
                             title="Eliminar habilidad"
                           >
                             <X className="w-3 h-3" />
@@ -190,7 +190,7 @@ export function SkillsTab({
         })}
 
         {skills.length === 0 && (
-          <div className="text-center py-8 border border-dashed border-zinc-800 rounded-lg text-zinc-500 text-xs">
+          <div className="text-center py-8 border border-dashed border-hairline rounded-lg text-text-muted text-xs">
             No tenés habilidades registradas en esta sección.
           </div>
         )}

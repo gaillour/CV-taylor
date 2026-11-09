@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   FileText,
   Plus,
-  Clock,
-  Building,
   ChevronRight,
   ChevronDown,
   Eye,
@@ -14,9 +12,9 @@ import {
   Loader2,
   AlertCircle,
   GitBranch,
-  Target,
   SlidersHorizontal,
   Trash2,
+  Search,
 } from "lucide-react";
 import { API_BASE_URL, useCvStore } from "@/store/useCvStore";
 import { apiFetch } from "@/lib/api";
@@ -24,6 +22,8 @@ import { isProfileEmpty, useProfileStore } from "@/store/useProfileStore";
 import { Snapshot, SnapshotSummary } from "@/types/cv";
 import { TailorModal } from "@/components/tailor/TailorModal";
 import { CvPreview } from "@/components/preview/CvPreview";
+import { confirmDialog } from "@/store/useConfirmStore";
+import { toast } from "@/store/useToastStore";
 
 interface SnapshotGroup {
   key: string;
@@ -38,6 +38,7 @@ export default function GalleryPage() {
   const [snapshots, setSnapshots] = useState<SnapshotSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Modal Adaptar / Tailor
   const [isTailorOpen, setIsTailorOpen] = useState(false);
@@ -45,7 +46,7 @@ export default function GalleryPage() {
   // History expanded state per group
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
-  // Preview modal/drawer state
+  // Preview modal state
   const [previewSnapshot, setPreviewSnapshot] = useState<Snapshot | null>(null);
   const [previewSvg, setPreviewSvg] = useState<string>("");
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -105,7 +106,6 @@ export default function GalleryPage() {
 
     const result: SnapshotGroup[] = [];
     for (const [key, items] of map.entries()) {
-      // items are ordered newest to oldest from backend
       const sorted = [...items].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
@@ -124,13 +124,32 @@ export default function GalleryPage() {
     );
   }, [snapshots]);
 
-  const toggleGroup = (key: string) => {
+  // Filtrado por búsqueda
+  const filteredGroups = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return groups;
+    return groups.filter(
+      (g) =>
+        g.company.toLowerCase().includes(q) ||
+        g.role.toLowerCase().includes(q) ||
+        g.latest.full_name.toLowerCase().includes(q)
+    );
+  }, [groups, searchQuery]);
+
+  const toggleGroup = (key: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setExpandedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleOpenDraft = async (snapSummary: SnapshotSummary) => {
-    if (dirty && !window.confirm("Tenés cambios sin guardar en el borrador actual. ¿Descartarlos y abrir este CV?")) {
-      return;
+    if (dirty) {
+      const ok = await confirmDialog({
+        title: "¿Descartar cambios?",
+        message: "Tenés cambios sin guardar en el borrador actual. Si continuás, se descartarán.",
+        confirmText: "Descartar",
+        variant: "warning",
+      });
+      if (!ok) return;
     }
 
     try {
@@ -140,7 +159,7 @@ export default function GalleryPage() {
       loadSnapshotDraft(fullSnap);
       router.push(`/editor/${fullSnap.id}`);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Error al abrir CV");
+      toast.error(err instanceof Error ? err.message : "Error al abrir CV");
     }
   };
 
@@ -149,29 +168,46 @@ export default function GalleryPage() {
       router.push("/perfil");
       return;
     }
-    if (dirty && !window.confirm("Tenés cambios sin guardar en el borrador actual. ¿Descartar y crear nuevo CV base?")) {
-      return;
+    if (dirty) {
+      const ok = await confirmDialog({
+        title: "¿Descartar cambios?",
+        message: "Tenés cambios sin guardar en el borrador actual. Si continuás, se descartarán.",
+        confirmText: "Descartar",
+        variant: "warning",
+      });
+      if (!ok) return;
     }
     await startBaseDraft();
     router.push("/editor/nuevo");
   };
 
-  const handleTailorClick = () => {
+  const handleTailorClick = async () => {
     if (profileEmpty) {
       router.push("/perfil");
       return;
     }
-    if (dirty && !window.confirm("Tenés cambios sin guardar en el borrador actual. ¿Descartarlos y adaptar un nuevo CV?")) {
-      return;
+    if (dirty) {
+      const ok = await confirmDialog({
+        title: "¿Descartar cambios?",
+        message: "Tenés cambios sin guardar en el borrador actual. Si continuás, se descartarán para adaptar una nueva versión.",
+        confirmText: "Descartar",
+        variant: "warning",
+      });
+      if (!ok) return;
     }
     setIsTailorOpen(true);
   };
 
   const handleDeleteSnapshot = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm("¿Seguro que querés archivar esta versión de CV? Podrás seguir consultando el linaje histórico si es necesario.")) {
-      return;
-    }
+    const ok = await confirmDialog({
+      title: "¿Archivar versión?",
+      message: "Esta versión se quitará del archivo activo. Podrás seguir consultando el linaje histórico si es necesario.",
+      confirmText: "Archivar",
+      variant: "danger",
+    });
+    if (!ok) return;
+
     try {
       const res = await apiFetch(`${API_BASE_URL}/api/snapshots/${id}`, {
         method: "DELETE",
@@ -184,8 +220,9 @@ export default function GalleryPage() {
         setPreviewSnapshot(null);
         setPreviewSvg("");
       }
+      toast.success("Versión archivada correctamente");
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Error al eliminar versión");
+      toast.error(err instanceof Error ? err.message : "Error al eliminar versión");
     }
   };
 
@@ -200,7 +237,6 @@ export default function GalleryPage() {
       const snap: Snapshot = await res.json();
       setPreviewSnapshot(snap);
 
-      // Pedir render preview de este snapshot
       const renderRes = await apiFetch(`${API_BASE_URL}/api/render/preview`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -211,7 +247,7 @@ export default function GalleryPage() {
         setPreviewSvg(renderData.svg);
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Error al previsualizar snapshot");
+      toast.error(err instanceof Error ? err.message : "Error al previsualizar snapshot");
     } finally {
       setPreviewLoading(false);
     }
@@ -234,277 +270,286 @@ export default function GalleryPage() {
 
   if (!profileInitialized || loading) {
     return (
-      <div className="flex-1 flex flex-col min-h-0 bg-[#09090b] text-zinc-100 items-center justify-center py-24 gap-3">
-        <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
-        <p className="text-xs text-zinc-500 font-mono">Cargando versiones...</p>
+      <div className="flex-1 flex flex-col min-h-0 bg-canvas text-text-primary items-center justify-center py-24 gap-3">
+        <Loader2 className="w-5 h-5 animate-spin text-accent" />
+        <p className="text-xs text-text-muted font-mono">Cargando archivo de versiones...</p>
       </div>
     );
   }
 
   if (profileEmpty && snapshots.length === 0) {
     return (
-      <div className="flex-1 flex flex-col min-h-0 bg-[#09090b] text-zinc-100 items-center justify-center py-24 gap-3">
-        <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
-        <p className="text-xs text-zinc-500 font-mono">Redirigiendo a perfil...</p>
+      <div className="flex-1 flex flex-col min-h-0 bg-canvas text-text-primary items-center justify-center py-24 gap-3">
+        <Loader2 className="w-5 h-5 animate-spin text-accent" />
+        <p className="text-xs text-text-muted font-mono">Redirigiendo a perfil...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[#09090b] text-zinc-100 overflow-y-auto">
-      {/* Header bar */}
-      <div className="max-w-6xl w-full mx-auto px-6 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-white/[0.08]">
-        <div>
-          <h2 className="text-base font-semibold tracking-tight text-zinc-100 flex items-center gap-2">
-            Versiones guardadas
-            <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.08] text-zinc-400">
-              {snapshots.length}
-            </span>
-          </h2>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            Historial de versiones compiladas en Typst. Hacé click para editar o derivar una nueva variante.
-          </p>
-        </div>
+    <div className="flex-1 flex flex-col min-h-0 bg-canvas text-text-primary overflow-y-auto">
+      {/* Header editorial */}
+      <div className="max-w-6xl w-full mx-auto px-6 pt-8 pb-6 border-b border-hairline">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display text-2xl text-text-ivory font-medium tracking-tight">
+              Versiones guardadas
+              <span className="text-sm font-mono text-text-muted font-normal ml-2.5">
+                ({snapshots.length})
+              </span>
+            </h1>
+            <p className="text-xs text-text-secondary mt-1.5 max-w-xl">
+              Registro longitudinal de variantes adaptadas a ofertas laborales y compiladas en Typst.
+            </p>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleNewBaseCv}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-white/[0.08] rounded-md text-xs font-medium transition cursor-pointer"
-            title="Crear un borrador de CV en blanco"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>CV en blanco</span>
-          </button>
-
-          <button
-            onClick={handleTailorClick}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Adaptar a oferta</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Banner Onboarding si el perfil está vacío */}
-      {profileEmpty && (
-        <div className="max-w-6xl w-full mx-auto px-6 pt-6">
-          <div className="p-4 rounded-lg bg-zinc-900/50 border border-white/[0.08] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-start sm:items-center gap-3">
-              <div className="w-7 h-7 rounded-md bg-zinc-800 border border-white/[0.08] text-zinc-300 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
-                <FileText className="w-3.5 h-3.5" />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-zinc-200">
-                  Perfil base incompleto
-                </p>
-                <p className="text-[11px] text-zinc-400">
-                  Cargá tus datos y experiencia base para habilitar la adaptación automática a ofertas.
-                </p>
-              </div>
-            </div>
+          <div className="flex items-center gap-2.5 shrink-0">
             <button
-              onClick={() => router.push("/perfil")}
-              className="px-3 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer self-start sm:self-auto shrink-0"
+              onClick={handleNewBaseCv}
+              className="btn-secondary flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
+              title="Crear un borrador de CV en blanco"
             >
-              Completar perfil
+              <Plus className="w-3.5 h-3.5" />
+              <span>CV en blanco</span>
+            </button>
+
+            <button
+              onClick={handleTailorClick}
+              className="btn-accent flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer shadow-xs"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Adaptar a oferta</span>
             </button>
           </div>
         </div>
-      )}
 
-      {/* Main Grid Content */}
-      <div className="max-w-6xl w-full mx-auto px-6 py-6 flex-1">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 text-zinc-500 text-xs font-mono gap-3">
-            <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
-            <p>Cargando snapshots...</p>
+        {/* Barra de Búsqueda y Filtro */}
+        {snapshots.length > 0 && (
+          <div className="mt-6 flex items-center gap-3">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-3.5 h-3.5 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar por empresa, cargo o variante..."
+                className="w-full bg-surface/70 border border-hairline rounded-lg pl-8 pr-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring font-mono"
+              />
+            </div>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer font-mono"
+              >
+                Limpiar filtro
+              </button>
+            )}
           </div>
-        ) : error ? (
-          <div className="p-3.5 rounded-lg bg-red-950/30 border border-red-500/20 text-red-300 text-xs flex items-center gap-2">
+        )}
+      </div>
+
+      {/* Main Content Area */}
+      <div className="max-w-6xl w-full mx-auto px-6 py-6 flex-1">
+        {error ? (
+          <div className="p-4 rounded-xl bg-danger-subtle border border-danger-border text-danger text-xs flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
-        ) : groups.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-white/[0.08] rounded-xl bg-zinc-950/40 p-8">
-            <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-400 mb-3">
-              <FileText className="w-5 h-5 text-zinc-400" />
+        ) : snapshots.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center border-basting rounded-2xl bg-surface/30 p-8 max-w-lg mx-auto">
+            <div className="w-10 h-10 rounded-full bg-surface-raised border border-hairline flex items-center justify-center text-accent mb-3">
+              <FileText className="w-5 h-5 text-accent" />
             </div>
-            <h3 className="text-xs font-semibold text-zinc-200">No hay versiones guardadas todavía</h3>
-            <p className="text-xs text-zinc-400 max-w-sm mt-1 mb-5">
-              Generá tu primer CV adaptado a una oferta laboral con Typst o abrí el editor base para empezar.
+            <h3 className="font-display text-base text-text-ivory font-medium">
+              El archivo está vacío
+            </h3>
+            <p className="text-xs text-text-secondary mt-1.5 mb-6">
+              Empezá con un CV base o adaptá tu perfil a una oferta de trabajo para compilar la primera versión en Typst.
             </p>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3">
               <button
                 onClick={handleNewBaseCv}
-                className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 rounded-md text-xs font-medium transition cursor-pointer"
+                className="btn-secondary px-3.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
               >
                 Abrir CV base
               </button>
               <button
                 onClick={handleTailorClick}
-                className="px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer"
+                className="btn-accent px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
               >
-                Adaptar oferta
+                Adaptar a oferta
               </button>
             </div>
           </div>
+        ) : filteredGroups.length === 0 ? (
+          <div className="text-center py-16 text-text-muted text-xs font-mono">
+            No se encontraron versiones para &ldquo;{searchQuery}&rdquo;.
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groups.map((group) => {
+          /* Registro Longitudinal (Ledger List) */
+          <div className="border border-hairline rounded-xl bg-surface/40 overflow-hidden divide-y divide-hairline">
+            {/* Cabecera de columnas sutil */}
+            <div className="hidden md:grid md:grid-cols-12 px-6 py-3 bg-surface text-[11px] font-mono text-text-muted select-none">
+              <div className="col-span-5">Destino & Rol</div>
+              <div className="col-span-2">Ajuste ATS</div>
+              <div className="col-span-2">Variante</div>
+              <div className="col-span-2">Última edición</div>
+              <div className="col-span-1 text-right">Acciones</div>
+            </div>
+
+            {/* Filas de Versiones */}
+            {filteredGroups.map((group) => {
               const isExpanded = !!expandedGroups[group.key];
               const latest = group.latest;
+              const hasHistory = group.history.length > 0;
 
               return (
-                <div
-                  key={group.key}
-                  className="flex flex-col bg-zinc-950 border border-white/[0.08] hover:border-white/[0.16] rounded-xl overflow-hidden transition group"
-                >
-                  {/* Card Header & Content */}
+                <div key={group.key} className="transition-colors">
+                  {/* Fila Principal */}
                   <div
                     onClick={() => handleOpenDraft(latest)}
-                    className="p-5 flex-1 cursor-pointer flex flex-col justify-between"
+                    className="px-6 py-4 grid grid-cols-1 md:grid-cols-12 items-center gap-3 md:gap-0 hover:bg-surface-raised/40 cursor-pointer group transition-colors"
                   >
-                    <div>
-                      {/* Top Badges */}
-                      <div className="flex items-center justify-between gap-2 mb-3">
-                        <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono">
-                          <Building className="w-3.5 h-3.5 text-zinc-500" />
-                          <span className="truncate max-w-[130px] font-medium text-zinc-300">
-                            {group.company}
-                          </span>
-                        </div>
-                        {latest.ats_score !== null && (
-                          <div
-                            className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono border ${
-                              latest.ats_score >= 85
-                                ? "bg-emerald-950/30 border-emerald-500/30 text-emerald-400"
-                                : "bg-zinc-900 border-white/[0.08] text-zinc-300"
-                            }`}
+                    {/* Columna Empresa y Rol */}
+                    <div className="col-span-5 min-w-0 pr-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-text-ivory group-hover:text-accent transition-colors truncate">
+                          {group.company}
+                        </span>
+                        {hasHistory && (
+                          <button
+                            type="button"
+                            onClick={(e) => toggleGroup(group.key, e)}
+                            className="inline-flex items-center gap-1 text-[10px] font-mono text-text-muted hover:text-text-primary px-1.5 py-0.5 rounded hover:bg-surface transition-colors cursor-pointer"
+                            title="Ver versiones previas"
                           >
-                            <Target className="w-3 h-3" />
-                            <span className="tabular-nums">ATS {latest.ats_score}%</span>
-                          </div>
+                            <GitBranch className="w-3 h-3 text-text-muted" />
+                            <span>+{group.history.length}</span>
+                            {isExpanded ? (
+                              <ChevronDown className="w-3 h-3" />
+                            ) : (
+                              <ChevronRight className="w-3 h-3" />
+                            )}
+                          </button>
                         )}
                       </div>
-
-                      {/* Main Role Title */}
-                      <h3 className="text-xs font-semibold text-zinc-100 group-hover:text-white transition flex items-center justify-between">
-                        <span className="truncate">{group.role}</span>
-                        <ChevronRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-300 transition shrink-0 ml-1" />
-                      </h3>
-
-                      <p className="text-[11px] text-zinc-500 mt-1 line-clamp-1 font-mono">
-                        {latest.full_name}
+                      <p className="text-xs text-text-secondary truncate mt-0.5 font-mono">
+                        {group.role}
                       </p>
                     </div>
 
-                    {/* Metadata footer inside card */}
-                    <div className="pt-4 mt-4 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-zinc-500">
-                      <div className="flex items-center gap-1.5 tabular-nums">
-                        <Clock className="w-3 h-3 text-zinc-600" />
-                        <span>{formatDate(latest.created_at)}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <span className="uppercase text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.08] text-zinc-400">
-                          {latest.lang}
-                        </span>
-                        <span className="capitalize text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.08] text-zinc-400">
-                          {latest.theme}
-                        </span>
-                      </div>
+                    {/* Columna Score ATS */}
+                    <div className="col-span-2">
+                      {latest.ats_score !== null ? (
+                        <div className="flex items-center gap-1.5 text-xs font-mono tabular-nums">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              latest.ats_score >= 85
+                                ? "bg-green-text"
+                                : latest.ats_score >= 70
+                                ? "bg-warning"
+                                : "bg-text-muted"
+                            }`}
+                          />
+                          <span
+                            className={
+                              latest.ats_score >= 85
+                                ? "text-green-text font-medium"
+                                : latest.ats_score >= 70
+                                ? "text-warning font-medium"
+                                : "text-text-secondary"
+                            }
+                          >
+                            ATS {latest.ats_score}%
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs font-mono text-text-muted">— Base</span>
+                      )}
                     </div>
-                  </div>
 
-                  {/* Card Bottom Actions */}
-                  <div className="px-5 py-2.5 bg-zinc-900/40 border-t border-white/[0.06] flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-3">
+                    {/* Columna Variante (Idioma / Tema) */}
+                    <div className="col-span-2 text-xs font-mono text-text-muted">
+                      <span className="uppercase text-text-secondary">{latest.lang}</span>
+                      <span className="mx-1 text-text-muted/60">·</span>
+                      <span className="capitalize">{latest.theme}</span>
+                    </div>
+
+                    {/* Columna Fecha */}
+                    <div className="col-span-2 text-xs font-mono text-text-muted tabular-nums">
+                      {formatDate(latest.created_at)}
+                    </div>
+
+                    {/* Columna Acciones */}
+                    <div className="col-span-1 flex items-center justify-end gap-1.5">
                       <button
+                        type="button"
                         onClick={(e) => handleOpenPreview(latest.id, e)}
-                        className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 transition text-[11px]"
-                        title="Previsualizar CV"
+                        className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-surface transition-colors cursor-pointer"
+                        title="Previsualizar documento"
                       >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Preview</span>
+                        <Eye className="w-4 h-4" />
                       </button>
                       <button
+                        type="button"
                         onClick={(e) => handleDeleteSnapshot(latest.id, e)}
-                        className="flex items-center gap-1 text-zinc-500 hover:text-rose-400 transition text-[11px]"
-                        title="Archivar esta versión de CV"
+                        className="p-1.5 rounded-md text-text-muted hover:text-danger hover:bg-danger-subtle transition-colors cursor-pointer"
+                        title="Archivar versión"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Archivar</span>
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-
-                    {group.history.length > 0 && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleGroup(group.key);
-                        }}
-                        className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 transition text-[11px] font-mono"
-                      >
-                        <GitBranch className="w-3 h-3 text-zinc-500" />
-                        <span>
-                          {group.history.length === 1
-                            ? "1 anterior"
-                            : `${group.history.length} anteriores`}
-                        </span>
-                        {isExpanded ? (
-                          <ChevronDown className="w-3 h-3" />
-                        ) : (
-                          <ChevronRight className="w-3 h-3" />
-                        )}
-                      </button>
-                    )}
                   </div>
 
-                  {/* History Dropdown / Fork lineage */}
-                  {isExpanded && group.history.length > 0 && (
-                    <div className="bg-zinc-950 border-t border-white/[0.06] p-3 space-y-1 text-xs font-mono">
-                      <div className="text-[10px] text-zinc-500 px-2 py-0.5 font-medium">
-                        Versiones anteriores
-                      </div>
+                  {/* Linaje histórico (Sub-filas de versiones previas) */}
+                  {isExpanded && hasHistory && (
+                    <div className="bg-surface/50 border-t border-hairline/60 pl-8 pr-6 py-2 divide-y divide-hairline/40">
                       {group.history.map((hSnap) => (
                         <div
                           key={hSnap.id}
-                          className="flex items-center justify-between p-2 rounded-md hover:bg-zinc-900 transition group/item"
+                          onClick={() => handleOpenDraft(hSnap)}
+                          className="py-2.5 grid grid-cols-1 md:grid-cols-12 items-center text-xs font-mono hover:bg-surface-raised/30 transition-colors cursor-pointer group/history"
                         >
-                          <div
-                            onClick={() => handleOpenDraft(hSnap)}
-                            className="flex-1 cursor-pointer flex flex-col"
-                          >
-                            <span className="text-[11px] text-zinc-300 group-hover/item:text-white transition">
-                              {formatDate(hSnap.created_at)}
+                          <div className="col-span-5 flex items-center gap-2 pl-2">
+                            <span className="text-text-muted text-[10px]">↳</span>
+                            <span className="text-text-secondary group-hover/history:text-text-ivory transition-colors">
+                              {hSnap.role}
                             </span>
-                            <span className="text-[10px] text-zinc-500 tabular-nums">
-                              {hSnap.id} {hSnap.parent_id ? `← ${hSnap.parent_id}` : ""}
+                            <span className="text-[10px] text-text-muted font-mono">
+                              ({hSnap.id})
                             </span>
                           </div>
-
-                          <div className="flex items-center gap-1.5">
+                          <div className="col-span-2">
+                            {hSnap.ats_score !== null ? (
+                              <span className="text-text-muted tabular-nums">
+                                ATS {hSnap.ats_score}%
+                              </span>
+                            ) : (
+                              <span className="text-text-muted">—</span>
+                            )}
+                          </div>
+                          <div className="col-span-2 text-text-muted">
+                            <span className="uppercase">{hSnap.lang}</span> · {hSnap.theme}
+                          </div>
+                          <div className="col-span-2 text-text-muted tabular-nums">
+                            {formatDate(hSnap.created_at)}
+                          </div>
+                          <div className="col-span-1 flex items-center justify-end gap-1">
                             <button
+                              type="button"
                               onClick={(e) => handleOpenPreview(hSnap.id, e)}
-                              className="p-1 hover:text-zinc-200 text-zinc-500 transition"
-                              title="Previsualizar esta versión"
+                              className="p-1 text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+                              title="Previsualizar"
                             >
                               <Eye className="w-3.5 h-3.5" />
                             </button>
                             <button
+                              type="button"
                               onClick={(e) => handleDeleteSnapshot(hSnap.id, e)}
-                              className="p-1 hover:text-rose-400 text-zinc-500 transition"
-                              title="Archivar esta versión histórica"
+                              className="p-1 text-text-muted hover:text-danger transition-colors cursor-pointer"
+                              title="Archivar"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleOpenDraft(hSnap)}
-                              className="p-1 hover:text-zinc-200 text-zinc-500 transition"
-                              title="Abrir para editar"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
@@ -518,7 +563,7 @@ export default function GalleryPage() {
         )}
       </div>
 
-      {/* Tailor Modal */}
+      {/* Modal Tailor */}
       <TailorModal
         isOpen={isTailorOpen}
         onClose={() => setIsTailorOpen(false)}
@@ -530,20 +575,19 @@ export default function GalleryPage() {
 
       {/* Preview Modal Dialog */}
       {previewSnapshot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs animate-in fade-in duration-100">
-          <div className="relative w-full max-w-4xl h-[90vh] bg-zinc-950 border border-white/[0.08] rounded-xl shadow-2xl flex flex-col overflow-hidden">
-            {/* Modal Header */}
-            <div className="h-12 px-5 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-zinc-900/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/85 backdrop-blur-xs animate-in fade-in duration-100">
+          <div className="relative w-full max-w-4xl h-[90vh] bg-surface border border-hairline rounded-xl shadow-lg flex flex-col overflow-hidden">
+            <div className="h-12 px-5 border-b border-hairline flex items-center justify-between shrink-0 bg-surface-raised">
               <div className="flex items-center gap-3">
-                <FileText className="w-4 h-4 text-zinc-400" />
+                <FileText className="w-4 h-4 text-text-muted" />
                 <div>
-                  <h3 className="text-xs font-semibold text-zinc-100 flex items-center gap-2">
-                    {previewSnapshot.role || "CV Base"} · {previewSnapshot.company || "General"}
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-white/[0.08] text-zinc-400">
-                      {previewSnapshot.id}
+                  <h3 className="font-display text-sm text-text-ivory font-medium flex items-center gap-1.5">
+                    <span>{previewSnapshot.role || "CV Base"} · {previewSnapshot.company || "General"}</span>
+                    <span className="text-[11px] font-mono text-text-muted font-normal">
+                      ({previewSnapshot.id})
                     </span>
                   </h3>
-                  <p className="text-[10px] font-mono text-zinc-500 tabular-nums">
+                  <p className="text-[10px] font-mono text-text-muted tabular-nums">
                     {formatDate(previewSnapshot.created_at)} · {previewSnapshot.pdf_sha256.slice(0, 10)}
                   </p>
                 </div>
@@ -556,22 +600,21 @@ export default function GalleryPage() {
                     setPreviewSnapshot(null);
                     handleOpenDraft(snap as unknown as SnapshotSummary);
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer"
+                  className="btn-accent flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>Editar versión</span>
                 </button>
                 <button
                   onClick={() => setPreviewSnapshot(null)}
-                  className="px-2.5 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+                  className="px-2.5 py-1.5 text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer"
                 >
                   Cerrar
                 </button>
               </div>
             </div>
 
-            {/* Modal Body: CV Typst SVG preview */}
-            <div className="flex-1 p-4 overflow-hidden flex flex-col bg-[#09090b]">
+            <div className="flex-1 p-4 overflow-hidden flex flex-col bg-canvas">
               <CvPreview svg={previewSvg} loading={previewLoading} />
             </div>
           </div>

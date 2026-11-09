@@ -16,7 +16,9 @@ client = TestClient(app)
 @pytest.fixture
 def snapshots_dir(tmp_path: Path, monkeypatch) -> Path:
     target = tmp_path / "snapshots"
+    target.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr("back.api.routes.export.SNAPSHOTS_DIR", target)
+    monkeypatch.setenv("CVT_SNAPSHOTS_DIR", str(target))
     return target
 
 

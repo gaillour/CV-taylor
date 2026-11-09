@@ -78,10 +78,10 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         onClick={() => !importing && fileInputRef.current?.click()}
-        className={`relative border border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition select-none ${
+        className={`relative border-basting rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition select-none ${
           isDragging
-            ? "border-zinc-400 bg-zinc-900/80"
-            : "border-white/[0.1] hover:border-white/[0.2] bg-zinc-950/60 hover:bg-zinc-900/30"
+            ? "bg-accent-subtle border-accent"
+            : "bg-surface hover:bg-surface-raised/60"
         } ${importing ? "pointer-events-none opacity-80" : ""}`}
       >
         <input
@@ -95,37 +95,37 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
 
         {importing ? (
           <div className="flex flex-col items-center justify-center py-4 space-y-2.5">
-            <Loader2 className="w-6 h-6 animate-spin text-zinc-300" />
+            <Loader2 className="w-6 h-6 animate-spin text-accent" />
             <div className="space-y-0.5">
-              <p className="text-xs font-semibold text-zinc-100">
+              <p className="text-xs font-medium text-text-ivory">
                 Procesando currículum...
               </p>
-              <p className="text-[11px] text-zinc-400">
+              <p className="text-[11px] text-text-secondary">
                 Extrayendo experiencia, logros y habilidades.
               </p>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-2 space-y-3">
-            <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300">
-              <UploadCloud className="w-5 h-5 text-zinc-400" />
+            <div className="w-10 h-10 rounded-lg bg-surface-raised border border-hairline flex items-center justify-center text-accent">
+              <UploadCloud className="w-5 h-5 text-accent" />
             </div>
 
             <div className="space-y-1">
-              <p className="text-xs font-medium text-zinc-200">
+              <p className="text-xs font-medium text-text-ivory">
                 Hacé click para seleccionar o arrastrá tu CV
               </p>
-              <p className="text-[11px] text-zinc-500 font-mono">
+              <p className="text-[11px] text-text-muted font-mono">
                 Archivos .pdf o .txt (hasta 5 MB)
               </p>
             </div>
 
-            <div className="flex items-center gap-2 pt-1 text-[10px] font-mono text-zinc-400">
-              <span className="flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded border border-white/[0.06]">
-                <FileText className="w-3 h-3 text-zinc-500" />
+            <div className="flex items-center gap-2 pt-1 text-[10px] font-mono text-text-secondary">
+              <span className="flex items-center gap-1 bg-surface-raised px-2 py-0.5 rounded border border-hairline">
+                <FileText className="w-3 h-3 text-text-muted" />
                 1 o 2 columnas
               </span>
-              <span className="bg-zinc-900 px-2 py-0.5 rounded border border-white/[0.06]">
+              <span className="bg-surface-raised px-2 py-0.5 rounded border border-hairline">
                 Estructuración asistida
               </span>
             </div>
@@ -135,21 +135,21 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
         {/* Source language selector toggle */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className="mt-4 pt-3 border-t border-white/[0.06] w-full flex items-center justify-between text-xs text-zinc-400 px-2 font-mono"
+          className="mt-4 pt-3 border-t border-hairline w-full flex items-center justify-between text-xs text-text-muted px-2 font-mono"
         >
           <div className="flex items-center gap-1.5 text-[11px]">
-            <Languages className="w-3 h-3 text-zinc-500" />
+            <Languages className="w-3 h-3 text-text-muted" />
             <span>Idioma del CV:</span>
           </div>
-          <div className="inline-flex rounded-md bg-zinc-900 p-0.5 border border-white/[0.08] text-[10px]">
+          <div className="inline-flex rounded-md bg-surface-raised p-0.5 border border-hairline text-[10px]">
             <button
               type="button"
               disabled={importing}
               onClick={() => setSourceLang("auto")}
-              className={`px-2 py-0.5 rounded transition cursor-pointer ${
+              className={`px-2 py-0.5 rounded transition-colors cursor-pointer ${
                 sourceLang === "auto"
-                  ? "bg-zinc-800 text-zinc-100 font-medium border border-white/[0.06]"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-surface text-text-ivory font-medium border border-hairline shadow-xs"
+                  : "text-text-secondary hover:text-text-primary"
               }`}
             >
               Auto
@@ -158,10 +158,10 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
               type="button"
               disabled={importing}
               onClick={() => setSourceLang("es")}
-              className={`px-2 py-0.5 rounded transition cursor-pointer ${
+              className={`px-2 py-0.5 rounded transition-colors cursor-pointer ${
                 sourceLang === "es"
-                  ? "bg-zinc-800 text-zinc-100 font-medium border border-white/[0.06]"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-surface text-text-ivory font-medium border border-hairline shadow-xs"
+                  : "text-text-secondary hover:text-text-primary"
               }`}
             >
               ES
@@ -170,10 +170,10 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
               type="button"
               disabled={importing}
               onClick={() => setSourceLang("en")}
-              className={`px-2 py-0.5 rounded transition cursor-pointer ${
+              className={`px-2 py-0.5 rounded transition-colors cursor-pointer ${
                 sourceLang === "en"
-                  ? "bg-zinc-800 text-zinc-100 font-medium border border-white/[0.06]"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-surface text-text-ivory font-medium border border-hairline shadow-xs"
+                  : "text-text-secondary hover:text-text-primary"
               }`}
             >
               EN
@@ -183,8 +183,8 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
       </div>
 
       {lastImportInfo?.translatedToBase && (
-        <div className="mt-3 p-3 rounded-md bg-zinc-900 border border-white/[0.08] text-zinc-300 text-xs flex items-center gap-2 font-mono text-[11px]">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+        <div className="mt-3 p-3 rounded-md bg-surface border border-hairline text-text-primary text-xs flex items-center gap-2 font-mono text-[11px]">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-green-text" />
           <span>
             CV detectado en <strong>{lastImportInfo.detectedLang === "en" ? "inglés" : "español"}</strong> y traducido al idioma base ({profile?.base_lang?.toUpperCase() || "ES"}).
           </span>
@@ -192,8 +192,8 @@ export function CvDropzone({ onSuccess, className = "" }: CvDropzoneProps) {
       )}
 
       {displayError && (
-        <div className="mt-3 p-2.5 rounded-md bg-rose-950/40 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2 font-mono text-[11px]">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+        <div className="mt-3 p-2.5 rounded-md bg-danger-subtle border border-danger-border text-danger text-xs flex items-center gap-2 font-mono text-[11px]">
+          <AlertCircle className="w-4 h-4 shrink-0 text-danger" />
           <span>{displayError}</span>
         </div>
       )}

@@ -30,12 +30,33 @@ def is_profile_empty(profile: Profile) -> bool:
     return not profile.full_name.strip() and len(profile.entries) == 0 and len(profile.skills) == 0
 
 
+def get_out_dir() -> Path:
+    """Return the active output directory, falling back to /tmp if unwritable."""
+    custom_dir = os.getenv("CVT_OUT_DIR")
+    if custom_dir:
+        p = Path(custom_dir)
+        p.mkdir(parents=True, exist_ok=True)
+        return p
+
+    default_dir = DEFAULT_OUT_DIR
+    try:
+        default_dir.mkdir(parents=True, exist_ok=True)
+        test_file = default_dir / ".write_test"
+        test_file.touch(exist_ok=True)
+        test_file.unlink(missing_ok=True)
+        return default_dir
+    except (OSError, PermissionError):
+        fallback = Path("/tmp/cv-tailor/out")
+        fallback.mkdir(parents=True, exist_ok=True)
+        return fallback
+
+
 def get_profile_path() -> Path:
     """Return the active master profile path, respecting ENV override if provided."""
     custom_path = os.getenv("CVT_PROFILE_PATH")
     if custom_path:
         return Path(custom_path)
-    return DEFAULT_OUT_DIR / DEFAULT_PROFILE_FILENAME
+    return get_out_dir() / DEFAULT_PROFILE_FILENAME
 
 
 def seed_profile_if_missing(

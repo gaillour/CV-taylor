@@ -38,7 +38,7 @@ export function CvEditor() {
 
   if (!renderModel) {
     return (
-      <div className="flex items-center justify-center h-48 text-zinc-500 text-xs">
+      <div className="flex items-center justify-center h-48 text-text-muted text-xs">
         Cargando perfil...
       </div>
     );
@@ -51,7 +51,7 @@ export function CvEditor() {
   const headerSection = {
     key: "header",
     title: "Datos de Contacto",
-    icon: <User className="w-4 h-4 text-cyan-400" />,
+    icon: <User className="w-4 h-4 text-text-muted" />,
     badge: renderModel.full_name,
     component: (
       <HeaderSection
@@ -109,7 +109,7 @@ export function CvEditor() {
     experience: {
       key: "experience",
       title: "Experiencia Laboral",
-      icon: <Briefcase className="w-4 h-4 text-emerald-400" />,
+      icon: <Briefcase className="w-4 h-4 text-text-muted" />,
       badge: `${renderModel.experience.filter((e) => e.selected !== false).length}/${renderModel.experience.length}`,
       component: (
         <ExperienceSection
@@ -123,7 +123,7 @@ export function CvEditor() {
     projects: {
       key: "projects",
       title: "Proyectos Destacados",
-      icon: <FolderGit2 className="w-4 h-4 text-blue-400" />,
+      icon: <FolderGit2 className="w-4 h-4 text-text-muted" />,
       badge: `${renderModel.projects.filter((e) => e.selected !== false).length}/${renderModel.projects.length}`,
       component: (
         <ProjectsSection
@@ -137,7 +137,7 @@ export function CvEditor() {
     skills: {
       key: "skills",
       title: "Habilidades Técnicas",
-      icon: <Wrench className="w-4 h-4 text-amber-400" />,
+      icon: <Wrench className="w-4 h-4 text-text-muted" />,
       badge: `${renderModel.skills.length}`,
       component: (
         <SkillsSection
@@ -151,7 +151,7 @@ export function CvEditor() {
     summary: {
       key: "summary",
       title: "Resumen Profesional",
-      icon: <FileText className="w-4 h-4 text-purple-400" />,
+      icon: <FileText className="w-4 h-4 text-text-muted" />,
       badge: !isSummaryIncluded
         ? "Excluido"
         : renderModel.summary
@@ -171,7 +171,7 @@ export function CvEditor() {
     education: {
       key: "education",
       title: "Educación",
-      icon: <GraduationCap className="w-4 h-4 text-indigo-400" />,
+      icon: <GraduationCap className="w-4 h-4 text-text-muted" />,
       badge: `${renderModel.education.filter((e) => e.selected !== false).length}/${renderModel.education.length}`,
       component: (
         <EducationSection
@@ -202,22 +202,22 @@ export function CvEditor() {
   return (
     <div className="space-y-3 pb-6">
       {/* Header Fijo de Contacto */}
-      <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 overflow-hidden transition">
+      <div className="rounded-xl border border-hairline bg-surface/60 overflow-hidden transition-colors">
         <button
           type="button"
           onClick={() => toggleSection(headerSection.key)}
-          className="w-full flex items-center justify-between p-3.5 hover:bg-zinc-900/50 transition select-none text-left cursor-pointer"
+          className="w-full flex items-center justify-between p-3.5 hover:bg-surface-raised/50 transition-colors select-none text-left cursor-pointer"
         >
           <div className="flex items-center gap-2.5">
             {headerSection.icon}
-            <span className="text-xs font-semibold text-zinc-200">{headerSection.title}</span>
+            <span className="text-xs font-medium text-text-ivory">{headerSection.title}</span>
             {headerSection.badge && (
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
-                {headerSection.badge}
+              <span className="text-[11px] font-mono text-text-muted font-normal truncate max-w-[160px]">
+                · {headerSection.badge}
               </span>
             )}
           </div>
-          <div className="text-zinc-500">
+          <div className="text-text-muted">
             {openSections[headerSection.key] ? (
               <ChevronUp className="w-4 h-4" />
             ) : (
@@ -227,7 +227,7 @@ export function CvEditor() {
         </button>
 
         {openSections[headerSection.key] && (
-          <div className="p-3.5 pt-3 border-t border-zinc-800/40">
+          <div className="p-3.5 pt-3 border-t border-hairline">
             {headerSection.component}
           </div>
         )}
@@ -245,28 +245,28 @@ export function CvEditor() {
         return (
           <div
             key={key}
-            className={`rounded-xl border transition overflow-hidden ${
+            className={`rounded-xl border transition-colors overflow-hidden ${
               isSectionExcluded
-                ? "border-dashed border-zinc-800 bg-zinc-950/40 opacity-80"
-                : "border-zinc-800/80 bg-zinc-950/60"
+                ? "border-dashed border-hairline bg-surface/30 opacity-70"
+                : "border-hairline bg-surface/60"
             }`}
           >
             <div
               onClick={() => toggleSection(key)}
-              className="w-full flex items-center justify-between p-3.5 hover:bg-zinc-900/50 transition select-none cursor-pointer"
+              className="w-full flex items-center justify-between p-3.5 hover:bg-surface-raised/50 transition-colors select-none cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 {sec.icon}
-                <span className="text-xs font-semibold text-zinc-200">{sec.title}</span>
+                <span className="text-xs font-medium text-text-ivory">{sec.title}</span>
                 {sec.badge && (
                   <span
-                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                    className={`text-[11px] font-mono tabular-nums ${
                       isSectionExcluded
-                        ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
-                        : "bg-zinc-900 border-zinc-800 text-zinc-400"
+                        ? "text-warning"
+                        : "text-text-muted"
                     }`}
                   >
-                    {sec.badge}
+                    ({sec.badge})
                   </span>
                 )}
               </div>
@@ -281,7 +281,7 @@ export function CvEditor() {
                     title={isSectionExcluded ? "Sección excluida del orden del CV" : "Subir sección en el CV"}
                     disabled={isSectionExcluded || isFirst}
                     onClick={(e) => moveSection(key, "up", e)}
-                    className="p-1 rounded hover:bg-zinc-800 disabled:opacity-20 text-zinc-400 hover:text-zinc-200 transition cursor-pointer disabled:cursor-not-allowed"
+                    className="p-1 rounded hover:bg-surface-raised disabled:opacity-20 text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:cursor-not-allowed"
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
                   </button>
@@ -290,20 +290,20 @@ export function CvEditor() {
                     title={isSectionExcluded ? "Sección excluida del orden del CV" : "Bajar sección en el CV"}
                     disabled={isSectionExcluded || isLast}
                     onClick={(e) => moveSection(key, "down", e)}
-                    className="p-1 rounded hover:bg-zinc-800 disabled:opacity-20 text-zinc-400 hover:text-zinc-200 transition cursor-pointer disabled:cursor-not-allowed"
+                    className="p-1 rounded hover:bg-surface-raised disabled:opacity-20 text-text-muted hover:text-text-primary transition-colors cursor-pointer disabled:cursor-not-allowed"
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                <div className="text-zinc-500 pl-1 border-l border-zinc-800/60">
+                <div className="text-text-muted pl-1 border-l border-hairline">
                   {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </div>
               </div>
             </div>
 
             {isOpen && (
-              <div className="p-3.5 pt-3 border-t border-zinc-800/40">
+              <div className="p-3.5 pt-3 border-t border-hairline">
                 {sec.component}
               </div>
             )}
@@ -312,13 +312,13 @@ export function CvEditor() {
       })}
 
       {/* Density Control Slider */}
-      <div className="p-4 bg-zinc-900/40 border border-zinc-800/60 rounded-xl space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-medium text-zinc-300 flex items-center gap-1.5">
-            <Sliders className="w-3.5 h-3.5 text-zinc-400" />
+      <div className="p-4 bg-surface-raised/40 border border-hairline rounded-xl space-y-2">
+        <div className="flex items-center justify-between text-xs font-mono">
+          <span className="font-medium text-text-secondary flex items-center gap-1.5">
+            <Sliders className="w-3.5 h-3.5 text-text-muted" />
             Densidad Tipográfica
           </span>
-          <span className="font-mono text-zinc-400">
+          <span className="text-text-muted">
             d={renderModel.design.density.toFixed(2)}
           </span>
         </div>
@@ -341,9 +341,9 @@ export function CvEditor() {
               80
             );
           }}
-          className="w-full accent-emerald-500 cursor-pointer"
+          className="w-full accent-[var(--accent)] cursor-pointer"
         />
-        <div className="flex justify-between text-[10px] text-zinc-500">
+        <div className="flex justify-between text-[10px] text-text-muted font-mono">
           <span>0.0 (Relajado)</span>
           <span>Tope Confortable (0.35)</span>
         </div>

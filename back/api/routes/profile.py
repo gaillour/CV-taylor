@@ -288,7 +288,11 @@ async def import_master_profile(
             translator,
             reverse_map=reverse_map if reverse_map else None,
         )
-        repo.save_mirror(mirror_doc)
+        try:
+            repo.save_mirror(mirror_doc)
+        except Exception:
+            # Fallback defensively: importing shouldn't fail solely because of mirror persistence
+            failed = True
         mirror_status: MirrorStatus = "partial" if failed else "ok"
 
         return ImportProfileResponse(

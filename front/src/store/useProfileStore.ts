@@ -144,8 +144,12 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   error: null,
 
   setViewLang: async (lang) => {
+    const { profile, mirror, dirty } = get();
+    // No permitir cambiar al espejo derivado si hay cambios sin guardar
+    if (profile && lang !== profile.base_lang && dirty) {
+      return;
+    }
     set({ viewLang: lang });
-    const { profile, mirror } = get();
     if (profile && lang !== profile.base_lang && !mirror) {
       await get().loadMirror();
     }
