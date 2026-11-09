@@ -1,11 +1,44 @@
 # TODO.md — Roadmap Operativo (`cv-tailor`)
 
-- [ ] Saca lo de scrollea para...
 
-- [ ] Diseñar el onboarding, di va a ser desde la landing o que ( / -> /onboarding -> /login) o como
+## P0 — Onboarding Anónimo & Conversión (ver `docs/Onboarding.md`)
 
+- [x] Diseñar el onboarding.
 
-## P0 — Infraestructura, Despliegue & Landing Page
+### Paso 0 — Contrato en `main` (antes de abrir worktrees)
+
+- [x] Definir schemas de endpoints anónimos (parse/render) y de cuota de adaptaciones en `back/engine/models.py` + stubs en `front/src/lib/api.ts` y tipos en `front/src/types/cv.ts`.
+- [x] Crear util compartida de borrador local (`front/src/lib/draft.ts`: clave, `save/load/clear`, acción pendiente).
+- [x] Extraer tiers de pricing a módulo reusable SSOT (`front/src/lib/pricing.ts`).
+
+### WS-A — Backend (`back/`, `supabase/`)
+
+- [x] Habilitar parsing y render PDF para anónimos.
+- [x] Rate-limit de parsing anónimo por IP (~3/día).
+- [x] Migración `004_` + endpoint de cuota de adaptaciones IA por cuenta (2 free); bloquear la 3ª con error tipado.
+
+### WS-B — Landing & Login (`components/landing/`, `app/page.tsx`, `app/login/`)
+
+- [x] Dropzone PDF/TXT en Hero con microcopy "Sin cuenta…", link GitHub, CTA "o empezá de cero" y mensaje de PDF gratis ilimitado. Al parsear: `draft.save` → `/editor`.
+- [x] `id="pricing"` en `PricingSection` + link "Pricing" en `LandingNav`; extraer tiers a un módulo reusable.
+- [x] Redirect de usuario autenticado `/` → `/editor`.
+- [x] Login: soportar `?next=&action=` y restyle con estética de la landing.
+
+### WS-C — Editor & App (`app/editor/`, `components/nav/`)
+
+- [x] Fix visor de PDF en carga inicial (delay/congelamiento al entrar por primera vez; hoy requiere forzar cambio de densidad). Bloquea el primer impacto del anónimo.
+- [x] Modo anónimo: cargar/persistir borrador vía `draft.ts`; gatear Guardar / snapshots / Adaptar IA → redirect a login.
+- [x] Post-login: migración borrador → Supabase (silenciosa o modal reemplazar/descartar), limpieza local y ejecución de acción pendiente.
+- [x] Contador "N adaptaciones restantes", link "Ver planes" en `AppSidebar` y paywall modal (reusa tiers de WS-B).
+
+### Post-merge
+
+- [ ] Test E2E del flujo completo: landing → parsing → editor anónimo → login → migración → paywall.
+- [ ] Definir proveedor de checkout del Pase.
+
+---
+
+## Base Concluida — Infraestructura, Despliegue & Landing Page
 
 - [x] **Dockerfile Backend (FastAPI):**
   - [x] Crear Dockerfile multi-stage con Python 3.12 y `uv`.
@@ -32,12 +65,8 @@
 
 ## P1 — Bugs Críticos de UX en Editor
 
-- [ ] **Fix visor de PDF en carga inicial (`/editor/[id]`):**
-  - [ ] Resolver delay/congelamiento del visor al entrar por primera vez (actualmente requiere forzar cambio de densidad u otro trigger de estado para despabilar el render).
 - [ ] **Fix detección de foto/avatar en recomendación de template:**
   - [ ] Corregir la condición en el editor que sigue sugiriendo "se debería usar con foto" aunque el perfil ya tenga un avatar cargado (evitando que requiera un guardado manual para ocultarse).
-- [ ] **Login:**
-  - [ ] Definir si se va a poder usar sin loguearse y como. Actualizar login, que siga el estilo de la landing.
 
 
 ---
@@ -62,6 +91,8 @@
   - [ ] Refactor de cards, modales, botones y micro-interacciones de la app interna alineadas con la estética de la landing.
 - [ ] **Reacomodación del Dashboard (`/cvs`):**
   - [ ] Definir UX de creación de CVs en estado vacío (botón unificado con prompt vs doble botón base/adaptado).
+- [ ] **Copy de landing:**
+  - [ ] Sacar textos tipo "scrolleá para ver…" (`TheMirrorSection`, `VersionTimelineSection`, `WorkflowSection`, `LandingNav`).
 
 ---
 
