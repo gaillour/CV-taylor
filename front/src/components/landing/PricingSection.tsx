@@ -3,66 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
-import { PricingTier } from "./types";
 import { ScrollReveal } from "./ScrollReveal";
 import { BastingStitchDivider } from "./TailoringIcons";
-
-const tiers: PricingTier[] = [
-  {
-    id: "free",
-    name: "Comunidad",
-    tagline: "Para quienes priorizan privacidad, control local y código abierto.",
-    price: "$0",
-    periodLabel: "Gratis para siempre",
-    ctaText: "Comenzar Gratis",
-    ctaHref: "/cvs",
-    features: [
-      "Perfil Maestro completo",
-      "Descargas en PDF de 1 página exacta",
-      "2 adaptaciones de prueba a ofertas",
-      "Código auditable y open source",
-    ],
-  },
-  {
-    id: "pass",
-    name: "Pase Búsqueda Activa",
-    badge: "Recomendado",
-    tagline: "Para postularte con seguridad durante tus meses de búsqueda laboral activa.",
-    price: "$9",
-    periodLabel: "USD • Pago único por 90 días",
-    isPopular: true,
-    ctaText: "Obtener Pase Activo",
-    ctaHref: "/cvs",
-    features: [
-      "Todo lo incluido en Comunidad",
-      "Adaptaciones ilimitadas a vacantes",
-      "Alineación de requisitos y keywords",
-      "Historial de versiones y snapshots",
-      "Sin renovaciones ni cobros automáticos",
-    ],
-  },
-  {
-    id: "lifetime",
-    name: "Early Adopter",
-    badge: "Cupo Limitado",
-    tagline: "Para quienes quieren acceso vitalicio y acompañar el crecimiento del proyecto.",
-    price: "$29",
-    periodLabel: "USD • Acceso vitalicio de por vida",
-    ctaText: "Acceso Lifetime",
-    ctaHref: "/cvs",
-    features: [
-      "Acceso vitalicio completo a la plataforma",
-      "Adaptaciones ilimitadas para siempre",
-      "Catálogo completo de plantillas Typst",
-      "Soporte prioritario y contacto directo",
-      "Acceso prioritario a nuevas plantillas",
-    ],
-  },
-];
+import { PRICING_TIERS as tiers } from "@/lib/pricing";
 
 export function PricingSection() {
   return (
-    <section id="tarifas" className="py-24 border-b border-[var(--border-hairline)] bg-[var(--bg-surface)]">
+    <section id="pricing" className="py-24 border-b border-[var(--border-hairline)] bg-[var(--bg-surface)]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Cabecera */}

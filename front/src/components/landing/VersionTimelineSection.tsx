@@ -20,7 +20,7 @@ interface VersionLevel {
 const levels: VersionLevel[] = [
   {
     id: "v1",
-    tag: "V1",
+    tag: "Versión 1",
     label: "Base",
     kicker: "Tu Archivo Maestro",
     summary: "Cargás toda tu historia una sola vez. Tu experiencia completa sin recortes.",
@@ -36,7 +36,7 @@ const levels: VersionLevel[] = [
   },
   {
     id: "v2",
-    tag: "V2",
+    tag: "Versión 2",
     label: "Junior",
     kicker: "Primeros Pasos",
     summary: "Foco en proyectos personales, fundamentos sólidos y velocidad de aprendizaje.",
@@ -52,7 +52,7 @@ const levels: VersionLevel[] = [
   },
   {
     id: "v3",
-    tag: "V3",
+    tag: "Versión 3",
     label: "Semi Senior",
     kicker: "Impacto & Autonomía",
     summary: "Foco en resultados concretos, métricas de rendimiento y autonomía técnica.",
@@ -68,7 +68,7 @@ const levels: VersionLevel[] = [
   },
   {
     id: "v4",
-    tag: "V4",
+    tag: "Versión 4",
     label: "Senior",
     kicker: "Liderazgo & Arquitectura",
     summary: "Foco en decisiones de diseño a escala, dirección técnica y visión estratégica.",
@@ -167,11 +167,11 @@ export function VersionTimelineSection() {
 
             {/* Número de Versión GIGANTE */}
             <div className="flex items-baseline justify-center lg:justify-start gap-3">
-              <span className="font-display text-7xl sm:text-9xl lg:text-[110px] font-black text-[var(--accent)] leading-none tracking-tighter select-none">
+              <span className="font-display text-4xl sm:text-6xl lg:text-7xl font-black text-[var(--accent)] leading-none tracking-tighter select-none">
                 {current.tag}
               </span>
               <div className="text-left">
-                <span className="text-xl sm:text-3xl font-display font-bold text-[var(--text-primary)] block">
+                <span className="text-xl sm:text-2xl font-display font-bold text-[var(--text-primary)] block">
                   {current.label}
                 </span>
                 <span className="text-xs font-mono text-[var(--accent)] uppercase tracking-wider font-semibold">

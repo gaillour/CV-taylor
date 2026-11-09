@@ -285,11 +285,18 @@ export async function signUpWithPassword(
   return { session: null, user, confirmationRequired: true };
 }
 
-export async function signInWithOAuth(provider: "github" | "google"): Promise<void> {
+export async function signInWithOAuth(
+  provider: "github" | "google",
+  customRedirectTo?: string
+): Promise<void> {
   if (typeof window === "undefined") return;
   await ensureSupabaseConfigLoaded();
   if (!isSupabaseConfigured()) return;
-  const redirectTo = `${window.location.origin}/login`;
+  const redirectTo =
+    customRedirectTo ||
+    (window.location.search
+      ? `${window.location.origin}/login${window.location.search}`
+      : `${window.location.origin}/login`);
   const url = `${runtimeUrl}/auth/v1/authorize?provider=${encodeURIComponent(
     provider
   )}&redirect_to=${encodeURIComponent(redirectTo)}`;

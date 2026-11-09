@@ -36,6 +36,16 @@ export function LandingNav() {
     return () => target.removeEventListener("scroll", onScroll);
   }, []);
 
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.location.hash = id;
+    }
+  };
+
   return (
     <header
       className={`sticky top-0 z-50 backdrop-blur-md bg-[var(--bg-canvas)]/85 border-b border-[var(--border-hairline)] transition-transform duration-300 ${
@@ -56,17 +66,33 @@ export function LandingNav() {
 
         {/* Enlaces de navegación */}
         <nav className="hidden md:flex items-center gap-8 text-xs font-medium tracking-wider uppercase text-[var(--text-secondary)]">
-          <a href="#metodo" className="hover:text-[var(--text-primary)] transition-colors">
+          <a
+            href="#metodo"
+            onClick={(e) => scrollToSection(e, "metodo")}
+            className="hover:text-[var(--text-primary)] transition-colors"
+          >
             Método
           </a>
-          <a href="#the-mirror" className="hover:text-[var(--text-primary)] transition-colors">
+          <a
+            href="#the-mirror"
+            onClick={(e) => scrollToSection(e, "the-mirror")}
+            className="hover:text-[var(--text-primary)] transition-colors"
+          >
             The Mirror
           </a>
-          <a href="#versiones" className="hover:text-[var(--text-primary)] transition-colors">
+          <a
+            href="#versiones"
+            onClick={(e) => scrollToSection(e, "versiones")}
+            className="hover:text-[var(--text-primary)] transition-colors"
+          >
             Versiones
           </a>
-          <a href="#tarifas" className="hover:text-[var(--text-primary)] transition-colors">
-            Tarifas
+          <a
+            href="#pricing"
+            onClick={(e) => scrollToSection(e, "pricing")}
+            className="hover:text-[var(--text-primary)] transition-colors"
+          >
+            Pricing
           </a>
         </nav>
 
