@@ -352,3 +352,39 @@ export interface ATSEvaluateResponse {
   keyword_matches: string[];
   keyword_gaps: string[];
 }
+
+export interface AnonymousParseResponse {
+  profile: Profile;
+  source_lang: string;
+  detected_lang: LangCode;
+}
+
+export interface AnonymousPreviewRequest {
+  render_model: RenderModel;
+}
+
+export interface AnonymousPreviewResponse {
+  svg: string;
+  fit_report: FitReport;
+  render_model: RenderModel;
+}
+
+export interface AnonymousExportPdfRequest {
+  render_model: RenderModel;
+  role?: string | null;
+}
+
+export interface TailorQuotaResponse {
+  used_count: number;
+  limit: number;
+  has_active_pass: boolean;
+  can_tailor: boolean;
+}
+
+export interface QuotaExceededErrorResponse {
+  code: "QUOTA_EXCEEDED";
+  detail: string;
+  used_count: number;
+  limit: number;
+}
+

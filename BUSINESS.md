@@ -37,8 +37,8 @@ Supera el modelo predatorio de suscripciones semanales/mensuales con cobros tran
 
 | Nivel | Precio | Alcance |
 |---|---|---|
-| **Free (Generoso)** | $0 | Perfil maestro completo, edición reactiva, descargas PDF ilimitadas y 2 adaptaciones IA de prueba. |
-| **Pase Búsqueda Activa** | $9 - $12 USD *(Pago único, 60-90 días)* | Adaptaciones IA ilimitadas contra ofertas, todas las plantillas y snapshots infinitos. Sin cobros automáticos sorpresivos. |
+| **Free (Generoso)** | $0 | Perfil maestro completo, edición reactiva, todas las plantillas, snapshots ilimitados, descargas PDF ilimitadas (sin cuenta) y 2 adaptaciones IA de prueba. |
+| **Pase Búsqueda Activa** | $9 - $12 USD *(Pago único, 60-90 días)* | Adaptaciones IA ilimitadas contra ofertas. Sin cobros automáticos sorpresivos. |
 | **Early Adopters (Lifetime)** | $29 - $39 USD *(Pago único de por vida)* | Cupo limitado (primeros 100-200 usuarios) para capitalización inicial y conformación de la base de evangelizadores. |
 
 ---
