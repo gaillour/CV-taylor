@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Protocol
@@ -13,9 +14,10 @@ from fastapi import Depends
 
 from back.api.auth import UserContext, get_current_user, get_supabase_config
 from back.engine.mirror import ProfileMirror
-from back.engine.models import Fact, Profile
+from back.engine.models import Fact, Profile, TailorQuotaResponse
 from back.engine.profile_store import (
     create_empty_profile,
+    get_out_dir,
     get_profile_path,
     load_profile,
     save_profile,
@@ -28,6 +30,20 @@ DEFAULT_SNAPSHOTS_BUCKET = "cv-snapshots"
 DEFAULT_SNAPSHOTS_DIR = Path("out/snapshots")
 DEFAULT_AVATARS_BUCKET = "avatars"
 DEFAULT_AVATARS_DIR = Path("out/avatars")
+
+
+def get_snapshots_dir() -> Path:
+    custom = os.getenv("CVT_SNAPSHOTS_DIR")
+    if custom:
+        return Path(custom)
+    return get_out_dir() / "snapshots"
+
+
+def get_avatars_dir() -> Path:
+    custom = os.getenv("CVT_AVATARS_DIR")
+    if custom:
+        return Path(custom)
+    return get_out_dir() / "avatars"
 
 
 class SnapshotSummaryDict(dict):
@@ -68,6 +84,10 @@ class StorageRepository(Protocol):
 
     def delete_avatar(self) -> None: ...
 
+    def get_tailor_quota(self) -> TailorQuotaResponse: ...
+
+    def increment_tailor_usage(self) -> TailorQuotaResponse: ...
+
 
 class LocalStorageRepository:
     """Local filesystem repository.
@@ -79,7 +99,7 @@ class LocalStorageRepository:
 
     @property
     def snapshots_dir(self) -> Path:
-        return self._snapshots_dir or DEFAULT_SNAPSHOTS_DIR
+        return self._snapshots_dir or get_snapshots_dir()
 
     @snapshots_dir.setter
     def snapshots_dir(self, val: Path | None) -> None:
@@ -207,11 +227,12 @@ class LocalStorageRepository:
         return now_iso
 
     def save_avatar(self, content: bytes, extension: str = "jpg") -> str:
-        DEFAULT_AVATARS_DIR.mkdir(parents=True, exist_ok=True)
+        avatars_dir = get_avatars_dir()
+        avatars_dir.mkdir(parents=True, exist_ok=True)
         content_hash = hashlib.sha256(content).hexdigest()[:16]
         ext = extension.lstrip(".") or "jpg"
         filename = f"{content_hash}.{ext}"
-        target = DEFAULT_AVATARS_DIR / filename
+        target = avatars_dir / filename
         target.write_bytes(content)
         return f"/api/avatars/{filename}"
 
@@ -219,6 +240,54 @@ class LocalStorageRepository:
         prof = self.get_profile()
         prof.contact.photo_url = None
         self.save_profile(prof)
+
+    def _tailor_quota_path(self) -> Path:
+        target = self.profile_path or get_profile_path()
+        return target.parent / "tailor_quota.json"
+
+    def get_tailor_quota(self) -> TailorQuotaResponse:
+        path = self._tailor_quota_path()
+        if not path.is_file():
+            return TailorQuotaResponse(
+                used_count=0,
+                limit=2,
+                has_active_pass=False,
+                can_tailor=True,
+            )
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            used = int(raw.get("used_count", 0))
+            has_pass = bool(raw.get("has_active_pass", False))
+            return TailorQuotaResponse(
+                used_count=used,
+                limit=2,
+                has_active_pass=has_pass,
+                can_tailor=has_pass or (used < 2),
+            )
+        except Exception:
+            return TailorQuotaResponse(
+                used_count=0,
+                limit=2,
+                has_active_pass=False,
+                can_tailor=True,
+            )
+
+    def increment_tailor_usage(self) -> TailorQuotaResponse:
+        quota = self.get_tailor_quota()
+        new_count = quota.used_count + 1
+        path = self._tailor_quota_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        data = {
+            "used_count": new_count,
+            "has_active_pass": quota.has_active_pass,
+        }
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        return TailorQuotaResponse(
+            used_count=new_count,
+            limit=quota.limit,
+            has_active_pass=quota.has_active_pass,
+            can_tailor=quota.has_active_pass or (new_count < quota.limit),
+        )
 
 
 class SupabaseStorageRepository:
@@ -522,6 +591,90 @@ class SupabaseStorageRepository:
         prof = self.get_profile()
         prof.contact.photo_url = None
         self.save_profile(prof)
+
+    def get_tailor_quota(self) -> TailorQuotaResponse:
+        with httpx.Client(timeout=15.0, transport=self.transport) as client:
+            res = client.get(
+                f"{self.url}/rest/v1/tailor_quotas",
+                params={
+                    "user_id": f"eq.{self.user_id}",
+                    "select": "used_count,has_active_pass,pass_expires_at",
+                },
+                headers=self._headers(),
+            )
+        if res.status_code == 400 and ("42P01" in res.text or "PGRST205" in res.text):
+            # Tabla tailor_quotas no existe aún en la base de datos (migración pendiente)
+            return TailorQuotaResponse(
+                used_count=0,
+                limit=2,
+                has_active_pass=False,
+                can_tailor=True,
+            )
+        if res.status_code != 200:
+            raise RuntimeError(
+                f"Error al cargar cuota de Supabase ({res.status_code}): {res.text}"
+            )
+        rows = res.json()
+        if not rows:
+            return TailorQuotaResponse(
+                used_count=0,
+                limit=2,
+                has_active_pass=False,
+                can_tailor=True,
+            )
+        row = rows[0]
+        used = int(row.get("used_count", 0))
+        has_pass = bool(row.get("has_active_pass", False))
+        pass_expires_at = row.get("pass_expires_at")
+        if pass_expires_at and has_pass:
+            try:
+                exp = datetime.fromisoformat(pass_expires_at)
+                if exp < datetime.now(UTC):
+                    has_pass = False
+            except Exception:
+                pass
+        return TailorQuotaResponse(
+            used_count=used,
+            limit=2,
+            has_active_pass=has_pass,
+            can_tailor=has_pass or (used < 2),
+        )
+
+    def increment_tailor_usage(self) -> TailorQuotaResponse:
+        current = self.get_tailor_quota()
+        new_count = current.used_count + 1
+        payload = {
+            "user_id": self.user_id,
+            "used_count": new_count,
+            "updated_at": datetime.now(UTC).isoformat(),
+        }
+        with httpx.Client(timeout=15.0, transport=self.transport) as client:
+            res = client.post(
+                f"{self.url}/rest/v1/tailor_quotas",
+                params={"on_conflict": "user_id"},
+                headers=self._headers(
+                    {"Prefer": "resolution=merge-duplicates,return=representation"}
+                ),
+                json=payload,
+            )
+        if res.status_code in (400, 404) and ("42P01" in res.text or "PGRST205" in res.text):
+            # Fallback tolerante si la tabla aún no se migró
+            return TailorQuotaResponse(
+                used_count=new_count,
+                limit=2,
+                has_active_pass=current.has_active_pass,
+                can_tailor=current.has_active_pass or (new_count < 2),
+            )
+        if res.status_code not in (200, 201):
+            raise RuntimeError(
+                f"Error al actualizar cuota en Supabase ({res.status_code}): {res.text}"
+            )
+        return TailorQuotaResponse(
+            used_count=new_count,
+            limit=2,
+            has_active_pass=current.has_active_pass,
+            can_tailor=current.has_active_pass or (new_count < 2),
+        )
 
 
 _STORAGE_REPO: StorageRepository | None = None

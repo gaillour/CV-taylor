@@ -5,17 +5,19 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from back.api.auth import router as auth_router
+from back.api.routes.anonymous import router as anonymous_router
 from back.api.routes.ats import router as ats_router
 from back.api.routes.export import router as export_router
 from back.api.routes.profile import router as profile_router
 from back.api.routes.render import router as render_router
 from back.api.routes.snapshots import router as snapshots_router
 from back.api.routes.tailor import router as tailor_router
+from back.engine.storage import get_avatars_dir
 
 app = FastAPI(
     title="Taylor API",
@@ -56,7 +58,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    import logging
+
+    logging.getLogger("uvicorn.error").error(
+        f"Unhandled error at {request.method} {request.url.path}: {exc}", exc_info=True
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc)},
+    )
+
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
+app.include_router(anonymous_router, prefix="/api/anonymous", tags=["anonymous"])
 app.include_router(profile_router, prefix="/api/profile", tags=["profile"])
 app.include_router(render_router, prefix="/api/render", tags=["render"])
 app.include_router(tailor_router, prefix="/api/tailor", tags=["tailor"])
@@ -75,8 +91,12 @@ def health_check() -> dict[str, str]:
 def get_avatar(filename: str) -> FileResponse:
     """Serve uploaded avatar images in local development mode."""
     safe_name = Path(filename).name
-    avatar_path = Path("out/avatars") / safe_name
+    avatar_path = get_avatars_dir() / safe_name
     if not avatar_path.is_file():
-        raise HTTPException(status_code=404, detail="Avatar not found")
+        legacy_path = Path("out/avatars") / safe_name
+        if legacy_path.is_file():
+            avatar_path = legacy_path
+        else:
+            raise HTTPException(status_code=404, detail="Avatar not found")
     media_type = "image/png" if safe_name.endswith(".png") else "image/jpeg"
     return FileResponse(avatar_path, media_type=media_type)

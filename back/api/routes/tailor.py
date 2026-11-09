@@ -5,8 +5,10 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from back.api.auth import UserContext, get_current_user
 from back.engine import (
     FitReport,
     JobSpec,
@@ -17,11 +19,25 @@ from back.engine import (
     extract_job_spec,
 )
 from back.engine.mirror import build_mirror, resolve_profile
-from back.engine.models import LangCode, ThemeName
+from back.engine.models import (
+    LangCode,
+    QuotaExceededErrorResponse,
+    TailorQuotaResponse,
+    ThemeName,
+)
 from back.engine.storage import StorageRepository, get_repo_for_user
 from back.engine.translator import LLMTranslator
 
 router = APIRouter()
+
+
+@router.get("/quota", response_model=TailorQuotaResponse)
+def get_tailor_quota(
+    repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
+    _user: Annotated[UserContext, Depends(get_current_user)],
+) -> TailorQuotaResponse:
+    """Check AI tailor quota usage and pass eligibility."""
+    return repo.get_tailor_quota()
 
 
 class TailorRequest(BaseModel):
@@ -60,12 +76,29 @@ class TailorResponse(BaseModel):
     iterations_performed: int
 
 
-@router.post("", response_model=TailorResponse)
+@router.post(
+    "",
+    response_model=TailorResponse,
+    responses={402: {"model": QuotaExceededErrorResponse}},
+)
 def tailor_cv(
     payload: TailorRequest,
     repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
-) -> TailorResponse:
+    _user: Annotated[UserContext, Depends(get_current_user)],
+) -> TailorResponse | JSONResponse:
     """Adapt candidate profile to job offer with ATS feedback loop and 1-page fit."""
+    quota = repo.get_tailor_quota()
+    if not quota.can_tailor:
+        return JSONResponse(
+            status_code=402,
+            content=QuotaExceededErrorResponse(
+                code="QUOTA_EXCEEDED",
+                detail="Límite de adaptaciones gratuitas alcanzado. Requiere Pase.",
+                used_count=quota.used_count,
+                limit=quota.limit,
+            ).model_dump(mode="json"),
+        )
+
     try:
         # 1. Configure LLM client if requested
         llm_client: LLMClient | None = None
@@ -110,6 +143,8 @@ def tailor_cv(
 
         svg = result.svg_content or ""
         ats = result.ats_report
+
+        repo.increment_tailor_usage()
 
         return TailorResponse(
             render_model=result.render_model,
