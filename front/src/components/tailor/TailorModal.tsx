@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useCvStore } from "@/store/useCvStore";
+import { usePaywallStore } from "@/store/usePaywallStore";
 import { ThemeName, LangCode, TailorResponse, THEMES_REGISTRY } from "@/types/cv";
 import {
   SlidersHorizontal,
@@ -63,8 +64,20 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
       });
       clearInterval(stepInterval);
       setLastResult(res);
-    } catch {
+    } catch (err: unknown) {
       clearInterval(stepInterval);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (
+        errMsg.includes("402") ||
+        errMsg.includes("QUOTA_EXCEEDED") ||
+        errMsg.toLowerCase().includes("cuota") ||
+        errMsg.toLowerCase().includes("límite")
+      ) {
+        onClose();
+        usePaywallStore.getState().openPaywall(
+          "Alcanzaste el límite de 2 adaptaciones IA de prueba."
+        );
+      }
     }
   };
 
@@ -77,22 +90,22 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xs animate-in fade-in duration-100">
-      <div className="relative w-full max-w-2xl bg-zinc-950 border border-white/[0.08] rounded-xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas/85 backdrop-blur-xs animate-in fade-in duration-100">
+      <div className="relative w-full max-w-2xl bg-surface border border-hairline rounded-xl shadow-lg flex flex-col overflow-hidden max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.08] bg-zinc-900/40">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-hairline bg-surface-raised">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-md bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300">
+            <div className="w-7 h-7 rounded-md bg-surface border border-hairline flex items-center justify-center text-accent">
               <SlidersHorizontal className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h3 className="text-xs font-semibold text-zinc-100 flex items-center gap-2">
+              <h3 className="font-display text-sm font-medium text-text-ivory flex items-center gap-2">
                 Adaptar CV a oferta laboral
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-white/[0.08]">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface text-text-muted border border-hairline">
                   pipeline
                 </span>
               </h3>
-              <p className="text-[11px] text-zinc-400 mt-0.5">
+              <p className="text-[11px] text-text-secondary mt-0.5">
                 Alinea viñetas, keywords y calibra la tipografía a 1 página exacta en Typst
               </p>
             </div>
@@ -100,7 +113,7 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
           <button
             onClick={handleClose}
             disabled={tailorLoading}
-            className="p-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60 transition disabled:opacity-40 cursor-pointer"
+            className="p-1 rounded-md text-text-muted hover:text-text-primary hover:bg-surface transition-colors disabled:opacity-40 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -109,11 +122,11 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
         {/* Content body */}
         <div className="p-5 overflow-y-auto space-y-4">
           {tailorError && (
-            <div className="flex items-start gap-2.5 p-3 rounded-lg bg-red-950/30 border border-red-500/20 text-red-200 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
+            <div className="flex items-start gap-2.5 p-3 rounded-lg bg-danger-subtle border border-danger-border text-danger text-xs font-mono">
+              <AlertCircle className="w-4 h-4 shrink-0 text-danger mt-0.5" />
               <div>
-                <p className="font-medium text-red-300">Error durante la adaptación</p>
-                <p className="mt-0.5 text-zinc-300">{tailorError}</p>
+                <p className="font-medium text-danger">Error durante la adaptación</p>
+                <p className="mt-0.5 text-text-secondary">{tailorError}</p>
               </div>
             </div>
           )}
@@ -121,16 +134,16 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
           {/* Stepper / Loading Animation */}
           {tailorLoading && (
             <div className="py-10 px-4 flex flex-col items-center justify-center text-center space-y-5">
-              <Loader2 className="w-6 h-6 animate-spin text-zinc-300" />
+              <Loader2 className="w-6 h-6 animate-spin text-accent" />
               <div className="space-y-2 max-w-md w-full">
-                <p className="text-xs font-mono text-zinc-300">{STEPS[currentStep]}</p>
-                <div className="w-full bg-zinc-900 rounded-full h-1 overflow-hidden border border-white/[0.06]">
+                <p className="text-xs font-mono text-text-primary">{STEPS[currentStep]}</p>
+                <div className="w-full bg-surface-raised rounded-full h-1 overflow-hidden border border-hairline">
                   <div
-                    className="bg-zinc-200 h-full transition-all duration-300"
+                    className="bg-accent h-full transition-all duration-300"
                     style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
                   />
                 </div>
-                <p className="text-[10px] text-zinc-500 font-mono">
+                <p className="text-[10px] text-text-muted font-mono">
                   Pipeline determinista + fitting de página Typst
                 </p>
               </div>
@@ -140,39 +153,39 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
           {/* Result view */}
           {!tailorLoading && lastResult && (
             <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-zinc-900/50 border border-white/[0.08] space-y-3 font-mono text-xs">
+              <div className="p-4 rounded-lg bg-surface-raised/40 border border-hairline space-y-3 font-mono text-xs">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-zinc-200 font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <div className="flex items-center gap-1.5 text-text-primary font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-green-text" />
                     <span>Adaptación completada</span>
                   </div>
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-900 border border-white/[0.08] text-zinc-300 text-[11px] tabular-nums">
-                    <Target className="w-3 h-3 text-zinc-400" />
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface border border-hairline text-text-primary text-[11px] tabular-nums">
+                    <Target className="w-3 h-3 text-text-muted" />
                     <span>ATS: {lastResult.ats_score}%</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-1 text-[11px]">
-                  <div className="flex items-center gap-2 text-zinc-300">
-                    <Briefcase className="w-3.5 h-3.5 text-zinc-500" />
-                    <span className="text-zinc-500">Rol:</span>
-                    <span className="text-zinc-200 truncate">{lastResult.job_spec.role || "General"}</span>
+                  <div className="flex items-center gap-2 text-text-secondary">
+                    <Briefcase className="w-3.5 h-3.5 text-text-muted" />
+                    <span className="text-text-muted">Rol:</span>
+                    <span className="text-text-primary truncate">{lastResult.job_spec.role || "General"}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-zinc-300">
-                    <Building2 className="w-3.5 h-3.5 text-zinc-500" />
-                    <span className="text-zinc-500">Empresa:</span>
-                    <span className="text-zinc-200 truncate">{lastResult.job_spec.company || "Confidencial"}</span>
+                  <div className="flex items-center gap-2 text-text-secondary">
+                    <Building2 className="w-3.5 h-3.5 text-text-muted" />
+                    <span className="text-text-muted">Empresa:</span>
+                    <span className="text-text-primary truncate">{lastResult.job_spec.company || "Confidencial"}</span>
                   </div>
                 </div>
 
                 {lastResult.keyword_matches.length > 0 && (
-                  <div className="pt-2 border-t border-white/[0.06]">
-                    <p className="text-[10px] text-zinc-500 mb-1.5 font-medium">Keywords detectadas:</p>
+                  <div className="pt-2 border-t border-hairline">
+                    <p className="text-[10px] text-text-muted mb-1.5 font-medium">Keywords detectadas:</p>
                     <div className="flex flex-wrap gap-1">
                       {lastResult.keyword_matches.map((kw) => (
                         <span
                           key={kw}
-                          className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-950 border border-white/[0.08] text-zinc-300 font-mono"
+                          className="px-1.5 py-0.5 rounded text-[10px] bg-surface border border-hairline text-text-primary font-mono"
                         >
                           {kw}
                         </span>
@@ -181,10 +194,10 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-2 border-t border-white/[0.06] text-[10px] text-zinc-400 tabular-nums">
+                <div className="flex items-center justify-between pt-2 border-t border-hairline text-[10px] text-text-muted tabular-nums">
                   <span>Llenado A4: {lastResult.fit_report.fill_pct.toFixed(1)}% ({lastResult.fit_report.pages} pág)</span>
-                  <span className="text-zinc-300 flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-text-primary flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-green-text" />
                     Fidelidad fáctica: 100%
                   </span>
                 </div>
@@ -194,7 +207,7 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5"
+                  className="btn-accent px-4 py-1.5 rounded text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   <span>Abrir en editor</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -207,7 +220,7 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
           {!tailorLoading && !lastResult && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                <label className="block text-xs font-medium text-text-secondary mb-1.5">
                   Descripción o requisitos de la oferta
                 </label>
                 <textarea
@@ -215,7 +228,7 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
                   onChange={(e) => setOfferText(e.target.value)}
                   placeholder="Pegá los requisitos técnicos, responsabilidades y stack solicitado..."
                   rows={8}
-                  className="w-full bg-zinc-900/60 border border-white/[0.08] rounded-lg p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 transition font-mono resize-none leading-relaxed"
+                  className="w-full bg-canvas border-basting rounded-lg p-3 text-xs text-text-primary placeholder:text-text-muted focus-ring transition font-mono resize-none leading-relaxed"
                   autoFocus
                 />
               </div>
@@ -223,24 +236,24 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
               {/* Theme & Language Selectors */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">
+                  <label className="block text-xs font-medium text-text-secondary mb-1">
                     Template Typst
                   </label>
                   <select
                     value={selectedTheme}
                     onChange={(e) => setSelectedTheme(e.target.value as ThemeName)}
-                    className="w-full bg-zinc-900 border border-white/[0.08] rounded-md px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-500 cursor-pointer"
+                    className="w-full bg-canvas border border-hairline rounded-md px-2.5 py-1.5 text-xs text-text-primary focus-ring cursor-pointer font-mono"
                   >
-                    <optgroup label="── ATS Strict ──" className="bg-zinc-900 text-zinc-400">
+                    <optgroup label="── ATS Strict ──" className="bg-surface text-text-muted">
                       {THEMES_REGISTRY.filter((t) => t.category === "ats").map((t) => (
-                        <option key={t.id} value={t.id} className="bg-zinc-900 text-zinc-200">
+                        <option key={t.id} value={t.id} className="bg-surface text-text-primary">
                           {t.label}
                         </option>
                       ))}
                     </optgroup>
-                    <optgroup label="── Visual / Con Foto ──" className="bg-zinc-900 text-zinc-400">
+                    <optgroup label="── Visual / Con Foto ──" className="bg-surface text-text-muted">
                       {THEMES_REGISTRY.filter((t) => t.category === "visual").map((t) => (
-                        <option key={t.id} value={t.id} className="bg-zinc-900 text-zinc-200">
+                        <option key={t.id} value={t.id} className="bg-surface text-text-primary">
                           {t.label} (Foto)
                         </option>
                       ))}
@@ -249,17 +262,17 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">
+                  <label className="block text-xs font-medium text-text-secondary mb-1">
                     Idioma
                   </label>
-                  <div className="grid grid-cols-2 gap-1 bg-zinc-900 border border-white/[0.08] rounded-md p-0.5">
+                  <div className="grid grid-cols-2 gap-1 bg-canvas border border-hairline rounded-md p-0.5 font-mono">
                     <button
                       type="button"
                       onClick={() => setSelectedLang("es")}
-                      className={`py-1 px-2 rounded text-xs font-medium transition cursor-pointer ${
+                      className={`py-1 px-2 rounded text-xs font-medium transition-colors cursor-pointer ${
                         selectedLang === "es"
-                          ? "bg-zinc-800 text-zinc-100 border border-white/[0.08]"
-                          : "text-zinc-400 hover:text-zinc-200"
+                          ? "bg-surface-raised text-text-ivory border border-hairline shadow-xs"
+                          : "text-text-secondary hover:text-text-primary"
                       }`}
                     >
                       Español
@@ -267,10 +280,10 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
                     <button
                       type="button"
                       onClick={() => setSelectedLang("en")}
-                      className={`py-1 px-2 rounded text-xs font-medium transition cursor-pointer ${
+                      className={`py-1 px-2 rounded text-xs font-medium transition-colors cursor-pointer ${
                         selectedLang === "en"
-                          ? "bg-zinc-800 text-zinc-100 border border-white/[0.08]"
-                          : "text-zinc-400 hover:text-zinc-200"
+                          ? "bg-surface-raised text-text-ivory border border-hairline shadow-xs"
+                          : "text-text-secondary hover:text-text-primary"
                       }`}
                     >
                       Inglés
@@ -280,19 +293,19 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
               </div>
 
               {/* Fast mode toggle */}
-              <div className="p-3 rounded-lg bg-zinc-900/40 border border-white/[0.08] flex items-center justify-between">
+              <div className="p-3 rounded-lg bg-surface-raised/40 border border-hairline flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-md bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-zinc-300">
-                    <Zap className="w-3 h-3" />
+                  <div className="w-6 h-6 rounded-md bg-surface border border-hairline flex items-center justify-center text-accent">
+                    <Zap className="w-3 h-3 text-accent" />
                   </div>
                   <div>
                     <label
                       htmlFor="no-llm-toggle"
-                      className="text-xs font-medium text-zinc-200 cursor-pointer block"
+                      className="text-xs font-medium text-text-primary cursor-pointer block"
                     >
                       Modo local sin LLM (determinista)
                     </label>
-                    <p className="text-[11px] text-zinc-500">
+                    <p className="text-[11px] text-text-muted">
                       Adaptación heurística en ~30ms sin llamadas externas
                     </p>
                   </div>
@@ -302,27 +315,27 @@ export function TailorModal({ isOpen, onClose, onSuccess }: TailorModalProps) {
                   type="checkbox"
                   checked={noLlm}
                   onChange={(e) => setNoLlm(e.target.checked)}
-                  className="w-4 h-4 accent-zinc-200 rounded cursor-pointer"
+                  className="w-4 h-4 accent-[var(--accent)] rounded cursor-pointer"
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.08]">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-hairline">
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
+                  className="btn-secondary px-3 py-1.5 text-xs rounded transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={!offerText.trim() || offerText.trim().length < 10}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-zinc-100 hover:bg-white disabled:bg-zinc-900 disabled:text-zinc-600 text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer disabled:cursor-not-allowed"
+                  className="btn-accent flex items-center gap-1.5 px-3.5 py-1.5 rounded text-xs font-medium transition-colors cursor-pointer shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {tailorLoading ? (
                     <>
-                      <Loader2 className="w-3 h-3 animate-spin text-zinc-950" />
+                      <Loader2 className="w-3 h-3 animate-spin text-accent-contrast" />
                       <span>Adaptando...</span>
                     </>
                   ) : (

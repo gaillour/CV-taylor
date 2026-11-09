@@ -4,6 +4,9 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCvStore } from "@/store/useCvStore";
 import { Download, Save, CheckCircle2, AlertCircle, X, RotateCcw, Loader2 } from "lucide-react";
+import { confirmDialog } from "@/store/useConfirmStore";
+import { getStoredSession } from "@/lib/supabase";
+import { savePendingAction } from "@/lib/draft";
 
 interface ToastNotification {
   type: "success" | "error";
@@ -27,15 +30,16 @@ export function ExportActions() {
 
   const handleDiscard = async () => {
     if (!dirty) return;
-    if (
-      !window.confirm(
-        draftParentId
-          ? "¿Descartar los cambios no guardados y volver a la versión original?"
-          : "¿Descartar el borrador y volver a la galería?"
-      )
-    ) {
-      return;
-    }
+    const ok = await confirmDialog({
+      title: "¿Descartar cambios?",
+      message: draftParentId
+        ? "¿Descartar los cambios no guardados y volver a la versión original de este CV?"
+        : "¿Descartar el borrador y volver al archivo de versiones?",
+      confirmText: "Descartar",
+      variant: "warning",
+    });
+    if (!ok) return;
+
     await revertDraft();
     if (!draftParentId) {
       router.replace("/cvs");
@@ -72,6 +76,15 @@ export function ExportActions() {
 
   const handleSaveSnapshot = async () => {
     if (!renderModel) return;
+
+    // Si el usuario no está autenticado, gatear guardado a la nube
+    const hasAuth = Boolean(getStoredSession()?.access_token);
+    if (!hasAuth) {
+      savePendingAction("save");
+      router.push("/login?next=/editor&action=save");
+      return;
+    }
+
     try {
       const result = await saveSnapshot();
       router.replace(`/editor/${result.id}`);
@@ -100,7 +113,7 @@ export function ExportActions() {
                 ? "Revertir cambios a la versión guardada"
                 : "Descartar borrador y volver a la galería"
             }
-            className="flex items-center gap-1 px-2.5 py-1 bg-zinc-900/60 hover:bg-rose-950/30 text-zinc-400 hover:text-rose-300 border border-white/[0.08] rounded-md text-xs font-medium transition cursor-pointer"
+            className="btn-secondary flex items-center gap-1 px-2.5 py-1 text-text-muted hover:text-danger rounded text-xs font-medium transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3 h-3" />
             <span>Descartar</span>
@@ -112,12 +125,12 @@ export function ExportActions() {
           onClick={handleSaveSnapshot}
           disabled={savingSnapshot || !renderModel}
           title="Guardar versión inmutable con hash SHA-256"
-          className="flex items-center gap-1 px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-white/[0.08] rounded-md text-xs font-medium transition cursor-pointer disabled:opacity-50"
+          className="btn-secondary flex items-center gap-1 px-2.5 py-1 text-text-secondary hover:text-text-primary rounded text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
         >
           {savingSnapshot ? (
-            <Loader2 className="w-3 h-3 animate-spin text-zinc-400" />
+            <Loader2 className="w-3 h-3 animate-spin text-text-muted" />
           ) : (
-            <Save className="w-3 h-3 text-zinc-400" />
+            <Save className="w-3 h-3 text-text-muted" />
           )}
           <span>{savingSnapshot ? "Guardando..." : "Guardar"}</span>
         </button>
@@ -127,10 +140,10 @@ export function ExportActions() {
           onClick={handleDownloadPdf}
           disabled={exportingPdf || !renderModel}
           title="Descargar PDF compilado por Typst"
-          className="flex items-center gap-1.5 px-3 py-1 bg-zinc-100 hover:bg-white text-zinc-950 rounded-md text-xs font-medium transition cursor-pointer disabled:opacity-50"
+          className="btn-accent flex items-center gap-1.5 px-3.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer shadow-xs disabled:opacity-50"
         >
           {exportingPdf ? (
-            <Loader2 className="w-3 h-3 animate-spin text-zinc-950" />
+            <Loader2 className="w-3 h-3 animate-spin text-accent-contrast" />
           ) : (
             <Download className="w-3 h-3" />
           )}
@@ -140,24 +153,24 @@ export function ExportActions() {
 
       {/* Floating Toast */}
       {toast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-3 py-1.5 rounded-md border border-white/[0.08] bg-zinc-950/95 backdrop-blur-md shadow-2xl text-xs text-zinc-200 transition-all select-none">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-3 py-1.5 rounded-md border border-hairline bg-surface/95 backdrop-blur-md shadow-sm text-xs text-text-primary transition-colors select-none">
           {toast.type === "success" ? (
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-green-text shrink-0" />
           ) : (
-            <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+            <AlertCircle className="w-3.5 h-3.5 text-danger shrink-0" />
           )}
 
           <span className="font-mono text-xs">{toast.title}</span>
 
           {toast.badge && (
-            <span className="font-mono text-[10px] text-zinc-400 bg-zinc-900 px-1.5 py-0.5 rounded border border-white/[0.08]">
+            <span className="font-mono text-[10px] text-text-muted bg-surface-raised px-1.5 py-0.5 rounded border border-hairline">
               {toast.badge}
             </span>
           )}
 
           <button
             onClick={() => setToast(null)}
-            className="text-zinc-500 hover:text-zinc-300 ml-1 p-0.5 rounded hover:bg-zinc-800 transition cursor-pointer"
+            className="text-text-muted hover:text-text-primary ml-1 p-0.5 rounded hover:bg-surface-raised transition-colors cursor-pointer"
             title="Cerrar notificación"
           >
             <X className="w-3 h-3" />

@@ -14,7 +14,10 @@ import {
   UpsertBulletFactResponse,
 } from "@/types/cv";
 import { useProfileStore } from "@/store/useProfileStore";
-import { API_BASE_URL, apiFetch } from "@/lib/api";
+import { API_BASE_URL, apiFetch, exportAnonymousPdf, previewAnonymousCv } from "@/lib/api";
+import { getStoredSession } from "@/lib/supabase";
+import { saveDraft } from "@/lib/draft";
+import { renderModelToProfile } from "@/lib/profileTransform";
 
 export { API_BASE_URL };
 
@@ -57,6 +60,7 @@ interface CvState {
   exportPdf: () => Promise<void>;
   saveSnapshot: () => Promise<ExportSnapshotResponse>;
   loadSnapshotDraft: (snapshot: Snapshot) => void;
+  loadAnonymousModel: (model: RenderModel) => void;
   startBaseDraft: () => Promise<void>;
   setDraftRole: (role: string) => void;
   discardDraft: () => void;
@@ -149,38 +153,74 @@ export const useCvStore = create<CvState>()(
           set({ loading: true, error: null });
           try {
             let targetModel = model ?? get().renderModel;
+            if (!targetModel) {
+              set({ loading: false });
+              return;
+            }
+
             const profilePhoto = useProfileStore.getState().profile?.contact?.photo_url;
-            if (targetModel && profilePhoto && !targetModel.contact?.photo_url) {
+            if (profilePhoto && !targetModel.contact?.photo_url) {
               targetModel = {
                 ...targetModel,
                 contact: { ...targetModel.contact, photo_url: profilePhoto },
                 photo_path: profilePhoto,
               };
             }
-            const res = await apiFetch(`${API_BASE_URL}/api/render/preview`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                render_model: targetModel,
-              }),
-            });
 
-            if (!res.ok) {
-              throw new Error(`API error: ${res.status} ${res.statusText}`);
+            const isAuthenticated = Boolean(getStoredSession()?.access_token);
+            let svg = "";
+            let fitReport: FitReport | null = null;
+            let finalModel = targetModel;
+
+            if (!isAuthenticated) {
+              try {
+                const anonData = await previewAnonymousCv(targetModel);
+                svg = anonData.svg;
+                fitReport = anonData.fit_report;
+                finalModel = anonData.render_model;
+              } catch {
+                // Fallback intento con endpoint regular
+                const res = await apiFetch(`${API_BASE_URL}/api/render/preview`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ render_model: targetModel }),
+                });
+                if (!res.ok) throw new Error(`API error: ${res.status}`);
+                const data: PreviewResponse = await res.json();
+                svg = data.svg;
+                fitReport = data.fit_report;
+                finalModel = data.render_model;
+              }
+            } else {
+              const res = await apiFetch(`${API_BASE_URL}/api/render/preview`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  render_model: targetModel,
+                }),
+              });
+
+              if (!res.ok) {
+                throw new Error(`API error: ${res.status} ${res.statusText}`);
+              }
+
+              const data: PreviewResponse = await res.json();
+              svg = data.svg;
+              fitReport = data.fit_report;
+              finalModel = data.render_model;
             }
 
-            const data: PreviewResponse = await res.json();
             // Drop stale responses (draft replaced/discarded while in flight)
             if (seq !== previewSeq) return;
             set({
-              svg: data.svg,
-              fitReport: data.fit_report,
+              svg,
+              fitReport,
               // Only overwrite renderModel on initial hydration or explicit reset (when model argument was not passed)
-              ...(model ? {} : { renderModel: data.render_model }),
+              ...(model ? {} : { renderModel: finalModel }),
               loading: false,
             });
             if (!model) {
-              get().evaluateAts(data.render_model);
+              get().evaluateAts(finalModel);
             }
           } catch (err: unknown) {
             if (seq !== previewSeq) return;
@@ -194,6 +234,16 @@ export const useCvStore = create<CvState>()(
           if (!current) return;
           const next = updater(current);
           set({ renderModel: next, dirty: true });
+
+          // Persistir borrador reactivo en localStorage si es usuario anónimo
+          if (!getStoredSession()?.access_token) {
+            try {
+              const prof = renderModelToProfile(next);
+              saveDraft(prof, next.theme);
+            } catch (e) {
+              console.error("Error al persistir borrador anónimo reactivo:", e);
+            }
+          }
 
           if (debounceTimer) {
             clearTimeout(debounceTimer);
@@ -266,29 +316,51 @@ export const useCvStore = create<CvState>()(
           if (!model) return;
           set({ exportingPdf: true });
           try {
-            const res = await apiFetch(`${API_BASE_URL}/api/export/pdf`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                render_model: model,
-                role: get().lastJobSpec?.role || null,
-              }),
-            });
-
-            if (!res.ok) {
-              throw new Error(`Error al exportar PDF (${res.status} ${res.statusText})`);
-            }
-
+            const isAuthenticated = Boolean(getStoredSession()?.access_token);
+            let blob: Blob;
             let filename = "CV.pdf";
-            const disposition = res.headers.get("Content-Disposition");
-            if (disposition) {
-              const match = disposition.match(/filename="?([^";]+)"?/i);
-              if (match && match[1]) {
-                filename = match[1];
+
+            if (!isAuthenticated) {
+              try {
+                blob = await exportAnonymousPdf(model, get().lastJobSpec?.role || undefined);
+              } catch {
+                // Fallback a endpoint regular si la ruta anónima fallase
+                const res = await apiFetch(`${API_BASE_URL}/api/export/pdf`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    render_model: model,
+                    role: get().lastJobSpec?.role || null,
+                  }),
+                });
+                if (!res.ok) throw new Error(`Error al exportar PDF (${res.status})`);
+                blob = await res.blob();
               }
+            } else {
+              const res = await apiFetch(`${API_BASE_URL}/api/export/pdf`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  render_model: model,
+                  role: get().lastJobSpec?.role || null,
+                }),
+              });
+
+              if (!res.ok) {
+                throw new Error(`Error al exportar PDF (${res.status} ${res.statusText})`);
+              }
+
+              const disposition = res.headers.get("Content-Disposition");
+              if (disposition) {
+                const match = disposition.match(/filename="?([^";]+)"?/i);
+                if (match && match[1]) {
+                  filename = match[1];
+                }
+              }
+
+              blob = await res.blob();
             }
 
-            const blob = await res.blob();
             const downloadUrl = window.URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = downloadUrl;
@@ -325,7 +397,8 @@ export const useCvStore = create<CvState>()(
             });
 
             if (!res.ok) {
-              throw new Error(`Error al guardar versión (${res.status} ${res.statusText})`);
+              const body = await res.json().catch(() => null);
+              throw new Error(`Error al guardar versión (${res.status}): ${body?.detail || res.statusText}`);
             }
 
             const data: ExportSnapshotResponse = await res.json();
@@ -367,6 +440,22 @@ export const useCvStore = create<CvState>()(
             dirty: false,
           });
           get().evaluateAts(snapshot.render_model);
+        },
+
+        loadAnonymousModel: (model: RenderModel) => {
+          clearPendingPreview();
+          set({
+            renderModel: model,
+            svg: "",
+            loading: false,
+            fitReport: null,
+            error: null,
+            lastJobSpec: null,
+            lastAts: null,
+            draftParentId: null,
+            dirty: false,
+          });
+          get().fetchPreview(model);
         },
 
         startBaseDraft: async () => {
@@ -504,7 +593,6 @@ export const useCvStore = create<CvState>()(
     {
       name: "cv-tailor-draft",
       storage: createJSONStorage(() => localStorage),
-      skipHydration: true,
       partialize: (state) => ({
         renderModel: state.renderModel,
         lastJobSpec: state.lastJobSpec,
