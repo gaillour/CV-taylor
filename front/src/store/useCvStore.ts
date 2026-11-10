@@ -13,11 +13,11 @@ import {
   TailorResponse,
   UpsertBulletFactResponse,
 } from "@/types/cv";
-import { useProfileStore } from "@/store/useProfileStore";
+import { isProfileEmpty, useProfileStore } from "@/store/useProfileStore";
 import { API_BASE_URL, apiFetch, exportAnonymousPdf, previewAnonymousCv } from "@/lib/api";
 import { getStoredSession } from "@/lib/supabase";
 import { saveDraft } from "@/lib/draft";
-import { renderModelToProfile } from "@/lib/profileTransform";
+import { profileToRenderModel, renderModelToProfile } from "@/lib/profileTransform";
 
 export { API_BASE_URL };
 
@@ -153,13 +153,24 @@ export const useCvStore = create<CvState>()(
           set({ loading: true, error: null });
           try {
             let targetModel = model ?? get().renderModel;
-            if (!targetModel) {
+            const isAuthenticated = Boolean(getStoredSession()?.access_token);
+
+            // Si es anónimo y no hay modelo, no podemos compilar preview
+            if (!targetModel && !isAuthenticated) {
               set({ loading: false });
               return;
             }
 
+            // Si es autenticado y no hay targetModel, intentar sincronizar desde profileStore
+            if (!targetModel && isAuthenticated) {
+              const storeProfile = useProfileStore.getState().profile;
+              if (storeProfile && !isProfileEmpty(storeProfile)) {
+                targetModel = profileToRenderModel(storeProfile, "classic");
+              }
+            }
+
             const profilePhoto = useProfileStore.getState().profile?.contact?.photo_url;
-            if (profilePhoto && !targetModel.contact?.photo_url) {
+            if (targetModel && profilePhoto && !targetModel.contact?.photo_url) {
               targetModel = {
                 ...targetModel,
                 contact: { ...targetModel.contact, photo_url: profilePhoto },
@@ -167,12 +178,11 @@ export const useCvStore = create<CvState>()(
               };
             }
 
-            const isAuthenticated = Boolean(getStoredSession()?.access_token);
             let svg = "";
             let fitReport: FitReport | null = null;
             let finalModel = targetModel;
 
-            if (!isAuthenticated) {
+            if (!isAuthenticated && targetModel) {
               try {
                 const anonData = await previewAnonymousCv(targetModel);
                 svg = anonData.svg;
@@ -196,7 +206,7 @@ export const useCvStore = create<CvState>()(
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  render_model: targetModel,
+                  render_model: targetModel || null,
                 }),
               });
 
@@ -215,11 +225,11 @@ export const useCvStore = create<CvState>()(
             set({
               svg,
               fitReport,
-              // Only overwrite renderModel on initial hydration or explicit reset (when model argument was not passed)
-              ...(model ? {} : { renderModel: finalModel }),
+              // Overwrite renderModel if model was not passed or if renderModel was null
+              ...(model && get().renderModel ? {} : { renderModel: finalModel }),
               loading: false,
             });
-            if (!model) {
+            if (finalModel) {
               get().evaluateAts(finalModel);
             }
           } catch (err: unknown) {

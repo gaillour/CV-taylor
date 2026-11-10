@@ -26,6 +26,13 @@ function AnonymousOrCloudEditor() {
   const initHandledRef = useRef(false);
 
   useEffect(() => {
+    // Si Zustand persist ya hidrató antes del primer render pero el estado no se actualizó
+    if (!hydrated && useCvStore.persist?.hasHydrated()) {
+      useCvStore.setState({ hydrated: true });
+    }
+  }, [hydrated]);
+
+  useEffect(() => {
     if (!hydrated || initHandledRef.current) return;
     initHandledRef.current = true;
 
@@ -57,7 +64,7 @@ function AnonymousOrCloudEditor() {
       // MODO AUTENTICADO (Flujo Post-Login y Migración de Borrador)
       // ====================================================================
       try {
-        await useProfileStore.getState().fetchProfile();
+        await useProfileStore.getState().fetchProfile().catch(() => {});
         const cloudProfile = useProfileStore.getState().profile;
         const cloudEmpty = isProfileEmpty(cloudProfile);
 
@@ -65,7 +72,7 @@ function AnonymousOrCloudEditor() {
           if (cloudEmpty) {
             // Caso 1: Usuario SIN perfil en la nube -> Migración silenciosa
             useProfileStore.setState({ profile: localDraft.profile });
-            await useProfileStore.getState().saveProfile();
+            await useProfileStore.getState().saveProfile().catch(() => false);
             clearDraft();
             toast.success("Borrador local migrado exitosamente a tu cuenta.");
 
@@ -84,7 +91,7 @@ function AnonymousOrCloudEditor() {
 
             if (replace) {
               useProfileStore.setState({ profile: localDraft.profile });
-              await useProfileStore.getState().saveProfile();
+              await useProfileStore.getState().saveProfile().catch(() => false);
               clearDraft();
               toast.success("Perfil actualizado con el borrador local.");
 
@@ -93,19 +100,26 @@ function AnonymousOrCloudEditor() {
             } else {
               clearDraft();
               toast.info("Borrador descartado. Cargando tu perfil existente.");
-              if (!useCvStore.getState().renderModel) {
-                await startBaseDraft();
+              if (cloudProfile && !cloudEmpty) {
+                const model = profileToRenderModel(cloudProfile, "classic");
+                loadAnonymousModel(model);
               } else {
-                fetchPreview();
+                await startBaseDraft();
               }
             }
           }
         } else {
           // Sin borrador local
-          if (!useCvStore.getState().renderModel) {
-            await startBaseDraft();
+          const currentModel = useCvStore.getState().renderModel;
+          if (!currentModel) {
+            if (cloudProfile && !cloudEmpty) {
+              const model = profileToRenderModel(cloudProfile, "classic");
+              loadAnonymousModel(model);
+            } else {
+              await startBaseDraft();
+            }
           } else {
-            fetchPreview();
+            fetchPreview(currentModel);
           }
         }
 
@@ -125,6 +139,16 @@ function AnonymousOrCloudEditor() {
       } catch (err: unknown) {
         console.error("Error al inicializar editor post-login:", err);
       } finally {
+        // Garantizar que renderModel NUNCA sea null si la inicialización terminó
+        if (!useCvStore.getState().renderModel) {
+          const storeProfile = useProfileStore.getState().profile;
+          const fallbackProfile =
+            storeProfile && !isProfileEmpty(storeProfile)
+              ? storeProfile
+              : DEFAULT_ANONYMOUS_PROFILE;
+          const model = profileToRenderModel(fallbackProfile, "classic");
+          loadAnonymousModel(model);
+        }
         setIsInitializing(false);
       }
     };
