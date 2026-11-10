@@ -13,17 +13,13 @@ import { LandingFooter } from "@/components/landing/LandingFooter";
 
 export default function LandingPage() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      return Boolean(getStoredSession());
-    }
-    return false;
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
     let active = true;
 
-    if (isAuthenticated) {
+    if (getStoredSession()) {
+      setIsAuthenticated(true);
       router.replace("/editor");
       return;
     }
@@ -39,7 +35,7 @@ export default function LandingPage() {
     return () => {
       active = false;
     };
-  }, [isAuthenticated, router]);
+  }, [router]);
 
   if (isAuthenticated) {
     return <div className="min-h-screen bg-[var(--bg-canvas)]" />;
