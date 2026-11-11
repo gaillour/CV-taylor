@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { CheckCircle2, ArrowRight } from "lucide-react";
+import { ScrollReveal } from "./ScrollReveal";
 import { TailorButton } from "./TailoringIcons";
 
 interface VersionLevel {
@@ -129,6 +130,7 @@ export function VersionTimelineSection() {
         <div className="ambient-glow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-40" />
 
         {/* Cabecera Concisa */}
+        <ScrollReveal direction="up" className="w-full shrink-0">
         <div className="text-center max-w-xl mx-auto shrink-0 z-10">
           <span className="font-display italic text-lg sm:text-xl text-[var(--accent)] block mb-1">
             Evolución Profesional
@@ -140,6 +142,7 @@ export function VersionTimelineSection() {
             Scrolleá para ver cómo se enfoca el CV en cada nivel
           </p>
         </div>
+        </ScrollReveal>
 
         {/* Centro: Panel de Versionado con V1 Gigante + Hoja de CV interactiva */}
         <div className="w-full max-w-5xl mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">

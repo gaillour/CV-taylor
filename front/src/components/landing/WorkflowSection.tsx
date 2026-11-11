@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { TailorButton } from "./TailoringIcons";
+import { ScrollReveal } from "./ScrollReveal";
 
 const steps = [
   {
@@ -93,6 +94,7 @@ export function WorkflowSection() {
         </div>
 
         {/* Cabecera Concisa */}
+        <ScrollReveal direction="up" className="w-full shrink-0">
         <div className="text-center max-w-xl mx-auto shrink-0 z-10">
           <span className="font-display italic text-lg sm:text-xl text-[var(--accent)] block mb-1">
             Flujo de Confección
@@ -104,6 +106,7 @@ export function WorkflowSection() {
             Scrolleá para ver el proceso en 3 pasos
           </p>
         </div>
+        </ScrollReveal>
 
         {/* Centro: Grilla de los 3 Pasos con hilo conector que se enhebra con el scroll */}
         <div className="w-full max-w-6xl mx-auto my-auto relative z-10">

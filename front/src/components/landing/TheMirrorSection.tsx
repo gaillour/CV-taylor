@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { MirrorCvCard } from "./MirrorCvCard";
 import type { MirrorCvData } from "./types";
+import { ScrollReveal } from "./ScrollReveal";
 
 const ES_SAMPLE_CV: MirrorCvData = {
   lang: "es",
@@ -213,6 +214,7 @@ export function TheMirrorSection() {
       <div className="sticky top-0 h-screen w-full flex flex-col justify-between items-center pt-5 sm:pt-6 pb-6 px-4 sm:px-6 lg:px-8 overflow-hidden">
         
         {/* Cabecera Editorial Compacta */}
+        <ScrollReveal direction="up" className="w-full shrink-0">
         <div className="text-center max-w-2xl mx-auto shrink-0 z-10">
           <span className="font-display italic text-lg sm:text-xl text-[var(--accent)] block -mb-0.5">
             El Espejo Bilingüe
@@ -224,6 +226,7 @@ export function TheMirrorSection() {
             Escribí tu experiencia en español. Al scrollear, el sistema genera la versión en inglés adaptada a los estándares del mercado internacional.
           </p>
         </div>
+        </ScrollReveal>
 
         {/* Escenario Central: Dos Docks y CV 3D en Vuelo Horizontal */}
         <div className="w-full flex-1 flex flex-col items-center justify-center relative my-auto">

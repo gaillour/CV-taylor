@@ -127,7 +127,16 @@ export function HeroDropzone() {
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         onClick={() => !isParsing && fileInputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-8 transition-all duration-300 select-none cursor-pointer flex flex-col items-center justify-center text-center ${
+        onKeyDown={(event) => {
+          if (!isParsing && (event.key === "Enter" || event.key === " ")) {
+            event.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
+        role="button"
+        tabIndex={isParsing ? -1 : 0}
+        aria-label="Subí tu CV actual en formato PDF o TXT"
+        className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-8 transition-all duration-300 select-none cursor-pointer flex flex-col items-center justify-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-canvas)] ${
           isDragging
             ? "border-[var(--accent)] bg-[var(--accent-subtle)] shadow-[0_0_30px_rgba(212,151,59,0.2)] scale-[1.01]"
             : "border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-raised)] hover:border-[var(--accent-border)] shadow-md"
