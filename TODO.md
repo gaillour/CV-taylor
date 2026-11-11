@@ -1,5 +1,13 @@
 # TODO.md — Roadmap Operativo (`cv-tailor`)
 
+## anotaciones
+
+- Agregar proyecto/bullet en el editor guarda en perfil o eso rompe con SSOT?
+- Que no me mueva automaticamente al editor si quiero ir a la landing
+- Sacar bloat de la landing en el Hero
+- [x] Opción de agregar proyecto subiendo link de GitHub (extracción determinista + síntesis IA de 1 llamada + modal de revisión).
+- Que lo de la empresa y rol sea muy opcional en los proyectos. 
+- No estan andando las flechas para ordenar por prioridad en los proyectos. 
 
 ## P0 — Onboarding Anónimo & Conversión (ver `docs/Onboarding.md`)
 
@@ -85,10 +93,10 @@
 
 ## P3 — Fase F7: Rediseño Visual & Modernización UI (Dashboard, Perfil, Editor)
 
-- [ ] **Tokens y paleta unificada de color:**
-  - [ ] Extender tokens y paleta de la landing (ámbar `#d4973b`, verde sastre `#1b4332`, bg dark sastre) a `/cvs`, `/perfil` y `/editor`.
-- [ ] **Componentes atómicos interactivos:**
-  - [ ] Refactor de cards, modales, botones y micro-interacciones de la app interna alineadas con la estética de la landing.
+- [x] **Tokens y paleta unificada de color:**
+  - [x] Extender tokens y paleta de la landing (ámbar `#d4973b`, verde sastre `#1b4332`, bg dark sastre) a `/cvs`, `/perfil` y `/editor`.
+- [x] **Componentes atómicos interactivos:**
+  - [x] Refactor de cards, modales, botones y micro-interacciones de la app interna alineadas con la estética de la landing.
 - [ ] **Reacomodación del Dashboard (`/cvs`):**
   - [ ] Definir UX de creación de CVs en estado vacío (botón unificado con prompt vs doble botón base/adaptado).
 - [ ] **Copy de landing:**

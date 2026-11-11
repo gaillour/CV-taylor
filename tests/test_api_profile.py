@@ -556,3 +556,70 @@ def test_upsert_bullet_fact_updates_existing_and_creates_new(isolated_profile: P
     )
     assert empty_res.status_code == 422
 
+
+def test_import_github_project_endpoint(monkeypatch) -> None:
+    from back.engine.github_importer import GitHubImportResult
+    from back.engine.models import Entry, EntryTitle, Fact, Skill
+
+    mock_entry = Entry(
+        id="proj-demo",
+        kind="project",
+        org="demo-repo",
+        start_date="2024-01",
+        end_date="2024-05",
+        link="https://github.com/test/demo-repo",
+        context="Demo project for testing",
+        titles=[
+            EntryTitle(
+                id="t_1",
+                entry_id="proj-demo",
+                title="Autor y Desarrollador",
+                is_default=True,
+                source="user",
+                approved=True,
+            )
+        ],
+        facts=[
+            Fact(
+                id="f_1",
+                entry_id="proj-demo",
+                text="Desarrollo de microservicio con FastAPI y Docker.",
+                source="user",
+                approved=True,
+            )
+        ],
+        skill_ids=["skill_fastapi"],
+    )
+    mock_skill = Skill(
+        id="skill_fastapi",
+        name="FastAPI",
+        category="Backend",
+        aliases=["fastapi"],
+    )
+
+    def mock_import(url, lang="es", token=None, client=None, llm=None):
+        if "invalid" in url:
+            raise ValueError("URL de GitHub no válida")
+        return GitHubImportResult(entry=mock_entry, suggested_skills=[mock_skill])
+
+    monkeypatch.setattr("back.api.routes.profile.import_project_from_github", mock_import)
+
+    # Valid import
+    res = client.post(
+        "/api/profile/import/github",
+        json={"url": "https://github.com/test/demo-repo", "lang": "es"},
+    )
+    assert res.status_code == 200, res.text
+    data = res.json()
+    assert data["entry"]["id"] == "proj-demo"
+    assert data["entry"]["kind"] == "project"
+    assert len(data["suggested_skills"]) == 1
+    assert data["suggested_skills"][0]["name"] == "FastAPI"
+
+    # Invalid URL returns 400
+    res_bad = client.post(
+        "/api/profile/import/github",
+        json={"url": "invalid-url", "lang": "es"},
+    )
+    assert res_bad.status_code == 400
+    assert "URL de GitHub no válida" in res_bad.json()["detail"]

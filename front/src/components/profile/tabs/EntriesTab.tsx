@@ -5,20 +5,24 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  FolderGit2,
   Plus,
   Sparkles,
   Trash2,
   X,
 } from "lucide-react";
-import { Entry, EntryKind, EntryTitle, Fact } from "@/types/cv";
+import { Entry, EntryKind, EntryTitle, Fact, LangCode, Skill } from "@/types/cv";
+import { GitHubImportModal } from "../GitHubImportModal";
 import { Field } from "./Field";
 
 export function EntriesTab({
   kind,
   title,
   entries,
+  activeLang = "es",
   readOnly = false,
   onAddEntry,
+  onImportGitHub,
   onUpdateEntry,
   onRemoveEntry,
   onMoveEntry,
@@ -38,8 +42,10 @@ export function EntriesTab({
   kind: EntryKind;
   title: string;
   entries: Entry[];
+  activeLang?: LangCode;
   readOnly?: boolean;
   onAddEntry: (e: Entry) => void;
+  onImportGitHub?: (entry: Entry, newSkills: Skill[]) => void;
   onUpdateEntry: (id: string, e: Partial<Entry>) => void;
   onRemoveEntry: (id: string) => void;
   onMoveEntry?: (id: string, direction: "up" | "down") => void;
@@ -58,9 +64,20 @@ export function EntriesTab({
 }) {
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
   const [highlightedEntryId, setHighlightedEntryId] = useState<string | null>(null);
+  const [gitHubModalOpen, setGitHubModalOpen] = useState(false);
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleGitHubImport = (newEntry: Entry, newSkills: Skill[]) => {
+    if (onImportGitHub) {
+      onImportGitHub(newEntry, newSkills);
+    } else {
+      onAddEntry(newEntry);
+    }
+    setExpandedIds({ [newEntry.id]: true });
+    setHighlightedEntryId(newEntry.id);
   };
 
   const handleCreateEntry = () => {
@@ -137,13 +154,26 @@ export function EntriesTab({
           </p>
         </div>
         {!readOnly && (
-          <button
-            onClick={handleCreateEntry}
-            className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer shrink-0"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Nueva entrada
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {kind === "project" && (
+              <button
+                type="button"
+                onClick={() => setGitHubModalOpen(true)}
+                className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer"
+                title="Importar proyecto automáticamente desde GitHub"
+              >
+                <FolderGit2 className="w-3.5 h-3.5 text-accent" />
+                Importar de GitHub
+              </button>
+            )}
+            <button
+              onClick={handleCreateEntry}
+              className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Nueva entrada
+            </button>
+          </div>
         )}
       </div>
 
@@ -189,6 +219,15 @@ export function EntriesTab({
           </div>
         )}
       </div>
+
+      {kind === "project" && (
+        <GitHubImportModal
+          isOpen={gitHubModalOpen}
+          activeLang={activeLang}
+          onClose={() => setGitHubModalOpen(false)}
+          onImport={handleGitHubImport}
+        />
+      )}
     </div>
   );
 }

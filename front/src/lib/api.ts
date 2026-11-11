@@ -47,6 +47,8 @@ import {
   AnonymousParseResponse,
   AnonymousPreviewRequest,
   AnonymousPreviewResponse,
+  GitHubImportResponse,
+  LangCode,
   RenderModel,
   TailorQuotaResponse,
 } from "@/types/cv";
@@ -131,6 +133,29 @@ export async function getTailorQuota(): Promise<TailorQuotaResponse> {
     const errorBody = await res.json().catch(() => ({ detail: "Error al consultar cuota" }));
     throw new Error(errorBody.detail || "Error al consultar cuota de adaptaciones");
   }
+  return res.json();
+}
+
+/**
+ * Importa y sintetiza un proyecto desde una URL pública de GitHub.
+ */
+export async function importGitHubProject(
+  url: string,
+  lang: LangCode = "es"
+): Promise<GitHubImportResponse> {
+  const res = await apiFetch("/api/profile/import/github", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url, lang }),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({
+      detail: "Error al importar proyecto desde GitHub",
+    }));
+    throw new Error(errorBody.detail || "Error en el servidor al importar proyecto de GitHub");
+  }
+
   return res.json();
 }
 

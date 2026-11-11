@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -9,6 +10,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, ConfigDict, Field
 
 from back.api.auth import UserContext, get_current_user
+from back.engine.github_importer import import_project_from_github
 from back.engine.importer import (
     extract_text_from_pdf,
     merge_profiles,
@@ -23,7 +25,7 @@ from back.engine.mirror import (
     sync_mirror,
     translate_profile,
 )
-from back.engine.models import Fact, LangCode, Profile
+from back.engine.models import Entry, Fact, LangCode, Profile, Skill
 from back.engine.profile_assistant import (
     EnhanceProfileResponse,
     clean_and_deduplicate_profile,
@@ -361,3 +363,50 @@ def delete_avatar(
     """Delete candidate avatar and unset photo_url in Master Profile."""
     repo.delete_avatar()
     return {"deleted": True}
+
+
+class GitHubImportRequest(BaseModel):
+    """Request payload to import a project from GitHub."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    url: str = Field(min_length=3)
+    lang: LangCode = "es"
+
+
+class GitHubImportResponse(BaseModel):
+    """Response payload containing synthesized Entry and suggested Skills."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    entry: Entry
+    suggested_skills: list[Skill]
+
+
+@router.post("/import/github", response_model=GitHubImportResponse)
+def import_github_project(
+    payload: GitHubImportRequest,
+    _user: Annotated[UserContext, Depends(get_current_user)],
+) -> GitHubImportResponse:
+    """Import and synthesize a project Entry from a public GitHub repository URL."""
+    try:
+        token = os.environ.get("GITHUB_TOKEN")
+        llm = LLMClient()
+        active_llm = llm if llm.is_configured else None
+        result = import_project_from_github(
+            url=payload.url,
+            lang=payload.lang,
+            token=token,
+            llm=active_llm,
+        )
+        return GitHubImportResponse(
+            entry=result.entry,
+            suggested_skills=result.suggested_skills,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al importar proyecto desde GitHub: {exc}",
+        ) from exc

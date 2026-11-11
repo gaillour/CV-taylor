@@ -172,6 +172,11 @@ export interface ImportProfileResponse {
   translated_to_base: boolean;
 }
 
+export interface GitHubImportResponse {
+  entry: Entry;
+  suggested_skills: Skill[];
+}
+
 export interface RenderSkillGroup {
   category: string;
   items: string;

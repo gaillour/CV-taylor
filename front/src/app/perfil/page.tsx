@@ -27,7 +27,7 @@ import {
   isProfileEmpty,
   useProfileStore,
 } from "@/store/useProfileStore";
-import { EntryKind } from "@/types/cv";
+import { Entry, EntryKind, Skill } from "@/types/cv";
 import { toast } from "@/store/useToastStore";
 
 type SectionTab = "general" | "skills" | "experience" | "project" | "education";
@@ -126,6 +126,20 @@ export default function ProfilePage() {
       return;
     }
     await setViewLang(lang);
+  };
+
+  const handleGitHubImport = (newEntry: Entry, newSkills: Skill[]) => {
+    addEntry(newEntry);
+    if (newSkills && newSkills.length > 0) {
+      const existingIds = new Set((profile?.skills || []).map((s) => s.id));
+      const existingNames = new Set((profile?.skills || []).map((s) => s.name.toLowerCase()));
+      for (const s of newSkills) {
+        if (!existingIds.has(s.id) && !existingNames.has(s.name.toLowerCase())) {
+          addSkill(s);
+        }
+      }
+    }
+    toast.success("Proyecto importado exitosamente desde GitHub.");
   };
 
   if (loading && !profile) {
@@ -533,8 +547,10 @@ export default function ProfilePage() {
               entries={displayedProfile.entries.filter(
                 (e) => e.kind === "project" || e.kind === ("projects" as EntryKind)
               )}
+              activeLang={displayedProfile.base_lang}
               readOnly={isViewingMirror}
               onAddEntry={addEntry}
+              onImportGitHub={handleGitHubImport}
               onUpdateEntry={updateEntry}
               onMoveEntry={moveEntry}
               onRemoveEntry={removeEntry}
