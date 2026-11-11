@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { MirrorCvCard } from "./MirrorCvCard";
 import type { MirrorCvData } from "./types";
+import { ScrollReveal } from "./ScrollReveal";
 
 const ES_SAMPLE_CV: MirrorCvData = {
   lang: "es",
@@ -88,9 +89,9 @@ const EN_SAMPLE_CV: MirrorCvData = {
 };
 
 export function TheMirrorSection() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const slotEsRef = useRef<HTMLDivElement>(null);
-  const slotEnRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLElement>(null);
+  const slotEsRef = useRef<HTMLButtonElement>(null);
+  const slotEnRef = useRef<HTMLButtonElement>(null);
   const [progress, setProgress] = useState(0);
   const [deltaX, setDeltaX] = useState(420);
 
@@ -190,16 +191,14 @@ export function TheMirrorSection() {
   const toggleLanguage = (target: "es" | "en") => {
     if (!containerRef.current) return;
     const scrollParent = document.getElementById("main-scroll") || window;
-    const containerTop = containerRef.current.offsetTop;
-    const containerHeight = containerRef.current.offsetHeight;
-    const viewportHeight = window.innerHeight;
-    const totalScrollable = containerHeight - viewportHeight;
-
-    const targetScroll = target === "es" ? containerTop : containerTop + totalScrollable;
+    const scrollTop = scrollParent === window ? window.scrollY : (scrollParent as HTMLElement).scrollTop;
+    const sectionTop = containerRef.current.getBoundingClientRect().top + scrollTop;
+    const totalScrollable = containerRef.current.offsetHeight - window.innerHeight;
+    const targetScroll = sectionTop + (target === "en" ? totalScrollable : 0);
 
     scrollParent.scrollTo({
       top: targetScroll,
-      behavior: "smooth",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
     });
   };
 
@@ -207,23 +206,26 @@ export function TheMirrorSection() {
     <section
       id="the-mirror"
       ref={containerRef}
-      className="relative min-h-[220vh] border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]"
+      aria-labelledby="mirror-title"
+      className="scroll-story relative min-h-[220vh] border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]"
     >
       {/* Contenedor Sticky que se clava en la pantalla durante el recorrido de scroll */}
-      <div className="sticky top-0 h-screen w-full flex flex-col justify-between items-center pt-5 sm:pt-6 pb-6 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <div className="scroll-story-sticky sticky top-0 flex h-screen w-full flex-col items-center justify-between overflow-hidden px-4 pb-6 pt-5 sm:px-6 sm:pt-8 lg:px-8">
         
         {/* Cabecera Editorial Compacta */}
+        <ScrollReveal direction="up" className="w-full shrink-0">
         <div className="text-center max-w-2xl mx-auto shrink-0 z-10">
-          <span className="font-display italic text-lg sm:text-xl text-[var(--accent)] block -mb-0.5">
-            El Espejo Bilingüe
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--green-text)]">
+            02 / The Mirror
           </span>
-          <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl text-[var(--text-primary)] font-bold tracking-tight">
-            Un solo perfil. Dos idiomas.
+          <h2 id="mirror-title" className="mt-2 font-display text-3xl font-medium tracking-[-0.04em] text-[var(--text-ivory)] sm:text-5xl lg:text-6xl">
+            Dos idiomas. <span className="italic text-[var(--text-secondary)]">Una historia.</span>
           </h2>
-          <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-2 max-w-xl mx-auto">
-            Escribí tu experiencia en español. Al scrollear, el sistema genera la versión en inglés adaptada a los estándares del mercado internacional.
+          <p className="mx-auto mt-2 max-w-lg text-sm text-[var(--text-secondary)]">
+            El CV cruza el idioma, no los hechos.
           </p>
         </div>
+        </ScrollReveal>
 
         {/* Escenario Central: Dos Docks y CV 3D en Vuelo Horizontal */}
         <div className="w-full flex-1 flex flex-col items-center justify-center relative my-auto">
@@ -232,7 +234,7 @@ export function TheMirrorSection() {
           <div
             className="absolute w-72 h-72 sm:w-[480px] sm:h-[480px] rounded-full pointer-events-none transition-all duration-500 -z-10"
             style={{
-              background: `radial-gradient(circle, var(--halo-color) 0%, transparent 70%)`,
+              background: `radial-gradient(circle, ${progress >= 0.55 ? "var(--green-halo)" : "var(--halo-color)"} 0%, transparent 70%)`,
               left: `calc(25% + ${progress * 50}%)`,
               top: "50%",
               transform: `translate(-50%, -50%) scale(${1 + Math.sin(progress * Math.PI) * 0.25})`,
@@ -241,40 +243,36 @@ export function TheMirrorSection() {
           />
 
           {/* Grid de Dos Docks: Izquierda (ES) y Derecha (EN) */}
-          <div className="relative grid grid-cols-2 gap-4 sm:gap-8 md:gap-12 lg:gap-16 items-center justify-items-center w-full max-w-[820px] lg:max-w-[900px] mx-auto scale-[0.52] xs:scale-[0.62] sm:scale-[0.8] md:scale-100 origin-center transition-transform duration-200">
+          <div className="relative grid w-full max-w-[820px] grid-cols-2 items-center justify-items-center gap-3 sm:gap-8 md:gap-12 lg:max-w-[900px] lg:gap-16 mx-auto">
             
             {/* DOCK IZQUIERDO: ES (ORIGEN BASE) */}
-            <div
+            <button
               ref={slotEsRef}
+              type="button"
+              aria-label="Ver el CV original en español"
               onClick={() => toggleLanguage("es")}
-              className="relative w-full max-w-[320px] sm:max-w-[350px] lg:max-w-[380px] aspect-[210/297] rounded-md border-2 border-dashed border-[var(--border-hairline)] bg-[var(--bg-surface)]/40 p-4 sm:p-5 flex flex-col justify-between cursor-pointer select-none transition-colors hover:border-[var(--text-muted)]"
+              className="relative flex w-full max-w-[320px] aspect-[210/297] select-none flex-col justify-between rounded-sm border-2 border-dashed border-[var(--accent-border)] bg-[var(--bg-surface)]/65 p-4 text-left transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] sm:max-w-[350px] sm:p-5 lg:max-w-[380px]"
             >
               {/* Header del Dock ES */}
               <div className="flex items-center justify-between pb-1.5 border-b border-[var(--border-hairline)]">
                 <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
-                  ES • Base Original
+                  ES · ORIGEN
                 </span>
                 <span className="text-[9px] font-mono text-[var(--text-muted)]">
-                  Origen
+                  01
                 </span>
               </div>
 
               {/* Centro del Dock ES */}
               <div className="flex flex-col items-center justify-center my-auto text-center py-4">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-2 border-dashed border-zinc-700/50 bg-zinc-800/30 flex flex-col items-center justify-center mb-2">
-                  <span className="font-display text-4xl sm:text-5xl font-black text-zinc-500/40 tracking-tight select-none">
+                <div className="flex size-16 flex-col items-center justify-center rounded-full border border-dashed border-[var(--accent-border)] bg-[var(--accent-subtle)] sm:size-20">
+                  <span className="font-display text-3xl font-medium tracking-tight text-[var(--accent)] sm:text-4xl">
                     ES
                   </span>
-                  <span className="text-[7.5px] font-mono uppercase tracking-widest text-zinc-500 font-bold -mt-1">
-                    Base
-                  </span>
                 </div>
-                <span className="text-[10px] sm:text-[11px] font-semibold text-[var(--text-secondary)]">
-                  Dossier Original
+                <span className="mt-2 text-[10px] font-mono uppercase tracking-[0.16em] text-[var(--text-secondary)] sm:text-[11px]">
+                  CV maestro
                 </span>
-                <p className="text-[8.5px] text-[var(--text-muted)] max-w-[180px] mt-0.5 font-mono">
-                  Redactado en tu idioma nativo
-                </p>
 
                 {/* Wireframe lines simulando el documento base */}
                 <div className="w-full max-w-[170px] space-y-1.5 mt-3 opacity-30">
@@ -286,11 +284,8 @@ export function TheMirrorSection() {
 
               {/* Pie del Dock ES */}
               <div className="pt-2 border-t border-[var(--border-hairline)] flex items-center justify-between text-[8px] sm:text-[9px] font-mono text-[var(--text-muted)]">
-                <span className="flex items-center gap-1">
-                  <span className={`w-1.5 h-1.5 rounded-full ${progress < 0.15 ? "bg-[var(--accent)]" : "bg-zinc-600"}`} />
-                  Fuente editable
-                </span>
-                <span>Formato A4</span>
+                  <span>Fuente editable</span>
+                  <span>A4</span>
               </div>
 
               {/* LA TARJETA FLOTANTE QUE VIAJA AL DOCK EN */}
@@ -307,44 +302,40 @@ export function TheMirrorSection() {
                   enCv={EN_SAMPLE_CV}
                 />
               </div>
-            </div>
+            </button>
 
             {/* DOCK DERECHO: EN (CUADRO DE DESTINO) */}
-            <div
+            <button
               ref={slotEnRef}
+              type="button"
+              aria-label="Ir a la adaptación en inglés"
               onClick={() => toggleLanguage("en")}
-              className={`relative w-full max-w-[320px] sm:max-w-[350px] lg:max-w-[380px] aspect-[210/297] rounded-md border-2 border-dashed transition-all duration-300 p-4 sm:p-5 flex flex-col justify-between cursor-pointer select-none ${
+              className={`relative flex w-full max-w-[320px] aspect-[210/297] select-none flex-col justify-between rounded-sm p-4 text-left transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--green-text)] sm:max-w-[350px] sm:p-5 lg:max-w-[380px] ${
                 progress >= 0.85
-                  ? "border-[var(--green-border)] bg-[var(--green-subtle)] shadow-xl"
-                  : "border-[var(--green-border)]/60 bg-[var(--green-subtle)]/30 hover:border-[var(--green-border)]"
+                  ? "border-2 border-[var(--green-text)] bg-[var(--green-subtle)] shadow-[0_0_48px_-18px_var(--green-text)]"
+                  : "border-2 border-dashed border-[var(--green-border)]/70 bg-[var(--green-subtle)]/25 hover:border-[var(--green-text)]"
               }`}
             >
               {/* Header del Dock EN */}
               <div className="flex items-center justify-between pb-1.5 border-b border-[var(--border-hairline)]">
                 <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-[var(--green-text)] uppercase tracking-wider">
-                  EN • Internacional
+                  EN · DESTINO
                 </span>
                 <span className="text-[9px] font-mono text-[var(--green-text)] font-semibold">
-                  Versión en Inglés
+                  02
                 </span>
               </div>
 
               {/* Centro del Dock EN: El cuadro destacado que dice EN */}
               <div className="flex flex-col items-center justify-center my-auto text-center py-4">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-2 border-dashed border-[var(--green-border)] bg-[var(--green-accent)]/40 flex flex-col items-center justify-center mb-2 shadow-inner">
-                  <span className="font-display text-4xl sm:text-5xl font-black text-[var(--green-text)] tracking-tight select-none">
+                <div className="flex size-16 flex-col items-center justify-center rounded-full border border-dashed border-[var(--green-border)] bg-[var(--green-accent)]/30 sm:size-20">
+                  <span className="font-display text-3xl font-medium tracking-tight text-[var(--green-text)] sm:text-4xl">
                     EN
                   </span>
-                  <span className="text-[7.5px] font-mono uppercase tracking-widest text-[var(--green-text)] font-bold -mt-1">
-                    Mirror
-                  </span>
                 </div>
-                <span className="text-[10px] sm:text-[11px] font-semibold text-[var(--text-primary)]">
-                  Perfil Adaptado
+                <span className="mt-2 text-[10px] font-mono uppercase tracking-[0.16em] text-[var(--green-text)] sm:text-[11px]">
+                  CV adaptado
                 </span>
-                <p className="text-[8.5px] text-[var(--text-muted)] max-w-[180px] mt-0.5 font-mono">
-                  Adaptación al estándar profesional en inglés
-                </p>
 
                 {/* Wireframe lines simulando la plantilla de destino */}
                 <div className="w-full max-w-[170px] space-y-1.5 mt-3 opacity-40">
@@ -357,18 +348,17 @@ export function TheMirrorSection() {
               {/* Pie del Dock EN */}
               <div className="pt-2 border-t border-[var(--border-hairline)] flex items-center justify-between text-[8px] sm:text-[9px] font-mono">
                 {progress >= 0.85 ? (
-                  <span className="text-[var(--green-text)] font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-[var(--green-text)]" /> Espejo Acoplado
+                  <span className="flex items-center gap-1 font-semibold text-[var(--green-text)]">
+                    <CheckCircle2 aria-hidden="true" className="size-3" /> Adaptado
                   </span>
                 ) : (
-                  <span className="text-[var(--text-muted)] flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--green-text)] animate-pulse" />
-                    Esperando documento...
+                  <span className="flex items-center gap-1 text-[var(--text-muted)]">
+                    <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--green-text)] motion-safe:animate-pulse" />
+                    Adaptando…
                   </span>
                 )}
-                <span className="text-[var(--text-muted)]">Alineación Total</span>
               </div>
-            </div>
+            </button>
 
           </div>
         </div>
@@ -384,11 +374,11 @@ export function TheMirrorSection() {
                 : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
-            ← Base (ES)
+            ← ES
           </button>
           <span className="text-[var(--border-hairline)]">•</span>
-          <span className="text-[9.5px] sm:text-[10px] text-[var(--text-muted)]">
-            Scrolleá para trasladar hacia inglés
+          <span role="progressbar" aria-label="Progreso de adaptación" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} className="h-px w-16 overflow-hidden bg-[var(--border-hairline)] sm:w-32">
+            <span className="mirror-progress-fill block h-full bg-gradient-to-r from-[var(--accent)] to-[var(--green-text)] transition-[width] duration-150" style={{ width: `${progress * 100}%` }} />
           </span>
           <span className="text-[var(--border-hairline)]">•</span>
           <button
@@ -400,7 +390,7 @@ export function TheMirrorSection() {
                 : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
           >
-            Internacional (EN) →
+            EN →
           </button>
         </div>
 

@@ -63,7 +63,7 @@ export function ScrollReveal({
         filter: isVisible ? "blur(0px)" : "blur(2px)",
         transition: `transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms, opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms, filter 0.8s ease ${delayMs}ms`,
       }}
-      className={className}
+      className={`scroll-reveal ${className}`}
     >
       {children}
     </div>
