@@ -20,7 +20,11 @@ export function HeroSection() {
             </div>
 
             <h1 className="hero-enter hero-enter-delay-1 mx-auto max-w-4xl font-display text-[2.65rem] font-medium leading-[1.04] tracking-[-0.045em] text-[var(--text-ivory)] sm:text-6xl lg:mx-0 lg:text-[4.6rem] xl:text-[5.15rem]">
-              Un perfil. <span className="relative inline-block text-[var(--accent)]">Cada búsqueda.<span className="hero-underline" aria-hidden="true" /></span>
+              Un CV distinto{" "}
+              <span className="relative inline-block text-[var(--accent)]">
+                para cada oportunidad.
+                <span className="hero-underline" aria-hidden="true" />
+              </span>
             </h1>
 
             <p className="hero-enter hero-enter-delay-2 mx-auto max-w-xl text-sm leading-7 text-[var(--text-secondary)] sm:text-base sm:leading-8 lg:mx-0">

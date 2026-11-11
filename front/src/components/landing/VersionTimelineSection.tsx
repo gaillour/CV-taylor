@@ -143,7 +143,7 @@ export function VersionTimelineSection() {
             03 / Evolución
           </span>
           <h2 id="versions-title" className="mt-2 font-display text-3xl font-medium tracking-[-0.04em] text-[var(--text-ivory)] sm:text-5xl lg:text-6xl">
-            Una historia. <span className="italic text-[var(--text-secondary)]">Cuatro enfoques.</span>
+            Distintas versiones <span className="italic text-[var(--text-secondary)]">para cada etapa.</span>
           </h2>
         </div>
         </ScrollReveal>

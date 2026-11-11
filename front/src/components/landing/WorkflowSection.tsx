@@ -101,7 +101,7 @@ export function WorkflowSection() {
         <ScrollReveal direction="up" className="relative z-10 w-full shrink-0 text-center">
           <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--accent)]">01 / El método</p>
           <h2 id="method-title" className="mt-2 font-display text-4xl font-medium tracking-[-0.05em] text-[var(--text-ivory)] sm:text-6xl">
-            Tres pasos.<span className="italic text-[var(--text-secondary)]"> Un CV listo.</span>
+            Tres pasos.<span className="italic text-[var(--text-secondary)]"> Tu CV listo.</span>
           </h2>
         </ScrollReveal>
 
