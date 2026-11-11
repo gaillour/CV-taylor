@@ -8,8 +8,6 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { parseAnonymousCv } from "@/lib/api";
 import { saveDraft, clearDraft } from "@/lib/draft";
@@ -17,10 +15,10 @@ import { saveDraft, clearDraft } from "@/lib/draft";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 const PARSING_STAGES = [
-  "Descosiendo el documento y tomando medidas iniciales...",
-  "Extrayendo experiencia laboral, cargos y logros...",
-  "Estructurando habilidades técnicas y educación...",
-  "Ajustando corte final al milímetro...",
+  "Leyendo tu CV…",
+  "Ordenando experiencia y logros…",
+  "Armando tu perfil…",
+  "Ajustando el corte final…",
 ];
 
 export function HeroDropzone() {
@@ -138,7 +136,7 @@ export function HeroDropzone() {
         aria-label="Subí tu CV actual en formato PDF o TXT"
         className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-8 transition-all duration-300 select-none cursor-pointer flex flex-col items-center justify-center text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-canvas)] ${
           isDragging
-            ? "border-[var(--accent)] bg-[var(--accent-subtle)] shadow-[0_0_30px_rgba(212,151,59,0.2)] scale-[1.01]"
+            ? "border-[var(--accent)] bg-[var(--accent-subtle)] shadow-[0_0_30px_rgba(225,163,74,0.2)] scale-[1.01]"
             : "border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-raised)] hover:border-[var(--accent-border)] shadow-md"
         } ${isParsing ? "pointer-events-none opacity-95" : ""}`}
       >
@@ -158,10 +156,10 @@ export function HeroDropzone() {
             </div>
             <div className="space-y-1">
               <p className="text-sm font-semibold text-[var(--text-ivory)]">
-                ¡CV adaptado al taller sastre!
+                CV listo.
               </p>
               <p className="text-xs text-[var(--text-secondary)] font-mono">
-                Abriendo el editor interactivo...
+                Abriendo el editor…
               </p>
             </div>
           </div>
@@ -176,13 +174,10 @@ export function HeroDropzone() {
 
             <div className="space-y-1 text-center">
               <p className="text-xs font-semibold uppercase tracking-wider text-[var(--accent)] font-mono">
-                Corte a Medida en Proceso
+                Ajustando CV
               </p>
-              <p className="text-sm text-[var(--text-ivory)] font-medium transition-all duration-300">
+              <p aria-live="polite" className="text-sm text-[var(--text-ivory)] font-medium transition-all duration-300">
                 {PARSING_STAGES[parsingStageIdx]}
-              </p>
-              <p className="text-[11px] text-[var(--text-muted)] font-mono pt-1">
-                Extracción limpia sin inventar datos
               </p>
             </div>
           </div>
@@ -195,14 +190,10 @@ export function HeroDropzone() {
 
             <div className="space-y-1.5 max-w-md">
               <p className="text-sm sm:text-base font-semibold text-[var(--text-ivory)]">
-                Subí tu CV actual para empezar
+                Subí tu CV
               </p>
               <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
-                Arrastrá acá tu archivo <span className="font-mono text-[var(--text-ivory)]">.PDF</span> o{" "}
-                <span className="font-mono text-[var(--text-ivory)]">.TXT</span>, o hacé click para elegirlo.
-              </p>
-              <p className="text-[11px] text-[var(--text-muted)] font-mono">
-                Hasta 5 MB • Extraemos tu experiencia automáticamente
+                PDF o TXT · hasta 5 MB
               </p>
             </div>
           </div>
@@ -231,47 +222,17 @@ export function HeroDropzone() {
         </div>
       )}
 
-      {/* Microcopy, CTA secundario y Compromisos */}
-      <div className="space-y-3 pt-1">
-        {/* Fila 1: Microcopy de privacidad & CTA Empezar de cero */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-1.5 text-[var(--text-secondary)] text-center sm:text-left">
-            <ShieldCheck className="w-4 h-4 text-[var(--green-text)] shrink-0" />
-            <span>Sin cuenta. No guardamos nada hasta que vos lo pidas.</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleStartFromScratch}
-            className="text-[var(--accent)] hover:text-[var(--accent-hover)] underline underline-offset-4 font-medium transition-colors cursor-pointer shrink-0"
-          >
-            o empezá de cero →
-          </button>
-        </div>
-
-        {/* Fila 2: Descarga PDF gratis ilimitada & GitHub open source */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[var(--border-hairline)] text-xs text-[var(--text-muted)] font-mono">
-          <div className="flex items-center gap-1.5 text-[var(--text-secondary)]">
-            <Sparkles className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
-            <span className="text-[var(--text-ivory)] font-medium">Descarga de PDF gratis e ilimitada.</span>
-          </div>
-
-          <a
-            href="https://github.com/gaillour"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors"
-          >
-            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-              />
-            </svg>
-            <span>Open source — ver código</span>
-          </a>
-        </div>
+      <div className="flex flex-col items-center justify-between gap-3 pt-1 text-xs sm:flex-row">
+        <span className="text-center font-mono text-[10px] text-[var(--text-muted)] sm:text-left">
+          Sin cuenta · no se guarda hasta que lo pidas.
+        </span>
+        <button
+          type="button"
+          onClick={handleStartFromScratch}
+          className="shrink-0 font-medium text-[var(--accent)] underline underline-offset-4 transition-colors hover:text-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+        >
+          Empezá de cero →
+        </button>
       </div>
     </div>
   );

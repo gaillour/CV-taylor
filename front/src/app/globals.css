@@ -11,9 +11,9 @@
   --font-mono: ui-monospace, SFMono-Regular, monospace;
 
   /* 2. RAMPA NEUTRA (TINTADA SOBRIA - GRAFITO / PAPEL OSCURO) */
-  --bg-canvas: #0c0b0a;
-  --bg-surface: #141312;
-  --bg-surface-raised: #1c1a18;
+  --bg-canvas: #0b0a09;
+  --bg-surface: #151310;
+  --bg-surface-raised: #1d1a16;
   --border-hairline: rgba(255, 255, 255, 0.08);
   --border-subtle: rgba(255, 255, 255, 0.14);
 
@@ -24,18 +24,18 @@
   --text-muted: #736e68;
 
   /* 4. ACENTO PRINCIPAL (DORADO / WHISKEY / MIEL SASTRE) */
-  --accent: #d4973b;
-  --accent-color: #d4973b;
-  --accent-hover: #e5a74b;
-  --accent-contrast: #0c0b0a;
-  --accent-subtle: rgba(212, 151, 59, 0.12);
-  --accent-border: rgba(212, 151, 59, 0.35);
-  --halo-color: rgba(212, 151, 59, 0.12);
+  --accent: #e1a34a;
+  --accent-color: #e1a34a;
+  --accent-hover: #efb15c;
+  --accent-contrast: #0b0a09;
+  --accent-subtle: rgba(225, 163, 74, 0.14);
+  --accent-border: rgba(225, 163, 74, 0.4);
+  --halo-color: rgba(225, 163, 74, 0.16);
 
   /* 5. ACENTO VERDE SECUNDARIO (CIPRÉS NOCTURNO / BRITISH RACING NIGHT) */
   --green-accent: #1e3328;
   --green-hover: #294537;
-  --green-text: #85baa0;
+  --green-text: #94c9a9;
   --green-contrast: #0c0b0a;
   --green-subtle: rgba(30, 51, 40, 0.38);
   --green-border: rgba(52, 88, 70, 0.50);
@@ -148,7 +148,7 @@ body {
 }
 
 /* Resplandor cálido de sastre / Savile Row club ambient */
-.ambient-glow {
+  .ambient-glow {
   position: absolute;
   width: 750px;
   height: 750px;
@@ -158,7 +158,28 @@ body {
   pointer-events: none;
   z-index: 0;
   transition: background 0.35s ease;
-}
+  }
+
+  .story-glow {
+  position: absolute;
+  width: clamp(18rem, 44vw, 42rem);
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background: radial-gradient(circle, var(--halo-color) 0%, transparent 72%);
+  filter: blur(28px);
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 700ms ease, background 700ms ease;
+  }
+
+  .scroll-story-sticky {
+  z-index: 1;
+  }
+
+
+  .story-card {
+  transition: transform 500ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 500ms ease, border-color 500ms ease, background-color 500ms ease;
+  }
 
 .btn-bespoke {
   background-color: var(--accent);
@@ -360,7 +381,7 @@ body {
   height: 1px;
   transform: scaleX(0);
   transform-origin: left;
-  background: linear-gradient(90deg, var(--accent), rgba(212, 151, 59, 0.15));
+  background: linear-gradient(90deg, var(--accent), rgba(225, 163, 74, 0.15));
   animation: tailor-stitch 700ms 650ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -368,8 +389,17 @@ body {
   .animate-float-gentle,
   .animate-float-reverse,
   .hero-enter,
-  .hero-underline {
+  .hero-underline,
+  .story-glow,
+  .story-card,
+  .story-progress-fill,
+  .mirror-progress-fill {
     animation: none;
+    transition: none !important;
+  }
+
+  #main-scroll {
+    scroll-behavior: auto !important;
   }
 
   .scroll-reveal {
@@ -389,7 +419,7 @@ body {
 .border-basting {
   border-style: dashed;
   border-width: 1px;
-  border-color: rgba(212, 151, 59, 0.35);
+  border-color: var(--accent-border);
 }
 
 .focus-ring {
