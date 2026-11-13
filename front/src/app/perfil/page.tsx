@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   Briefcase,
@@ -22,6 +23,10 @@ import {
   isProfileEmpty,
   useProfileStore,
 } from "@/store/useProfileStore";
+import { buildRenderModelFromProfile } from "@/lib/api";
+import { loadDraft, saveDraft } from "@/lib/draft";
+import { getStoredSession } from "@/lib/supabase";
+import { useCvStore } from "@/store/useCvStore";
 import { Entry, EntryKind, Skill } from "@/types/cv";
 import { toast } from "@/store/useToastStore";
 
@@ -77,10 +82,12 @@ export default function ProfilePage() {
     rejectAllSuggestions,
   } = useProfileStore();
 
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<SectionTab>("general");
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [manualMode, setManualMode] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [generatingCv, setGeneratingCv] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -91,10 +98,46 @@ export default function ProfilePage() {
   }, [fetchProfile]);
 
   const handleSave = async () => {
+    const isAnon = !getStoredSession()?.access_token;
     const ok = await saveProfile();
     if (ok) {
-      setSaveToast("Perfil guardado exitosamente");
+      const msg = isAnon
+        ? "Borrador guardado localmente"
+        : "Perfil guardado exitosamente";
+      setSaveToast(msg);
+      if (isAnon) {
+        toast.success(msg);
+      }
       setTimeout(() => setSaveToast(null), 3000);
+    }
+  };
+
+  const handleGenerateCv = async () => {
+    if (!profile || generatingCv) return;
+    setGeneratingCv(true);
+    try {
+      const isAnon = !getStoredSession()?.access_token;
+      const existingDraft = loadDraft();
+      const theme =
+        existingDraft?.theme || useCvStore.getState().renderModel?.theme || "classic";
+
+      if (dirty) {
+        if (isAnon) {
+          saveDraft(profile, theme);
+          useProfileStore.setState({ dirty: false });
+        } else {
+          await saveProfile();
+        }
+      } else if (isAnon) {
+        saveDraft(profile, theme);
+      }
+
+      const currentProfile = useProfileStore.getState().profile || profile;
+      const model = await buildRenderModelFromProfile(currentProfile, theme);
+      useCvStore.getState().loadAnonymousModel(model);
+      router.push("/editor");
+    } finally {
+      setGeneratingCv(false);
     }
   };
 
@@ -230,6 +273,7 @@ export default function ProfilePage() {
         viewLang={viewLang}
         dirty={dirty}
         saving={saving}
+        generatingCv={generatingCv}
         saveToast={saveToast}
         error={error}
         swappingBase={swappingBase}
@@ -237,6 +281,7 @@ export default function ProfilePage() {
         onSwapBase={handleSwapBase}
         onOpenImportModal={() => setImportModalOpen(true)}
         onSave={handleSave}
+        onGenerateCv={handleGenerateCv}
       />
 
       {/* Banners Guiados */}

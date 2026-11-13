@@ -69,7 +69,7 @@ export function HeroDropzone() {
         setIsSuccess(true);
         // Breve pausa para micro-feedback de éxito antes de navegar
         setTimeout(() => {
-          router.push("/editor");
+          router.push("/perfil");
         }, 500);
       } else {
         throw new Error("No se pudo estructurar el contenido del CV.");
@@ -114,7 +114,7 @@ export function HeroDropzone() {
 
   const handleStartFromScratch = () => {
     clearDraft();
-    router.push("/editor");
+    router.push("/perfil");
   };
 
   return (

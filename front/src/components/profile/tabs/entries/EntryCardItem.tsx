@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  AlertTriangle,
   ArrowDown,
   ArrowUp,
   ChevronDown,
@@ -74,6 +75,12 @@ export function EntryCardItem({
     ? 0
     : entry.facts.filter((f) => f.approved === false || Boolean(f.proposed_text)).length;
   const totalPending = pendingTitlesCount + pendingFactsCount;
+  const isExperienceOrProject =
+    entry.kind === "experience" ||
+    entry.kind === "project" ||
+    (entry.kind as string) === "projects";
+  const activeFactsCount = entry.facts.filter((f) => !f.marked_for_removal).length;
+  const hasZeroBullets = isExperienceOrProject && activeFactsCount === 0;
 
   return (
     <div
@@ -177,6 +184,15 @@ export function EntryCardItem({
           )}
         </div>
       </div>
+
+      {hasZeroBullets && (
+        <div className="mx-4 mb-3 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] flex items-center gap-2 font-mono">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+          <span>
+            Sin viñetas: agregá al menos 1 logro para que esta entrada se incluya correctamente en tu CV.
+          </span>
+        </div>
+      )}
 
       {/* Cuerpo Desplegable */}
       {isExpanded && (

@@ -7,6 +7,7 @@ import { useCvStore } from "@/store/useCvStore";
 import { BulletList } from "./BulletList";
 import { BufferedInput } from "./BufferedFields";
 import {
+  AlertTriangle,
   Plus,
   Trash2,
   Check,
@@ -420,6 +421,15 @@ export function ExperienceSection({ entries, onChange }: ExperienceSectionProps)
                   </button>
                 </div>
               </div>
+
+              {entry.bullets.length === 0 && (
+                <div className="px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] flex items-center gap-2 font-mono">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+                  <span>
+                    Sin viñetas: agregá al menos 1 logro para que esta entrada se incluya correctamente en tu CV.
+                  </span>
+                </div>
+              )}
 
               {!isCollapsed && (
                 <div className="space-y-3 pt-2 border-t border-hairline">

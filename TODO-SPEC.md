@@ -148,7 +148,7 @@
 
 ---
 
-### [ ] T7 — Flujo de Onboarding: Dropzone ➔ `/perfil` (Modo Borrador Anónimo) ➔ "Generar CV" ➔ `/editor` (1A + 4A UI Warning)
+### [x] T7 — Flujo de Onboarding: Dropzone ➔ `/perfil` (Modo Borrador Anónimo) ➔ "Generar CV" ➔ `/editor` (1A + 4A UI Warning)
 - **Objetivo**: Cambiar el flujo de onboarding para que al subir un CV en la landing (o empezar de cero) el usuario pase primero por `/perfil` para revisar/completar su perfil (incluso sin cuenta, operando sobre `draft.ts`), con un botón primario claro **"Generar CV"** que lo lleve a `/editor`. Además, mostrar un aviso visual en entradas que tengan 0 viñetas.
 - **Archivos a modificar**:
   - `front/src/components/landing/HeroDropzone.tsx`:

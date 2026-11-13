@@ -2,6 +2,7 @@ import React from "react";
 import {
   AlertCircle,
   ArrowLeftRight,
+  ArrowRight,
   Check,
   Loader2,
   Save,
@@ -19,8 +20,10 @@ export interface ProfileTopBarProps {
   swappingBase?: boolean;
   onSelectViewLang: (lang: "es" | "en") => void;
   onSwapBase?: () => void;
+  generatingCv?: boolean;
   onOpenImportModal: () => void;
   onSave: () => void;
+  onGenerateCv?: () => void;
 }
 
 export function ProfileTopBar({
@@ -33,8 +36,10 @@ export function ProfileTopBar({
   swappingBase = false,
   onSelectViewLang,
   onSwapBase,
+  generatingCv = false,
   onOpenImportModal,
   onSave,
+  onGenerateCv,
 }: ProfileTopBarProps) {
   return (
     <div className="sticky top-0 z-20 bg-canvas/90 backdrop-blur-md border-b border-hairline px-6 py-3 flex items-center justify-between">
@@ -153,15 +158,32 @@ export function ProfileTopBar({
         <button
           onClick={onSave}
           disabled={saving || !dirty}
-          className="btn-accent flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          className="btn-secondary flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saving ? (
-            <Loader2 className="w-3 h-3 animate-spin text-accent-contrast" />
+            <Loader2 className="w-3 h-3 animate-spin" />
           ) : (
-            <Save className="w-3 h-3" />
+            <Save className="w-3 h-3 text-text-muted" />
           )}
           Guardar cambios
         </button>
+        {onGenerateCv && (
+          <button
+            type="button"
+            onClick={onGenerateCv}
+            disabled={generatingCv || saving}
+            className="btn-accent flex items-center gap-1.5 px-3.5 py-1 text-xs font-medium rounded transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {generatingCv ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-accent-contrast" />
+            ) : (
+              <>
+                <span>Generar CV</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

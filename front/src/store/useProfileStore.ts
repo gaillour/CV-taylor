@@ -15,7 +15,10 @@ import {
   SwapBaseResponse,
 } from "@/types/cv";
 
-import { API_BASE_URL, apiFetch } from "@/lib/api";
+import { API_BASE_URL, apiFetch, parseAnonymousCv } from "@/lib/api";
+import { loadDraft, saveDraft } from "@/lib/draft";
+import { DEFAULT_ANONYMOUS_PROFILE } from "@/lib/profileTransform";
+import { getStoredSession } from "@/lib/supabase";
 import * as mutators from "./profile/profileMutators";
 import * as reducers from "./profile/profileSuggestionReducers";
 
@@ -122,6 +125,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   loadMirror: async () => {
+    if (!getStoredSession()?.access_token) {
+      return;
+    }
     set({ mirrorLoading: true });
     try {
       const res = await apiFetch(`${API_BASE_URL}/api/profile/mirror`);
@@ -136,6 +142,15 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   swapBaseLang: async () => {
+    if (!getStoredSession()?.access_token) {
+      const { profile, viewLang } = get();
+      if (!profile) return false;
+      const updated: Profile = { ...profile, base_lang: viewLang };
+      const existingDraft = loadDraft();
+      saveDraft(updated, existingDraft?.theme || "classic");
+      set({ profile: updated, dirty: false, error: null });
+      return true;
+    }
     set({ swappingBase: true, error: null });
     try {
       const res = await apiFetch(`${API_BASE_URL}/api/profile/swap-base`, {
@@ -165,6 +180,26 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   fetchProfile: async () => {
     set({ loading: true, error: null });
+    if (!getStoredSession()?.access_token) {
+      const draft = loadDraft();
+      const data = draft?.profile ?? DEFAULT_ANONYMOUS_PROFILE;
+      if (!draft?.profile) {
+        saveDraft(data, "classic");
+      }
+      const hasData = !reducers.isProfileEmpty(data);
+      set({
+        profile: data,
+        viewLang: data.base_lang || "es",
+        loading: false,
+        initialized: true,
+        dirty: false,
+        canEnhanceAfterImport: false,
+        lastImportInfo: null,
+        lastEnhanceStats: null,
+        isManualMode: hasData,
+      });
+      return;
+    }
     try {
       const res = await apiFetch(`${API_BASE_URL}/api/profile`);
       if (!res.ok) {
@@ -194,6 +229,35 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   importProfile: async (file: File, sourceLang: "auto" | LangCode = "auto") => {
     set({ importing: true, error: null, lastImportInfo: null });
+    if (!getStoredSession()?.access_token) {
+      try {
+        const data = await parseAnonymousCv(file, sourceLang);
+        if (!data || !data.profile) {
+          throw new Error("No se pudo estructurar el contenido del CV.");
+        }
+        const existingDraft = loadDraft();
+        saveDraft(data.profile, existingDraft?.theme || "classic");
+        set({
+          profile: data.profile,
+          mirror: null,
+          mirrorStatus: null,
+          viewLang: data.profile.base_lang || "es",
+          importing: false,
+          canEnhanceAfterImport: false,
+          lastImportInfo: null,
+          dirty: false,
+          isManualMode: true,
+          error: null,
+        });
+        return true;
+      } catch (err: unknown) {
+        set({
+          importing: false,
+          error: err instanceof Error ? err.message : "Error al importar CV",
+        });
+        return false;
+      }
+    }
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -301,6 +365,13 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     const { profile } = get();
     if (!profile) return false;
 
+    if (!getStoredSession()?.access_token) {
+      const existingDraft = loadDraft();
+      saveDraft(profile, existingDraft?.theme || "classic");
+      set({ saving: false, dirty: false, error: null });
+      return true;
+    }
+
     set({ saving: true, error: null });
     try {
       const res = await apiFetch(`${API_BASE_URL}/api/profile`, {
@@ -333,7 +404,12 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   setProfile: (updater) => {
     const { profile } = get();
     if (!profile) return;
-    set({ profile: updater(profile), dirty: true, isManualMode: true });
+    const nextProfile = updater(profile);
+    if (!getStoredSession()?.access_token) {
+      const existingDraft = loadDraft();
+      saveDraft(nextProfile, existingDraft?.theme || "classic");
+    }
+    set({ profile: nextProfile, dirty: true, isManualMode: true });
   },
 
   updateFullName: (full_name) => {
