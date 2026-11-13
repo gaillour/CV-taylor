@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCvStore } from "@/store/useCvStore";
+import { useProfileStore } from "@/store/useProfileStore";
 import { CvPreview } from "@/components/preview/CvPreview";
 import { FillGauge } from "@/components/preview/FillGauge";
 import { AtsGauge } from "@/components/editor/AtsGauge";
@@ -45,12 +46,24 @@ export function EditorView({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInputValue, setTitleInputValue] = useState("");
   const [localTailorOpen, setLocalTailorOpen] = useState(false);
+  const profilePhotoUrl = useProfileStore((s) => s.profile?.contact?.photo_url);
 
   const isTailorOpen = externalTailorOpen || localTailorOpen;
   const handleCloseTailor = () => {
     setLocalTailorOpen(false);
     onCloseExternalTailor?.();
   };
+
+  // Sincronizar reactivamente photo_url del perfil si se hidrató o subió después de cargar el draft
+  useEffect(() => {
+    if (!isAnonymous && renderModel && profilePhotoUrl && !renderModel.contact?.photo_url) {
+      updateModel((prev) => ({
+        ...prev,
+        contact: { ...prev.contact, photo_url: profilePhotoUrl },
+        photo_path: profilePhotoUrl,
+      }));
+    }
+  }, [isAnonymous, renderModel, profilePhotoUrl, updateModel]);
 
   // Fix visor de PDF: si hay renderModel pero no hay SVG compilado ni error ni está cargando,
   // disparar fetchPreview inmediatamente para evitar el congelamiento inicial.
@@ -224,7 +237,7 @@ export function EditorView({
       </header>
 
       {/* Notice banner for visual theme without photo */}
-      {selectedThemeMeta?.hasPhoto && !renderModel?.contact?.photo_url && (
+      {selectedThemeMeta?.hasPhoto && !(renderModel?.contact?.photo_url || (!isAnonymous && profilePhotoUrl)) && (
         <div className="bg-warning-subtle border-b border-warning-border px-6 py-1.5 flex items-center justify-between text-xs text-warning">
           <span className="flex items-center gap-1.5">
             <span>💡</span>

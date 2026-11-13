@@ -1,133 +1,81 @@
 # TODO.md — Roadmap Operativo (`cv-tailor`)
 
-## anotaciones
-
-- Agregar proyecto/bullet en el editor guarda en perfil o eso rompe con SSOT?
-- Que no me mueva automaticamente al editor si quiero ir a la landing
-- Sacar bloat de la landing en el Hero
-- [x] Opción de agregar proyecto subiendo link de GitHub (extracción determinista + síntesis IA de 1 llamada + modal de revisión).
-- Que lo de la empresa y rol sea muy opcional en los proyectos. 
-- No estan andando las flechas para ordenar por prioridad en los proyectos. 
-
-## P0 — Onboarding Anónimo & Conversión (ver `docs/Onboarding.md`)
-
-- [x] Diseñar el onboarding.
-
-### Paso 0 — Contrato en `main` (antes de abrir worktrees)
-
-- [x] Definir schemas de endpoints anónimos (parse/render) y de cuota de adaptaciones en `back/engine/models.py` + stubs en `front/src/lib/api.ts` y tipos en `front/src/types/cv.ts`.
-- [x] Crear util compartida de borrador local (`front/src/lib/draft.ts`: clave, `save/load/clear`, acción pendiente).
-- [x] Extraer tiers de pricing a módulo reusable SSOT (`front/src/lib/pricing.ts`).
-
-### WS-A — Backend (`back/`, `supabase/`)
-
-- [x] Habilitar parsing y render PDF para anónimos.
-- [x] Rate-limit de parsing anónimo por IP (~3/día).
-- [x] Migración `004_` + endpoint de cuota de adaptaciones IA por cuenta (2 free); bloquear la 3ª con error tipado.
-
-### WS-B — Landing & Login (`components/landing/`, `app/page.tsx`, `app/login/`)
-
-- [x] Dropzone PDF/TXT en Hero con microcopy "Sin cuenta…", link GitHub, CTA "o empezá de cero" y mensaje de PDF gratis ilimitado. Al parsear: `draft.save` → `/editor`.
-- [x] `id="pricing"` en `PricingSection` + link "Pricing" en `LandingNav`; extraer tiers a un módulo reusable.
-- [x] Redirect de usuario autenticado `/` → `/editor`.
-- [x] Login: soportar `?next=&action=` y restyle con estética de la landing.
-
-### WS-C — Editor & App (`app/editor/`, `components/nav/`)
-
-- [x] Fix visor de PDF en carga inicial (delay/congelamiento al entrar por primera vez; hoy requiere forzar cambio de densidad). Bloquea el primer impacto del anónimo.
-- [x] Modo anónimo: cargar/persistir borrador vía `draft.ts`; gatear Guardar / snapshots / Adaptar IA → redirect a login.
-- [x] Post-login: migración borrador → Supabase (silenciosa o modal reemplazar/descartar), limpieza local y ejecución de acción pendiente.
-- [x] Contador "N adaptaciones restantes", link "Ver planes" en `AppSidebar` y paywall modal (reusa tiers de WS-B).
-
-### Post-merge
-
-- [ ] Test E2E del flujo completo: landing → parsing → editor anónimo → login → migración → paywall.
-- [ ] Definir proveedor de checkout del Pase.
-
----
-
-## Base Concluida — Infraestructura, Despliegue & Landing Page
-
-- [x] **Dockerfile Backend (FastAPI):**
-  - [x] Crear Dockerfile multi-stage con Python 3.12 y `uv`.
-  - [x] Validar compatibilidad de rueda `typst` y empaquetado de fuentes/templates.
-  - [x] Configurar bind de host `0.0.0.0` y puerto variable `$PORT` (Railway / Render / Fly.io / VPS).
-- [x] **CORS dinámico en Backend:**
-  - [x] Parametrizar `allow_origins` en `back/api/main.py` mediante variable de entorno `CORS_ORIGINS` / `FRONTEND_URL`.
-- [x] **Setup de Instancia Supabase Cloud:**
-  - [x] Ejecutar migraciones SQL (`supabase/migrations/001_slice_9b_supabase.sql`, `002_profile_mirror.sql`, `003_avatars_storage.sql`) en el SQL Editor de Supabase.
-  - [x] Crear y verificar buckets de Supabase Storage: `cv-snapshots` y `avatars`.
-  - [x] Configurar credenciales en Backend y Frontend.
-- [x] **Deploy Frontend en Vercel:**
-  - [x] Conectar repositorio con `Root Directory: front`.
-  - [x] Configurar variables de entorno de producción (`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
-- [x] **Landing Page (Polish Scroll-Driven & Simplificación):**
-  - [x] Corregir alineación del CV en el bloque EN al scrollear en The Mirror.
-  - [x] Reducir tamaño del sello/botón Bespoke en Hero.
-  - [x] Sacar regla/cinta de "Corte milimétrico A4" en Hero.
-  - [x] Sacar el EN verde por dorado en The Mirror.
-  - [x] Los 3 pasos: simplificar al extremo y animar 100% con scroll continuo (01 -> 02 -> 03) sin sobrecarga ni frenos.
-  - [x] Versionado: rediseñar con animación por scroll, sin tecnicismos, con V1/V2/V3/V4 bien grandes (Base -> Junior -> Semi Senior -> Senior) y evolución visual evidente.
-
----
-
-## P1 — Bugs Críticos de UX en Editor
-
-- [ ] **Fix detección de foto/avatar en recomendación de template:**
-  - [ ] Corregir la condición en el editor que sigue sugiriendo "se debería usar con foto" aunque el perfil ya tenga un avatar cargado (evitando que requiera un guardado manual para ocultarse).
+## Errores en el onboarding:
+-Borrador local no guardado
+Tenés un borrador local no guardado. ¿Deseás reemplazar tu perfil actual en la nube con este borrador o descartarlo?
+Muy ambiguo eso, nose entiende.
+-Se me genero un cv en el que hay un proyecto con 0 viñetas, que no pase eso. Diría que minimo 2 para proy y exp pero nose puede llegar a haber alguno con uno
+- El proceso de onboarding no es carga -> editor, es carga -> perfil -> generar cv
+- Me acaba de generar un cv en el q puso de nombres de proyectos Desarrollador de software o backend, no puede pasar eso. En el contexto/organizacion estaba el nombre de proyecto, que es el que tiene que estar.
+- Los links los detecto mal, pej en la seccion github puso gaillour, cuando tiene que ser github.com/gaillour Otra cosa, que diga Github y al clickear tenga el link, no el link escrito. Lo mismo para linkedin.
+- Las fechas, no puede haber un fecha inicio = fecha fin. CV Tailor — Motor de Adaptación y Generación de CVs | 2026 - 2026 me puso en uno. 
+> Verifiquemos si estos errores en la generacion automatica son pq se uso la llamada adaptada para generar el cv cuando antes debería haber pasado por la de perfil. Y determinemos si tienen que tener instrucciones comunes/las mimsmas/ independientes.
 
 
----
 
-## P2 — Calibración y Legal de Plantillas Typst
+## P0 — Bugs Críticos de Persistencia y Editor
 
-- [ ] **Calibración / Decisión template `vercanard`:**
-  - [ ] Evaluar el comportamiento de dos columnas (actualmente tiene significativamente menos % de llenado que el resto y restringe el lateral a skills/contacto/educación).
-  - [ ] Definir si se calibra la distribución de bloques o se remueve del catálogo activo.
-- [ ] **Polish visual general en plantillas Typst:**
-  - [ ] Corregir inconsistencias de espaciado, pesos tipográficos y márgenes detectados en plantillas visuales.
-- [ ] **Auditoría de licencias de plantillas:**
-  - [ ] Chequear y documentar licencias (MIT, Apache 2.0, etc.) de las plantillas incorporadas en `back/engine/templates/`.
+- [x] **Fix guardado de CV (error 404 snapshot not found):**
+  - Investigar y resolver error 404 al persistir o actualizar el snapshot en backend/Supabase.
+- [x] **Fix ordenamiento de proyectos en editor:**
+  - Corregir las flechas de reordenamiento por prioridad en la lista de proyectos que actualmente no responden.
+- [x] **Fix detección de avatar en recomendación de template:**
+  - Corregir la condición en el editor que sigue sugiriendo "se debería usar con foto" aunque el perfil ya cuente con un avatar cargado (evitando requerir un guardado manual forzado).
 
----
 
-## P3 — Fase F7: Rediseño Visual & Modernización UI (Dashboard, Perfil, Editor)
+## P1 — Refinamiento de Datos y Modelo de Proyectos
 
-- [x] **Tokens y paleta unificada de color:**
-  - [x] Extender tokens y paleta de la landing (ámbar `#d4973b`, verde sastre `#1b4332`, bg dark sastre) a `/cvs`, `/perfil` y `/editor`.
-- [x] **Componentes atómicos interactivos:**
-  - [x] Refactor de cards, modales, botones y micro-interacciones de la app interna alineadas con la estética de la landing.
+- [ ] **Empresa y rol opcionales en proyectos:**
+  - Permitir que los campos de empresa/institución y rol sean completamente opcionales en el formulario y asegurar que los templates de Typst rendericen sin guiones o espacios huérfanos si faltan.
+- [ ] **Modal de sincronización selectiva al guardar CV (Editor ➔ Perfil Base SSOT):**
+  - Al hacer click en "Guardar CV", presentar la opción de elegir qué cambios puntuales (nuevos proyectos agregados, viñetas modificadas) se desean impactar y persistir también en el perfil base.
+
+
+## P2 — E2E Onboarding, Checkout y Dashboard
+
+- [ ] **Test E2E del flujo de conversión completo:**
+  - Validar el pipeline integral: landing → dropzone parsing → editor anónimo (`draft.ts`) → login → migración de borrador a Supabase → disparo de paywall al superar cuota.
+- [ ] **Checkout y monetización:**
+  - Definir e integrar pasarela/proveedor de checkout para la compra del Pase.
 - [ ] **Reacomodación del Dashboard (`/cvs`):**
-  - [ ] Definir UX de creación de CVs en estado vacío (botón unificado con prompt vs doble botón base/adaptado).
-- [ ] **Copy de landing:**
-  - [ ] Sacar textos tipo "scrolleá para ver…" (`TheMirrorSection`, `VersionTimelineSection`, `WorkflowSection`, `LandingNav`).
+  - Definir y diseñar UX para estado vacío y flujo de creación (botón unificado con prompt vs botón doble base/adaptado).
 
----
 
-## P4 — Fase F8: Validación Externa ATS
+## P3 — Plantillas Typst & Compatibilidad ATS
 
-- [ ] **Pruebas y compatibilidad ATS:**
-  - [ ] Testing de PDFs generados contra plataformas reales (Lever, Greenhouse, Workday) para garantizar 100% de parseabilidad.
+- [ ] **Desactivar hyphenation (guionado automático) en Typst:**
+  - Configurar `#set text(hyphenate: false)` en las plantillas Typst para evitar que las palabras se corten con guión al final de línea (`ejem- \n plo`), garantizando lectura limpia para parsers ATS.
+- [ ] **Auditoría de orden de lectura y jerarquía ATS:**
+  - Validar flujo de lectura lineal y jerarquía semántica del texto extraído contra parsers reales (Lever, Greenhouse, Workday, `pdftotext`), especialmente en plantillas de dos columnas.
+- [ ] **Calibración / Decisión template `vercanard`:**
+  - Evaluar rendimiento de layout a dos columnas (bajo porcentaje de llenado) y definir si se redistribuyen bloques o se retira del catálogo activo.
+- [ ] **Polish visual en plantillas Typst:**
+  - Corregir inconsistencias de espaciado, márgenes y pesos tipográficos reportados en plantillas visuales.
+- [ ] **Auditoría de licencias:**
+  - Documentar licencias (MIT, Apache 2.0, etc.) de las plantillas integradas en `back/engine/templates/`.
 
----
 
 ## Historial de Fases Concluidas
 
-| Fase / Slice | Descripción | Estado |
+| Fase / Hito | Descripción | Estado |
 |---|---|---|
-| **Landing Page & The Mirror** | Portada completa, tokens versátiles, ScrollReveal y The Mirror con traducción continua y traslado 3D a dock EN. | Concluido |
-| **Slice 1: Tracer Bullet** | Render en vivo a SVG vía Typst, telemetría de llenado A4 y shell Next.js. | Concluido |
-| **Slice 2: Edición Reactiva** | Tarjetas interactivas con toggles de viñetas y debounce sin latencia IA. | Concluido |
-| **Slice 3: Flujo de Adaptación** | Pipeline de tailoring con extracción de oferta, matching ATS y modal de progreso. | Concluido |
-| **Slice 4: Exportación & Inmutabilidad** | Descarga binaria de PDF vía Typst y snapshots inmutables con hash SHA-256. | Concluido |
-| **Slice 5: Shell Multi-página** | Topbar con navegación CVs / Perfil / Editor, galería agrupada e historial de versiones. | Concluido |
-| **Slice 6: Perfil CRUD Manual** | Estructuración del perfil base con arquetipos de títulos, hechos y catálogo de skills. | Concluido |
-| **Slice 7: Ingesta y Onboarding** | Upload y extracción de CV previo (PDF/TXT) vía LLM/pypdf con CLI y vista dropzone. | Concluido |
-| **Slice 8: Asistencias IA en Perfil** | Destilación de viñetas, sugerencias de títulos y normalización de skills con aprobación manual. | Concluido |
-| **Slice 9: Persistencia Cloud** | Capa Repository (local + Supabase Postgres/Storage), Auth JWT y soft delete de snapshots. | Concluido |
-| **Slice 10: Pulido UX & Anti-Alucinación** | Validador estricto anti-alucinación en summary, importación de proyectos en editor y loading dashboard. | Concluido |
-| **Slice 11: Perfil Monolingüe & Espejo Bilingüe** | Perfil base SSOT con espejo derivado incremental (`mirror.py`, `translator.py`), glosario determinista e integración en editor/tailoring. | Concluido |
-| **Fase F1 / F2: Fitting & Motor Físico** | Medición física en Typst, poda determinista Bottom-Up y fitting en 1 página A4. | Concluido |
-| **Fase F4: Fitting 85-100%, ATS en vivo y Usabilidad** | Rango garantizado 85-100%, selector binario de idioma, ATS live, reordenamiento de secciones y títulos de artefacto en proyectos. | Concluido |
-| **Fase F5: Consistencia de Editor, Ingesta y Plantillas** | Importación integral en editor, anti-redundancia en asistente IA, calibración de las 6 plantillas Typst, extracción exhaustiva y desacople de edición en perfil. | Concluido |
+| **Landing Page & Hero Polish** | The Mirror con dock EN 3D, animación de 3 pasos por scroll continuo, simplificación de Hero (retiro de cinta A4, ajuste de sello Bespoke y limpieza de copys instructivos residuales). | Concluido |
+| **Navegación Landing vs Editor** | Desactivado redirect forzado `/` ➔ `/editor` para usuarios autenticados al navegar a la landing. | Concluido |
+| **Onboarding Anónimo & Conversión** | Endpoints anónimos (parse/render), rate-limiting por IP, borrador local (`draft.ts`), cuota de adaptaciones (migración `004_`), paywall modal y migración post-login. | Concluido |
+| **Infraestructura & Despliegue** | Dockerfile multi-stage con Python 3.12 y `uv`, CORS dinámico, setup Supabase Cloud (DB + Storage) y deploy frontend en Vercel. | Concluido |
+| **Fase F7: Base UI & Ingesta GitHub** | Tokens y paleta sastre (`/cvs`, `/perfil`, `/editor`), refactor de componentes atómicos y extracción determinista de proyectos desde GitHub con síntesis IA. | Concluido |
 | **Fase F6: Plantillas Visuales & Avatar** | Soporte de foto/avatar (local + Supabase), 5 nuevas plantillas Typst (`modern-cv`, `vercanard`, `impressive-impression`, `modern-resume`, `metronic`), selector categorizado y aviso amigable en editor. | Concluido |
+| **Fase F5: Consistencia de Editor e Ingesta** | Importación integral en editor, anti-redundancia en asistente IA, calibración de las 6 plantillas Typst, extracción exhaustiva y desacople de edición en perfil. | Concluido |
+| **Fase F4: Fitting 85-100% & Usabilidad** | Rango garantizado 85-100%, selector binario de idioma, ATS live, reordenamiento de secciones y títulos de artefacto en proyectos. | Concluido |
+| **Fase F1 / F2: Fitting & Motor Físico** | Medición física en Typst, poda determinista Bottom-Up y fitting en 1 página A4. | Concluido |
+| **Slice 11: Espejo Bilingüe** | Perfil base SSOT con espejo derivado incremental (`mirror.py`, `translator.py`), glosario determinista e integración en editor/tailoring. | Concluido |
+| **Slice 10: Pulido UX & Anti-Alucinación** | Validador estricto anti-alucinación en summary, importación de proyectos en editor y loading dashboard. | Concluido |
+| **Slice 9: Persistencia Cloud** | Capa Repository (local + Supabase Postgres/Storage), Auth JWT y soft delete de snapshots. | Concluido |
+| **Slice 8: Asistencias IA en Perfil** | Destilación de viñetas, sugerencias de títulos y normalización de skills con aprobación manual. | Concluido |
+| **Slice 7: Ingesta y Onboarding** | Upload y extracción de CV previo (PDF/TXT) vía LLM/pypdf con CLI y vista dropzone. | Concluido |
+| **Slice 6: Perfil CRUD Manual** | Estructuración del perfil base con arquetipos de títulos, hechos y catálogo de skills. | Concluido |
+| **Slice 5: Shell Multi-página** | Topbar con navegación CVs / Perfil / Editor, galería agrupada e historial de versiones. | Concluido |
+| **Slice 4: Exportación & Inmutabilidad** | Descarga binaria de PDF vía Typst y snapshots inmutables con hash SHA-256. | Concluido |
+| **Slice 3: Flujo de Adaptación** | Pipeline de tailoring con extracción de oferta, matching ATS y modal de progreso. | Concluido |
+| **Slice 2: Edición Reactiva** | Tarjetas interactivas con toggles de viñetas y debounce sin latencia IA. | Concluido |
+| **Slice 1: Tracer Bullet** | Render en vivo a SVG vía Typst, telemetría de llenado A4 y shell Next.js. | Concluido |

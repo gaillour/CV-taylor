@@ -1,7 +1,7 @@
 # AGENT.md — Directivas Globales y Límites Operativos
 
 ## Principios Operativos y SSOT
-- Inspeccionar contratos y schemas exclusivamente en `back/engine/models.py`. Prohibido duplicar tipos en Markdown.
+- Inspeccionar contratos y schemas exclusivamente en `back/engine/models/`. Prohibido duplicar tipos en Markdown.
 - Mantener documentación sincronizada: actualizar `TODO.md` al completar o reorganizar tareas, y consultar `SPEC.md` para especificaciones del sistema.
 - Resolver puntualmente lo solicitado con diffs limpios: prohibido tocar imports ajenos, reformatear código no relacionado o introducir abstracciones o dependencias innecesarias.
 - Registrar vía `graph-memory` exclusivamente decisiones estructurales de peso (stack, base de datos, arquitectura base). Prohibido registrar micro-decisiones.

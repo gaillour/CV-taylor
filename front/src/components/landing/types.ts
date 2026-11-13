@@ -11,25 +11,6 @@ export interface PricingTier {
   features: string[];
 }
 
-export interface ComparisonItem {
-  category: string;
-  generic: {
-    badPractice: string;
-    detail: string;
-  };
-  tailored: {
-    goodPractice: string;
-    detail: string;
-  };
-}
-
-export interface WorkflowStep {
-  number: string;
-  title: string;
-  description: string;
-  badge: string;
-}
-
 export interface MirrorCvData {
   lang: "es" | "en";
   badge: string;
@@ -46,17 +27,3 @@ export interface MirrorCvData {
   }[];
   skills: string[];
 }
-
-export interface MirrorTriptychWingData {
-  title: string;
-  subtitle: string;
-  badge: string;
-  comparisons: {
-    baseLabel: string;
-    baseText: string;
-    mirrorLabel: string;
-    mirrorText: string;
-    note: string;
-  }[];
-}
-

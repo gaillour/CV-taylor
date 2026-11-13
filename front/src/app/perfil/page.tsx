@@ -3,22 +3,17 @@
 import React, { useEffect, useState } from "react";
 import {
   AlertCircle,
-  ArrowLeftRight,
   Briefcase,
-  Check,
-  Eye,
   FolderGit2,
   GraduationCap,
   Layers,
   Loader2,
-  Save,
-  SlidersHorizontal,
-  Sparkles,
-  UploadCloud,
   User,
   X,
 } from "lucide-react";
 import { CvDropzone } from "@/components/profile/CvDropzone";
+import { ProfileTopBar } from "@/components/profile/header/ProfileTopBar";
+import { ProfileAiBanners } from "@/components/profile/header/ProfileAiBanners";
 import { EntriesTab } from "@/components/profile/tabs/EntriesTab";
 import { GeneralTab } from "@/components/profile/tabs/GeneralTab";
 import { SkillsTab } from "@/components/profile/tabs/SkillsTab";
@@ -230,219 +225,37 @@ export default function ProfilePage() {
   return (
     <div className="flex-1 min-h-0 overflow-y-auto bg-canvas text-text-primary">
       {/* Header Sticky */}
-      <div className="sticky top-0 z-20 bg-canvas/90 backdrop-blur-md border-b border-hairline px-6 py-3 flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-display text-base font-medium tracking-tight text-text-ivory">
-              Perfil maestro
-            </h1>
-            <span className="text-[11px] font-mono text-text-muted uppercase">
-              · base: {baseLang}
-            </span>
-            {dirty ? (
-              <span className="flex items-center gap-1.5 text-[10px] font-mono text-warning">
-                <span className="w-1.5 h-1.5 rounded-full bg-warning" />
-                cambios sin guardar
-              </span>
-            ) : (
-              <span className="flex items-center gap-1 text-[10px] font-mono text-text-muted">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-text" />
-                sincronizado
-              </span>
-            )}
-          </div>
-          <p className="text-[11px] text-text-secondary mt-0.5">
-            Registro unificado de experiencia y habilidades para la adaptación a ofertas.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Switch de Vista (Base vs Espejo ES / EN) */}
-          <div className="flex items-center bg-surface border border-hairline p-0.5 rounded-md font-mono text-xs">
-            <button
-              type="button"
-              onClick={() => handleSelectViewLang("es")}
-              disabled={baseLang !== "es" && dirty}
-              className={`px-2 py-0.5 rounded transition-colors flex items-center gap-1 ${
-                viewLang === "es"
-                  ? "bg-surface-raised text-text-ivory border border-hairline shadow-xs cursor-default"
-                  : baseLang !== "es" && dirty
-                  ? "text-text-muted opacity-40 cursor-not-allowed"
-                  : "text-text-secondary hover:text-text-primary cursor-pointer"
-              }`}
-              title={
-                baseLang === "es"
-                  ? "Idioma base (editable)"
-                  : dirty
-                  ? "Guardá los cambios en el perfil base antes de ver la traducción"
-                  : "Espejo derivado (solo lectura)"
-              }
-            >
-              <span>ES</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSelectViewLang("en")}
-              disabled={baseLang !== "en" && dirty}
-              className={`px-2 py-0.5 rounded transition-colors flex items-center gap-1 ${
-                viewLang === "en"
-                  ? "bg-surface-raised text-text-ivory border border-hairline shadow-xs cursor-default"
-                  : baseLang !== "en" && dirty
-                  ? "text-text-muted opacity-40 cursor-not-allowed"
-                  : "text-text-secondary hover:text-text-primary cursor-pointer"
-              }`}
-              title={
-                baseLang === "en"
-                  ? "Idioma base (editable)"
-                  : dirty
-                  ? "Guardá los cambios en el perfil base antes de ver la traducción"
-                  : "Espejo derivado (solo lectura)"
-              }
-            >
-              <span>EN</span>
-            </button>
-          </div>
-
-          {saveToast && (
-            <div className="text-xs font-mono text-text-primary bg-surface border border-hairline px-2.5 py-1 rounded-md flex items-center gap-1.5 transition">
-              <Check className="w-3.5 h-3.5 text-green-text" />
-              {saveToast}
-            </div>
-          )}
-          {error && (
-            <div className="text-xs font-mono text-danger bg-danger-subtle border border-danger-border px-2.5 py-1 rounded-md flex items-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5 text-danger" />
-              {error}
-            </div>
-          )}
-          <button
-            onClick={() => setImportModalOpen(true)}
-            className="btn-secondary flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded transition-colors cursor-pointer"
-          >
-            <UploadCloud className="w-3 h-3 text-text-muted" />
-            <span>Importar CV</span>
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving || !dirty}
-            className="btn-accent flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {saving ? (
-              <Loader2 className="w-3 h-3 animate-spin text-accent-contrast" />
-            ) : (
-              <Save className="w-3 h-3" />
-            )}
-            Guardar cambios
-          </button>
-        </div>
-      </div>
+      <ProfileTopBar
+        baseLang={baseLang}
+        viewLang={viewLang}
+        dirty={dirty}
+        saving={saving}
+        saveToast={saveToast}
+        error={error}
+        swappingBase={swappingBase}
+        onSelectViewLang={handleSelectViewLang}
+        onSwapBase={handleSwapBase}
+        onOpenImportModal={() => setImportModalOpen(true)}
+        onSave={handleSave}
+      />
 
       {/* Banners Guiados */}
-      <div className="max-w-6xl w-full mx-auto px-6 pt-5 space-y-3">
-        {isViewingMirror && (
-          <div className="bg-surface border border-hairline rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono text-xs">
-            <div className="flex items-center gap-2.5 text-text-secondary">
-              <Eye className="w-3.5 h-3.5 text-text-muted shrink-0" />
-              <span>
-                Vista espejo en <strong className="uppercase text-text-primary">{viewLang}</strong> (solo lectura). Se actualiza al guardar el perfil base (<strong className="uppercase text-text-primary">{baseLang}</strong>).
-              </span>
-              {mirrorLoading && (
-                <Loader2 className="w-3 h-3 animate-spin text-accent ml-1" />
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={handleSwapBase}
-              disabled={swappingBase || dirty}
-              title={
-                dirty
-                  ? "Guardá los cambios antes de cambiar el idioma base"
-                  : `Convertir ${viewLang.toUpperCase()} en tu idioma base editable`
-              }
-              className="btn-secondary flex items-center gap-1.5 px-2.5 py-1 rounded text-xs text-text-secondary hover:text-text-primary transition-colors cursor-pointer shrink-0 disabled:opacity-40"
-            >
-              {swappingBase ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : (
-                <ArrowLeftRight className="w-3 h-3 text-text-muted" />
-              )}
-              <span>Usar {viewLang.toUpperCase()} como base</span>
-            </button>
-          </div>
-        )}
-
-        {!isViewingMirror && canEnhanceAfterImport && (
-          <div className="bg-surface border border-hairline rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-md bg-surface-raised border border-hairline text-accent shrink-0 mt-0.5">
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-xs font-medium text-text-ivory">
-                  CV importado con éxito
-                </h3>
-                <p className="text-xs text-text-secondary mt-0.5">
-                  ¿Querés que la IA sugiera títulos alternativos por arquetipo (ej: Backend / Full Stack) y normalice viñetas para adaptar mejor tu CV a futuras ofertas?
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={dismissImportPrompt}
-                className="btn-secondary px-2.5 py-1 rounded text-xs transition-colors cursor-pointer"
-              >
-                Omitir
-              </button>
-              <button
-                onClick={handleEnhance}
-                disabled={enhancing}
-                className="btn-accent flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium transition-colors cursor-pointer"
-              >
-                {enhancing ? (
-                  <Loader2 className="w-3 h-3 animate-spin text-accent-contrast" />
-                ) : (
-                  <Sparkles className="w-3 h-3" />
-                )}
-                Enriquecer con IA
-              </button>
-            </div>
-          </div>
-        )}
-
-        {!isViewingMirror && pendingCount > 0 && (
-          <div className="bg-surface border border-hairline rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-md bg-surface-raised border border-hairline text-accent shrink-0 mt-0.5">
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-              </div>
-              <div>
-                <h3 className="text-xs font-medium text-text-ivory font-mono">
-                  {pendingCount} {pendingCount === 1 ? "sugerencia pendiente" : "sugerencias pendientes"}
-                </h3>
-                <p className="text-xs text-text-secondary mt-0.5">
-                  Revisalas y aprobalas para consolidarlas en tu perfil.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={rejectAllSuggestions}
-                className="btn-secondary flex items-center gap-1 px-2.5 py-1 rounded text-xs text-text-muted hover:text-danger transition-colors cursor-pointer"
-              >
-                <X className="w-3 h-3" />
-                Descartar todas
-              </button>
-              <button
-                onClick={approveAllSuggestions}
-                className="btn-accent flex items-center gap-1 px-3 py-1 rounded text-xs font-medium transition-colors cursor-pointer"
-              >
-                <Check className="w-3 h-3" />
-                Aprobar todas ({pendingCount})
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      <ProfileAiBanners
+        isViewingMirror={isViewingMirror}
+        viewLang={viewLang}
+        baseLang={baseLang}
+        mirrorLoading={mirrorLoading}
+        swappingBase={swappingBase}
+        dirty={dirty}
+        onSwapBase={handleSwapBase}
+        canEnhanceAfterImport={canEnhanceAfterImport}
+        enhancing={enhancing}
+        onDismissImportPrompt={dismissImportPrompt}
+        onEnhance={handleEnhance}
+        pendingCount={pendingCount}
+        onApproveAllSuggestions={approveAllSuggestions}
+        onRejectAllSuggestions={rejectAllSuggestions}
+      />
 
       {/* Main Layout */}
       <div className="max-w-6xl w-full mx-auto px-6 py-6 flex flex-col md:flex-row gap-6">

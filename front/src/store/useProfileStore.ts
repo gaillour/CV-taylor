@@ -16,45 +16,11 @@ import {
 } from "@/types/cv";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
+import * as mutators from "./profile/profileMutators";
+import * as reducers from "./profile/profileSuggestionReducers";
 
 export { API_BASE_URL };
-
-export function isProfileEmpty(profile: Profile | null): boolean {
-  if (!profile) return true;
-  const hasContact = Boolean(
-    profile.contact?.email?.trim() ||
-    profile.contact?.phone?.trim() ||
-    profile.contact?.location?.trim()
-  );
-  return (
-    !profile.full_name?.trim() &&
-    profile.entries.length === 0 &&
-    profile.skills.length === 0 &&
-    !hasContact
-  );
-}
-
-export function countPendingSuggestions(profile: Profile | null): number {
-  if (!profile) return 0;
-  let count = 0;
-  for (const s of profile.skills) {
-    if (s.approved === false || s.marked_for_removal) count++;
-  }
-  for (const e of profile.entries) {
-    for (const t of e.titles) {
-      if (t.approved === false) count++;
-    }
-    for (const f of e.facts) {
-      if (f.approved === false || Boolean(f.proposed_text) || f.marked_for_removal) count++;
-    }
-  }
-  return count;
-}
-
-export function hasPendingSuggestions(profile: Profile | null): boolean {
-  if (!profile || isProfileEmpty(profile)) return false;
-  return countPendingSuggestions(profile) > 0;
-}
+export { isProfileEmpty, countPendingSuggestions } from "./profile/profileSuggestionReducers";
 
 interface ProfileState {
   profile: Profile | null;
@@ -205,7 +171,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         throw new Error(`HTTP ${res.status}: ${await res.text()}`);
       }
       const data = (await res.json()) as Profile;
-      const hasData = !isProfileEmpty(data);
+      const hasData = !reducers.isProfileEmpty(data);
       set({
         profile: data,
         viewLang: data.base_lang || "es",
@@ -371,374 +337,122 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   updateFullName: (full_name) => {
-    get().setProfile((p) => ({ ...p, full_name }));
+    get().setProfile((p) => mutators.updateFullName(p, full_name));
   },
 
   updateContact: (contactUpdate) => {
-    get().setProfile((p) => ({
-      ...p,
-      contact: { ...p.contact, ...contactUpdate },
-    }));
+    get().setProfile((p) => mutators.updateContact(p, contactUpdate));
   },
 
   updateSummary: (text) => {
-    get().setProfile((p) => ({ ...p, summary: text }));
+    get().setProfile((p) => mutators.updateSummary(p, text));
   },
 
   addSkill: (skill) => {
-    get().setProfile((p) => ({
-      ...p,
-      skills: [...p.skills, skill],
-    }));
+    get().setProfile((p) => mutators.addSkill(p, skill));
   },
 
   updateSkill: (id, skillUpdate) => {
-    get().setProfile((p) => ({
-      ...p,
-      skills: p.skills.map((s) => (s.id === id ? { ...s, ...skillUpdate } : s)),
-    }));
+    get().setProfile((p) => mutators.updateSkill(p, id, skillUpdate));
   },
 
   removeSkill: (id) => {
-    get().setProfile((p) => ({
-      ...p,
-      skills: p.skills.filter((s) => s.id !== id),
-    }));
+    get().setProfile((p) => mutators.removeSkill(p, id));
   },
 
   addEntry: (entry) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: [...p.entries, entry],
-    }));
+    get().setProfile((p) => mutators.addEntry(p, entry));
   },
 
   updateEntry: (id, entryUpdate) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) => (e.id === id ? { ...e, ...entryUpdate } : e)),
-    }));
+    get().setProfile((p) => mutators.updateEntry(p, id, entryUpdate));
   },
 
   moveEntry: (id, direction) => {
-    get().setProfile((p) => {
-      const entry = p.entries.find((e) => e.id === id);
-      if (!entry) return p;
-      const sameKind = p.entries.filter((e) => e.kind === entry.kind && !e.archived);
-      sameKind.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-      const currIdx = sameKind.findIndex((e) => e.id === id);
-      if (currIdx === -1) return p;
-      const targetIdx = direction === "up" ? currIdx - 1 : currIdx + 1;
-      if (targetIdx < 0 || targetIdx >= sameKind.length) return p;
-
-      const swapped = [...sameKind];
-      const temp = swapped[currIdx];
-      swapped[currIdx] = swapped[targetIdx];
-      swapped[targetIdx] = temp;
-
-      const posMap = new Map<string, number>();
-      swapped.forEach((item, idx) => {
-        posMap.set(item.id, idx);
-      });
-
-      return {
-        ...p,
-        entries: p.entries.map((e) => (posMap.has(e.id) ? { ...e, position: posMap.get(e.id)! } : e)),
-      };
-    });
+    get().setProfile((p) => mutators.moveEntry(p, id, direction));
   },
 
   removeEntry: (id) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.filter((e) => e.id !== id),
-    }));
+    get().setProfile((p) => mutators.removeEntry(p, id));
   },
 
   addTitle: (entryId, title) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) =>
-        e.id === entryId ? { ...e, titles: [...e.titles, title] } : e
-      ),
-    }));
+    get().setProfile((p) => mutators.addTitle(p, entryId, title));
   },
 
   updateTitle: (entryId, titleId, titleUpdate) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) => {
-        if (e.id !== entryId) return e;
-        return {
-          ...e,
-          titles: e.titles.map((t) => (t.id === titleId ? { ...t, ...titleUpdate } : t)),
-        };
-      }),
-    }));
+    get().setProfile((p) => mutators.updateTitle(p, entryId, titleId, titleUpdate));
   },
 
   upsertEntryTitle: (entryId, titleText) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) => {
-        if (e.id !== entryId) return e;
-        const defaultIdx = e.titles.findIndex((t) => t.is_default);
-        const existingIdx = defaultIdx >= 0 ? defaultIdx : (e.titles.length > 0 ? 0 : -1);
-        if (existingIdx >= 0) {
-          const updatedTitles = [...e.titles];
-          updatedTitles[existingIdx] = {
-            ...updatedTitles[existingIdx],
-            title: titleText,
-          };
-          return { ...e, titles: updatedTitles };
-        }
-        const newTitle: EntryTitle = {
-          id: `title_${Date.now()}`,
-          entry_id: entryId,
-          title: titleText,
-          is_default: true,
-          approved: true,
-        };
-        return { ...e, titles: [newTitle] };
-      }),
-    }));
+    get().setProfile((p) => mutators.upsertEntryTitle(p, entryId, titleText));
   },
 
   removeTitle: (entryId, titleId) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) =>
-        e.id === entryId ? { ...e, titles: e.titles.filter((t) => t.id !== titleId) } : e
-      ),
-    }));
+    get().setProfile((p) => mutators.removeTitle(p, entryId, titleId));
   },
 
   addFact: (entryId, fact) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) =>
-        e.id === entryId ? { ...e, facts: [...e.facts, fact] } : e
-      ),
-    }));
+    get().setProfile((p) => mutators.addFact(p, entryId, fact));
   },
 
   updateFact: (entryId, factId, factUpdate) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) => {
-        if (e.id !== entryId) return e;
-        return {
-          ...e,
-          facts: e.facts.map((f) => (f.id === factId ? { ...f, ...factUpdate } : f)),
-        };
-      }),
-    }));
+    get().setProfile((p) => mutators.updateFact(p, entryId, factId, factUpdate));
   },
 
   updateFactText: (entryId, factId, text) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) => {
-        if (e.id !== entryId) return e;
-        return {
-          ...e,
-          facts: e.facts.map((f) => (f.id === factId ? { ...f, text } : f)),
-        };
-      }),
-    }));
+    get().setProfile((p) => mutators.updateFactText(p, entryId, factId, text));
   },
 
   removeFact: (entryId, factId) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) =>
-        e.id === entryId ? { ...e, facts: e.facts.filter((f) => f.id !== factId) } : e
-      ),
-    }));
+    get().setProfile((p) => mutators.removeFact(p, entryId, factId));
   },
 
   approveSkill: (skillId) => {
-    const now = new Date().toISOString();
-    get().setProfile((p) => ({
-      ...p,
-      skills: p.skills.map((s) =>
-        s.id === skillId ? { ...s, approved: true, approved_at: now } : s
-      ),
-    }));
+    get().setProfile((p) => reducers.approveSkill(p, skillId));
   },
 
   rejectSkill: (skillId) => {
-    get().removeSkill(skillId);
+    get().setProfile((p) => reducers.rejectSkill(p, skillId));
   },
 
   approveTitle: (entryId, titleId) => {
-    const now = new Date().toISOString();
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) =>
-        e.id === entryId
-          ? {
-              ...e,
-              titles: e.titles.map((t) =>
-                t.id === titleId ? { ...t, approved: true, approved_at: now } : t
-              ),
-            }
-          : e
-      ),
-    }));
+    get().setProfile((p) => reducers.approveTitle(p, entryId, titleId));
   },
 
   rejectTitle: (entryId, titleId) => {
-    get().removeTitle(entryId, titleId);
+    get().setProfile((p) => reducers.rejectTitle(p, entryId, titleId));
   },
 
   approveFact: (entryId, factId) => {
-    const now = new Date().toISOString();
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) => {
-        if (e.id !== entryId) return e;
-        return {
-          ...e,
-          facts: e.facts.map((f) => {
-            if (f.id !== factId) return f;
-            if (f.proposed_text) {
-              return {
-                ...f,
-                text: f.proposed_text,
-                proposed_text: null,
-                source: "ai",
-                approved: true,
-                approved_at: now,
-              };
-            }
-            return { ...f, approved: true, approved_at: now };
-          }),
-        };
-      }),
-    }));
+    get().setProfile((p) => reducers.approveFact(p, entryId, factId));
   },
 
   rejectFact: (entryId, factId) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) => {
-        if (e.id !== entryId) return e;
-        const target = e.facts.find((f) => f.id === factId);
-        if (!target) return e;
-        // If it's an existing approved fact with a proposed rewrite, just clear proposed_text
-        if (target.approved !== false && target.proposed_text) {
-          return {
-            ...e,
-            facts: e.facts.map((f) =>
-              f.id === factId ? { ...f, proposed_text: null } : f
-            ),
-          };
-        }
-        // If it's a newly distilled unapproved fact, remove it
-        return {
-          ...e,
-          facts: e.facts.filter((f) => f.id !== factId),
-        };
-      }),
-    }));
+    get().setProfile((p) => reducers.rejectFact(p, entryId, factId));
   },
 
   confirmFactRemoval: (entryId, factId) => {
-    get().removeFact(entryId, factId);
+    get().setProfile((p) => reducers.confirmFactRemoval(p, entryId, factId));
   },
 
   dismissFactRemoval: (entryId, factId) => {
-    get().setProfile((p) => ({
-      ...p,
-      entries: p.entries.map((e) =>
-        e.id === entryId
-          ? {
-              ...e,
-              facts: e.facts.map((f) =>
-                f.id === factId
-                  ? { ...f, marked_for_removal: false, removal_reason: null }
-                  : f
-              ),
-            }
-          : e
-      ),
-    }));
+    get().setProfile((p) => reducers.dismissFactRemoval(p, entryId, factId));
   },
 
   confirmSkillRemoval: (skillId) => {
-    get().removeSkill(skillId);
+    get().setProfile((p) => reducers.confirmSkillRemoval(p, skillId));
   },
 
   dismissSkillRemoval: (skillId) => {
-    get().setProfile((p) => ({
-      ...p,
-      skills: p.skills.map((s) =>
-        s.id === skillId
-          ? { ...s, marked_for_removal: false, removal_reason: null }
-          : s
-      ),
-    }));
+    get().setProfile((p) => reducers.dismissSkillRemoval(p, skillId));
   },
 
   approveAllSuggestions: () => {
-    const now = new Date().toISOString();
-    get().setProfile((p) => ({
-      ...p,
-      skills: p.skills
-        .filter((s) => !s.marked_for_removal)
-        .map((s) =>
-          s.approved === false ? { ...s, approved: true, approved_at: now } : s
-        ),
-      entries: p.entries.map((e) => ({
-        ...e,
-        titles: e.titles.map((t) =>
-          t.approved === false ? { ...t, approved: true, approved_at: now } : t
-        ),
-        facts: e.facts
-          .filter((f) => !f.marked_for_removal)
-          .map((f) => {
-            if (f.proposed_text) {
-              return {
-                ...f,
-                text: f.proposed_text,
-                proposed_text: null,
-                source: "ai",
-                approved: true,
-                approved_at: now,
-              };
-            }
-            if (f.approved === false) {
-              return { ...f, approved: true, approved_at: now };
-            }
-            return f;
-          }),
-      })),
-    }));
+    get().setProfile((p) => reducers.approveAllSuggestions(p));
   },
 
   rejectAllSuggestions: () => {
-    get().setProfile((p) => ({
-      ...p,
-      skills: p.skills
-        .filter((s) => s.approved !== false)
-        .map((s) =>
-          s.marked_for_removal
-            ? { ...s, marked_for_removal: false, removal_reason: null }
-            : s
-        ),
-      entries: p.entries.map((e) => ({
-        ...e,
-        titles: e.titles.filter((t) => t.approved !== false),
-        facts: e.facts
-          .filter((f) => f.approved !== false)
-          .map((f) => {
-            const next = f.proposed_text ? { ...f, proposed_text: null } : f;
-            return next.marked_for_removal
-              ? { ...next, marked_for_removal: false, removal_reason: null }
-              : next;
-          }),
-      })),
-    }));
+    get().setProfile((p) => reducers.rejectAllSuggestions(p));
   },
 }));

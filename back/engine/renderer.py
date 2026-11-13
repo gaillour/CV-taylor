@@ -33,7 +33,7 @@ class RenderResult(BaseModel):
     render_model: RenderModel
 
 
-def get_template_path(theme: ThemeName) -> Path:
+def _get_template_path(theme: ThemeName) -> Path:
     """Resolve the Typst template file path for a given theme."""
     path = TEMPLATES_DIR / f"{theme}.typ"
     if not path.is_file():
@@ -95,7 +95,7 @@ def _resolve_photo_path(photo_url: str | None) -> str | None:
 
 def _create_compiler(render_model: RenderModel) -> typst.Compiler:
     """Instantiate a sandboxed Typst compiler with vendored fonts only."""
-    template_path = get_template_path(render_model.theme)
+    template_path = _get_template_path(render_model.theme)
     model_dict = render_model.model_dump(mode="json")
 
     # Resolve photo path for Typst if present

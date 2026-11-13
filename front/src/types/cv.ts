@@ -340,11 +340,6 @@ export interface ATSBreakdown {
   skills: number;
 }
 
-export interface ATSEvaluateRequest {
-  render_model: RenderModel;
-  target_keywords?: string[] | null;
-}
-
 export interface ATSEvaluateResponse {
   total_score: number;
   structure_score: number;
@@ -386,10 +381,4 @@ export interface TailorQuotaResponse {
   can_tailor: boolean;
 }
 
-export interface QuotaExceededErrorResponse {
-  code: "QUOTA_EXCEEDED";
-  detail: string;
-  used_count: number;
-  limit: number;
-}
 

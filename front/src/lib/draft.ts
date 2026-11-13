@@ -1,7 +1,7 @@
 import { Profile, ThemeName } from "@/types/cv";
 
-export const DRAFT_STORAGE_KEY = "cvt_anonymous_draft_v1";
-export const PENDING_ACTION_STORAGE_KEY = "cvt_pending_action_v1";
+const DRAFT_STORAGE_KEY = "cvt_anonymous_draft_v1";
+const PENDING_ACTION_STORAGE_KEY = "cvt_pending_action_v1";
 
 export type PendingActionType = "save" | "tailor";
 
@@ -80,7 +80,7 @@ export function savePendingAction(action: PendingActionType, extra?: { role?: st
   });
 }
 
-export function loadPendingAction(): PendingAction | null {
+function loadPendingAction(): PendingAction | null {
   if (!isStorageAvailable()) return null;
   try {
     const item = window.localStorage.getItem(PENDING_ACTION_STORAGE_KEY);

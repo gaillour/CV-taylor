@@ -1,12 +1,12 @@
 # back/AGENT.md — Directivas Operativas Backend (`engine` + `api`)
 
 ## Estructura y Contratos (SSOT)
-- Inspeccionar esquemas de dominio, cupos (`SECTION_MAX_ENTRIES`, `min_bullets`, `max_bullets`) y `DesignKnobs` exclusivamente en `back/engine/models.py`.
+- Inspeccionar esquemas de dominio, cupos (`SECTION_MAX_ENTRIES`, `min_bullets`, `max_bullets`) y `DesignKnobs` exclusivamente en `back/engine/models/`.
 - Inspeccionar compilador Typst y cálculo de `FitReport` en `back/engine/renderer.py`.
-- Inspeccionar fit loop determinista basado en slots de sección/viñetas y micro-ajuste de `density` en `back/engine/fit.py`.
+- Inspeccionar fit loop determinista basado en slots de sección/viñetas y micro-ajuste de `density` en `back/engine/fit/`.
 - Inspeccionar plantillas tipográficas ATS-Strict en `back/engine/templates/` (`classic.typ`, `modern.typ`, `engineering.typ`).
 - Inspeccionar validador y parser ATS (Lever-compatible) en `back/engine/ats/` (`ATSChecker`, `check_ats_compliance`).
-- Inspeccionar adaptador LLM, extractor y tailoring en `back/engine/llm.py`, `extractor.py`, `anti_hallucination.py`, `tailor.py` y `feedback_loop.py`.
+- Inspeccionar adaptador LLM, extractor y tailoring en `back/engine/llm.py`, `extractor.py`, `anti_hallucination.py`, `tailor/` y `feedback_loop.py`.
 - Inspeccionar CLI `cvt` (`tailor`, `check-ats`, `render`) en `back/cli.py`.
 
 ## Reglas de Implementación (`back/engine`)
