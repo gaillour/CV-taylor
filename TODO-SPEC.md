@@ -184,7 +184,7 @@
 
 ---
 
-### [ ] T9 — Polish Visual de Consistencia en Plantillas Typst (12B)
+### [x] T9 — Polish Visual de Consistencia en Plantillas Typst (12B)
 - **Objetivo**: Realizar una pasada de consistencia tipográfica, márgenes, interlineado y espaciado entre bloques en las plantillas visuales (`modern-cv.typ`, `impressive-impression.typ`, `modern-resume.typ`, `metronic.typ`) y clásicas sin alterar contratos ATS ni el bloque final `<pages><end>`.
 - **Archivos a modificar**:
   - `back/engine/templates/modern-cv.typ`

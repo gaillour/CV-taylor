@@ -30,7 +30,7 @@
   fill: text_primary,
 )
 #set par(justify: true, leading: leading_val)
-#set list(spacing: bullet_space, marker: text(fill: accent)[•])
+#set list(tight: true, spacing: bullet_space, body-indent: 4.5pt, marker: text(fill: accent)[•])
 
 #show heading.where(level: 1): it => block(below: 2.5pt, width: 100%)[
   #text(size: font_size + 7pt, weight: "bold", fill: text_primary)[#it.body]
@@ -149,23 +149,22 @@
   if data.at("experience", default: ()).len() > 0 [
     == #labels.experience
     #for entry in data.experience [
-      #block(width: 100%, breakable: false)[
+      #block(width: 100%, below: 4.2pt, sticky: true, breakable: false)[
         #grid(
           columns: (1fr, auto),
-          align: (left, right),
+          align: (left + horizon, right + horizon),
           [
             #let exp_org = entry.at("org", default: entry.at("company", default: none))
-            *#entry.at("title", default: "")*#if exp_org != none and exp_org != "" [#text(fill: accent, weight: "semibold")[ — #exp_org]]#if entry.at("location", default: none) != none and entry.location != "" [#text(fill: luma(100), size: font_size - 0.6pt)[ (#entry.location)]]
+            *#entry.at("title", default: "")*#if exp_org != none and exp_org != "" [#text(fill: accent, weight: "semibold")[ — #exp_org]]#if entry.at("location", default: none) != none and entry.location != "" [#text(fill: luma(95), size: font_size - 0.5pt)[ (#entry.location)]]
           ],
           [
-            #text(size: font_size - 0.6pt, fill: luma(90))[
+            #text(size: font_size - 0.5pt, fill: luma(85), weight: "medium")[
               #entry.at("date_label", default: entry.at("date_range", default: ""))
             ]
           ],
         )
       ]
       #if entry.at("bullets", default: ()).len() > 0 [
-        #v(bullet_space * 0.4)
         #for b in entry.bullets [
           - #b.at("text", default: "")
         ]
@@ -179,23 +178,22 @@
   if data.at("projects", default: ()).len() > 0 [
     == #labels.projects
     #for entry in data.projects [
-      #block(width: 100%, breakable: false)[
+      #block(width: 100%, below: 4.2pt, sticky: true, breakable: false)[
         #grid(
           columns: (1fr, auto),
-          align: (left, right),
+          align: (left + horizon, right + horizon),
           [
             #let proj = entry
-            *#proj.title*#if proj.at("role", default: none) != none and proj.role != "" and proj.role != proj.title [ — #proj.role]#if proj.at("org", default: none) != none and proj.org != "" and proj.org != proj.title [#text(fill: accent, weight: "semibold")[ | #proj.org]]#if proj.at("link", default: none) != none and proj.link != "" [ | #link(make_url(proj.link))[#text(fill: accent)[#clean_url_label(proj.link)]]]#if proj.at("technologies", default: none) != none and proj.technologies != "" [#text(fill: accent, size: font_size - 0.6pt)[ (#proj.technologies)]]
+            *#proj.title*#if proj.at("role", default: none) != none and proj.role != "" and proj.role != proj.title [ — #proj.role]#if proj.at("org", default: none) != none and proj.org != "" and proj.org != proj.title [#text(fill: accent, weight: "semibold")[ | #proj.org]]#if proj.at("link", default: none) != none and proj.link != "" [ | #link(make_url(proj.link))[#text(fill: accent)[#clean_url_label(proj.link)]]]#if proj.at("technologies", default: none) != none and proj.technologies != "" [#text(fill: accent, weight: "medium", size: font_size - 0.5pt)[ (#proj.technologies)]]
           ],
           [
-            #text(size: font_size - 0.6pt, fill: luma(90))[
+            #text(size: font_size - 0.5pt, fill: luma(85), weight: "medium")[
               #entry.at("date_label", default: entry.at("date_range", default: ""))
             ]
           ],
         )
       ]
       #if entry.at("bullets", default: ()).len() > 0 [
-        #v(bullet_space * 0.4)
         #for b in entry.bullets [
           - #b.at("text", default: "")
         ]
@@ -209,23 +207,22 @@
   if data.at("education", default: ()).len() > 0 [
     == #labels.education
     #for entry in data.education [
-      #block(width: 100%, breakable: false)[
+      #block(width: 100%, below: 4.2pt, sticky: true, breakable: false)[
         #grid(
           columns: (1fr, auto),
-          align: (left, right),
+          align: (left + horizon, right + horizon),
           [
             #let edu_org = entry.at("org", default: entry.at("institution", default: none))
-            *#entry.at("title", default: "")*#if edu_org != none and edu_org != "" [#text(fill: accent)[ — #edu_org]]
+            *#entry.at("title", default: "")*#if edu_org != none and edu_org != "" [#text(fill: accent, weight: "semibold")[ — #edu_org]]#if entry.at("location", default: none) != none and entry.location != "" [#text(fill: luma(95), size: font_size - 0.5pt)[ (#entry.location)]]
           ],
           [
-            #text(size: font_size - 0.6pt, fill: luma(90))[
+            #text(size: font_size - 0.5pt, fill: luma(85), weight: "medium")[
               #entry.at("date_label", default: entry.at("date_range", default: ""))
             ]
           ],
         )
       ]
       #if entry.at("bullets", default: ()).len() > 0 [
-        #v(bullet_space * 0.4)
         #for b in entry.bullets [
           - #b.at("text", default: "")
         ]
