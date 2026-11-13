@@ -198,7 +198,7 @@
 
 ---
 
-### [ ] T10 — Auditoría y Documentación de Licencias de Plantillas Typst (13A)
+### [x] T10 — Auditoría y Documentación de Licencias de Plantillas Typst (13A)
 - **Objetivo**: Documentar el origen, autor y licencia (MIT, Apache-2.0, etc.) de cada una de las 11 plantillas en `back/engine/templates/LICENSES.md` y actualizar `TODO.md`.
 - **Archivos a crear/modificar**:
   - `back/engine/templates/LICENSES.md`

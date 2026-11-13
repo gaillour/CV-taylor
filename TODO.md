@@ -1,15 +1,13 @@
 # TODO.md — Roadmap Operativo (`cv-tailor`)
 
 ## Errores en el onboarding:
--Borrador local no guardado
-Tenés un borrador local no guardado. ¿Deseás reemplazar tu perfil actual en la nube con este borrador o descartarlo?
-Muy ambiguo eso, nose entiende.
--Se me genero un cv en el que hay un proyecto con 0 viñetas, que no pase eso. Diría que minimo 2 para proy y exp pero nose puede llegar a haber alguno con uno
-- El proceso de onboarding no es carga -> editor, es carga -> perfil -> generar cv
-- Me acaba de generar un cv en el q puso de nombres de proyectos Desarrollador de software o backend, no puede pasar eso. En el contexto/organizacion estaba el nombre de proyecto, que es el que tiene que estar.
-- Los links los detecto mal, pej en la seccion github puso gaillour, cuando tiene que ser github.com/gaillour Otra cosa, que diga Github y al clickear tenga el link, no el link escrito. Lo mismo para linkedin.
-- Las fechas, no puede haber un fecha inicio = fecha fin. CV Tailor — Motor de Adaptación y Generación de CVs | 2026 - 2026 me puso en uno. 
-> Verifiquemos si estos errores en la generacion automatica son pq se uso la llamada adaptada para generar el cv cuando antes debería haber pasado por la de perfil. Y determinemos si tienen que tener instrucciones comunes/las mimsmas/ independientes.
+- [x] **Borrador local no guardado (modal ambiguo):** Reemplazado por modal claro con merge aditivo determinista (`POST /profile/merge`, *"Sumar a mi perfil"* vs *"Descartar borrador"*).
+- [x] **Proyectos/experiencias con 0 viñetas:** Ingesta y curador extraen al menos 2 viñetas por defecto (o 1 si el CV original tenía 1, partiendo párrafos descriptivos si no había bullets), el fitter nunca poda por debajo de 1 viñeta (`len(entry.bullets) > 1`) y la UI advierte si una entrada manual queda sin viñetas.
+- [x] **Flujo de onboarding (`Carga ➔ Perfil ➔ Generar CV`):** Dropzone redirige a `/perfil` soportando modo borrador anónimo editable (`draft.ts`) con CTA destacado *"Generar CV →"* hacia `/editor`.
+- [x] **Nombres de proyectos vs rol/empresa:** `titles[]` representa estrictamente el nombre del proyecto (en negrita), mientras que `org` (empresa/institución) y `role` (rol desempeñado) son opcionales (`str | None = None`) y se renderizan sin guiones ni separadores huérfanos.
+- [x] **Detección y formato de links (`github`, `linkedin`, `website`, `link`):** Normalizados determinísticamente (`github.com/<user>`, `linkedin.com/in/<user>`, dominio limpio sin `https://` duplicado) con enlaces `#link("https://...")[url_limpia]` clickeables y compatibles con ATS/`pdftotext`.
+- [x] **Fechas duplicadas (`2026 - 2026`) o `"Presente"` inventado:** Si `start_date == end_date` o `end_date` está vacío, se colapsa a una única fecha (`2026`), preservando `"Presente"` únicamente si figura explícitamente en el CV.
+- [x] **Diagnóstico e instrucciones compartidas (Ingesta vs Adaptación):** Centralizadas las directivas en `back/engine/prompts/rules.py` (`SHARED_DATA_HYGIENE_RULES`), inyectadas tanto en `text_parser.py` como en `llm_curator.py`, y unificado `RenderModel.from_profile` en backend (`POST /anonymous/render-model`) como única fuente de verdad.
 
 
 
@@ -25,7 +23,7 @@ Muy ambiguo eso, nose entiende.
 
 ## P1 — Refinamiento de Datos y Modelo de Proyectos
 
-- [ ] **Empresa y rol opcionales en proyectos:**
+- [x] **Empresa y rol opcionales en proyectos:**
   - Permitir que los campos de empresa/institución y rol sean completamente opcionales en el formulario y asegurar que los templates de Typst rendericen sin guiones o espacios huérfanos si faltan.
 - [ ] **Modal de sincronización selectiva al guardar CV (Editor ➔ Perfil Base SSOT):**
   - Al hacer click en "Guardar CV", presentar la opción de elegir qué cambios puntuales (nuevos proyectos agregados, viñetas modificadas) se desean impactar y persistir también en el perfil base.
@@ -43,15 +41,15 @@ Muy ambiguo eso, nose entiende.
 
 ## P3 — Plantillas Typst & Compatibilidad ATS
 
-- [ ] **Desactivar hyphenation (guionado automático) en Typst:**
+- [x] **Desactivar hyphenation (guionado automático) en Typst:**
   - Configurar `#set text(hyphenate: false)` en las plantillas Typst para evitar que las palabras se corten con guión al final de línea (`ejem- \n plo`), garantizando lectura limpia para parsers ATS.
 - [ ] **Auditoría de orden de lectura y jerarquía ATS:**
   - Validar flujo de lectura lineal y jerarquía semántica del texto extraído contra parsers reales (Lever, Greenhouse, Workday, `pdftotext`), especialmente en plantillas de dos columnas.
 - [ ] **Calibración / Decisión template `vercanard`:**
   - Evaluar rendimiento de layout a dos columnas (bajo porcentaje de llenado) y definir si se redistribuyen bloques o se retira del catálogo activo.
-- [ ] **Polish visual en plantillas Typst:**
+- [x] **Polish visual en plantillas Typst:**
   - Corregir inconsistencias de espaciado, márgenes y pesos tipográficos reportados en plantillas visuales.
-- [ ] **Auditoría de licencias:**
+- [x] **Auditoría de licencias:**
   - Documentar licencias (MIT, Apache 2.0, etc.) de las plantillas integradas en `back/engine/templates/`.
 
 
