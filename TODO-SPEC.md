@@ -135,7 +135,7 @@
 
 ---
 
-### [ ] T6 — Normalización y Renderizado de Links en las 11 Plantillas Typst (6B)
+### [x] T6 — Normalización y Renderizado de Links en las 11 Plantillas Typst (6B)
 - **Objetivo**: Asegurar que todas las plantillas Typst construyan URLs válidas (`https://...` sin duplicar `https://https://`) y muestren como texto visible la URL limpia (`github.com/gaillour`, `linkedin.com/in/...`, etc.) tanto en contacto como en `proj.link`.
 - **Archivos a modificar**:
   - `back/engine/templates/*.typ` (las 11 plantillas):

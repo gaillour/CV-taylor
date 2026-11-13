@@ -58,6 +58,25 @@
   )
 }
 
+#let make_url(raw) = {
+  let s = str(raw).trim()
+  if s.starts-with("http://") or s.starts-with("https://") { s } else { "https://" + s }
+}
+#let clean_url_label(raw) = {
+  let s = str(raw).trim()
+  let s2 = if s.starts-with("https://") { s.slice(8) } else if s.starts-with("http://") { s.slice(7) } else { s }
+  if s2.starts-with("www.") { s2 = s2.slice(4) }
+  if s2.ends-with("/") { s2.slice(0, -1) } else { s2 }
+}
+#let norm_github(raw) = {
+  let clean = clean_url_label(raw)
+  if clean.starts-with("github.com/") { clean } else { "github.com/" + clean.trim("@") }
+}
+#let norm_linkedin(raw) = {
+  let clean = clean_url_label(raw)
+  if clean.starts-with("linkedin.com/") { clean } else if clean.starts-with("in/") { "linkedin.com/" + clean } else { "linkedin.com/in/" + clean.trim("@") }
+}
+
 #let c = data.at("contact", default: (:))
 #let contact_parts = ()
 #if c.at("email", default: none) != none and c.email != "" {
@@ -70,13 +89,13 @@
   contact_parts.push(c.location)
 }
 #if c.at("linkedin", default: none) != none and c.linkedin != "" {
-  contact_parts.push(link("https://" + c.linkedin)[#c.linkedin])
+  contact_parts.push(box(link(make_url(norm_linkedin(c.linkedin)))[#clean_url_label(norm_linkedin(c.linkedin))]))
 }
 #if c.at("github", default: none) != none and c.github != "" {
-  contact_parts.push(link("https://" + c.github)[#c.github])
+  contact_parts.push(box(link(make_url(norm_github(c.github)))[#clean_url_label(norm_github(c.github))]))
 }
 #if c.at("website", default: none) != none and c.website != "" {
-  contact_parts.push(link("https://" + c.website)[#c.website])
+  contact_parts.push(box(link(make_url(c.website))[#clean_url_label(c.website)]))
 }
 
 = #data.full_name
@@ -114,7 +133,7 @@
   if data.at("projects", default: ()).len() > 0 [
     == #labels.projects
     #for proj in data.projects [
-      #block(below: 4.5pt, sticky: true)[*#proj.title*#if proj.at("role", default: none) != none and proj.role != "" and proj.role != proj.title [ — #proj.role]#if proj.at("org", default: none) != none and proj.org != "" and proj.org != proj.title [ | #emph(proj.org)]#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#proj.link]]#if proj.at("date_label", default: none) != none and proj.date_label != "" [ | #text(size: font_size - 0.5pt)[#proj.date_label]]]
+      #block(below: 4.5pt, sticky: true)[*#proj.title*#if proj.at("role", default: none) != none and proj.role != "" and proj.role != proj.title [ — #proj.role]#if proj.at("org", default: none) != none and proj.org != "" and proj.org != proj.title [ | #emph(proj.org)]#if proj.at("link", default: none) != none and proj.link != "" [ | #link(make_url(proj.link))[#clean_url_label(proj.link)]]#if proj.at("date_label", default: none) != none and proj.date_label != "" [ | #text(size: font_size - 0.5pt)[#proj.date_label]]]
       #for b in proj.bullets [
         #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
         - #b_text

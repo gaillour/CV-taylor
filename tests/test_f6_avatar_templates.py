@@ -277,3 +277,79 @@ def test_project_entries_optional_org_and_role_render_without_orphan_separators(
         assert "SoloProjectAlpha —" not in extracted
         assert "SoloProjectAlpha |  |" not in extracted
         assert "AcademicCompilerBeta — Autor | FIUBA" in extracted
+
+
+@pytest.mark.parametrize("theme", ALL_THEMES)
+def test_all_11_themes_normalize_and_render_clean_links(
+    theme: ThemeName,
+    tmp_path: Path,
+) -> None:
+    import shutil
+    import subprocess
+
+    from back.engine.models import RenderBullet, RenderEntry
+
+    profile = _sample_profile()
+    model = RenderModel.from_profile(profile, theme=theme)
+    model.contact.github = "https://github.com/gaillour/"
+    model.contact.linkedin = "https://www.linkedin.com/in/juan/"
+    model.contact.website = "https://ejemplo.com/"
+    model.projects = [
+        RenderEntry(
+            entry_id="proj_link_test",
+            title="CV Tailor",
+            org="",
+            role=None,
+            date_label="2026",
+            link="https://github.com/gaillour/cv-tailor",
+            bullets=[RenderBullet(text="Motor determinístico en Typst.")],
+        )
+    ]
+
+    out_pdf = tmp_path / f"links_{theme}.pdf"
+    result = render_cv(model, output_pdf=out_pdf, enforce_fit=False)
+    assert result.pdf_sha256
+    assert out_pdf.is_file()
+
+    if shutil.which("pdftotext"):
+        proc = subprocess.run(
+            ["pdftotext", str(out_pdf), "-"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        extracted = proc.stdout
+        assert "github.com/gaillour" in extracted
+        assert "linkedin.com/in/juan" in extracted
+        assert "ejemplo.com" in extracted
+        assert "github.com/gaillour/cv-tailor" in extracted
+        assert "https://https://" not in extracted
+        assert "https://github.com" not in extracted
+        assert "https://www.linkedin.com" not in extracted
+
+
+def test_render_model_from_profile_normalizes_links() -> None:
+    from back.engine.models import Entry, EntryTitle, Fact
+
+    profile = _sample_profile()
+    profile.contact.github = "gaillour"
+    profile.contact.linkedin = "juan"
+    profile.contact.website = "https://www.ejemplo.com/"
+    profile.entries = [
+        Entry(
+            kind="project",
+            id="p_norm",
+            org="",
+            role=None,
+            start_date="2026",
+            link="https://github.com/gaillour/cv-tailor/",
+            titles=[EntryTitle(id="t_norm", title="CV Tailor", is_default=True, approved=True)],
+            facts=[Fact(id="f_norm", text="Normalización.", default_selected=True, approved=True)],
+        )
+    ]
+
+    model = RenderModel.from_profile(profile, include_all=True)
+    assert model.contact.github == "github.com/gaillour"
+    assert model.contact.linkedin == "linkedin.com/in/juan"
+    assert model.contact.website == "ejemplo.com"
+    assert model.projects[0].link == "github.com/gaillour/cv-tailor"

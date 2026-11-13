@@ -214,6 +214,8 @@ class RenderModel(BaseModel):
         section_order: list[SectionKey] | None = None,
     ) -> RenderModel:
         """Build a deterministic RenderModel from a Master Profile respecting ATS slots."""
+        from back.engine.profile_assistant.deterministic import normalize_contact_link
+
         target_lang: LangCode = lang or profile.base_lang
         font_family = "Liberation Serif" if theme == "engineering" else "Liberation Sans"
         design = DesignKnobs.from_density(density, font_family=font_family)
@@ -268,9 +270,17 @@ class RenderModel(BaseModel):
                 if archetype and entry.archetypes and archetype not in entry.archetypes:
                     continue
                 if not archetype:
-                    if entry.kind == "project" and has_default_selected_proj and not entry.default_selected:
+                    if (
+                        entry.kind == "project"
+                        and has_default_selected_proj
+                        and not entry.default_selected
+                    ):
                         continue
-                    if entry.kind == "experience" and has_default_selected_exp and not entry.default_selected:
+                    if (
+                        entry.kind == "experience"
+                        and has_default_selected_exp
+                        and not entry.default_selected
+                    ):
                         continue
                 if entry.kind == "experience" and len(experience_entries) >= MAX_EXPERIENCE_ENTRIES:
                     continue
@@ -328,7 +338,7 @@ class RenderModel(BaseModel):
                 role=entry.role,
                 location=entry.location,
                 date_label=entry.format_date_range(target_lang),
-                link=entry.link,
+                link=normalize_contact_link(entry.link, "website"),
                 bullets=bullets,
                 min_bullets=entry.min_bullets,
                 max_bullets=entry.max_bullets,
@@ -349,11 +359,19 @@ class RenderModel(BaseModel):
 
         summary_text: str | None = profile.summary if include_summary else None
 
+        normalized_contact = profile.contact.model_copy(
+            update={
+                "github": normalize_contact_link(profile.contact.github, "github"),
+                "linkedin": normalize_contact_link(profile.contact.linkedin, "linkedin"),
+                "website": normalize_contact_link(profile.contact.website, "website"),
+            }
+        )
+
         return cls(
             theme=theme,
             lang=target_lang,
             full_name=profile.full_name,
-            contact=profile.contact,
+            contact=normalized_contact,
             summary=summary_text,
             skills=skill_groups,
             experience=experience_entries,

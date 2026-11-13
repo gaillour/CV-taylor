@@ -80,6 +80,25 @@
   }
 }
 
+#let make_url(raw) = {
+  let s = str(raw).trim()
+  if s.starts-with("http://") or s.starts-with("https://") { s } else { "https://" + s }
+}
+#let clean_url_label(raw) = {
+  let s = str(raw).trim()
+  let s2 = if s.starts-with("https://") { s.slice(8) } else if s.starts-with("http://") { s.slice(7) } else { s }
+  if s2.starts-with("www.") { s2 = s2.slice(4) }
+  if s2.ends-with("/") { s2.slice(0, -1) } else { s2 }
+}
+#let norm_github(raw) = {
+  let clean = clean_url_label(raw)
+  if clean.starts-with("github.com/") { clean } else { "github.com/" + clean.trim("@") }
+}
+#let norm_linkedin(raw) = {
+  let clean = clean_url_label(raw)
+  if clean.starts-with("linkedin.com/") { clean } else if clean.starts-with("in/") { "linkedin.com/" + clean } else { "linkedin.com/in/" + clean.trim("@") }
+}
+
 #let c = data.at("contact", default: (:))
 
 #let sidebar = [
@@ -106,13 +125,13 @@
     #block(below: 4pt)[#c.location]
   ]
   #if c.at("linkedin", default: none) != none and c.linkedin != "" [
-    #block(below: 4pt)[#link("https://" + c.linkedin)[#c.linkedin]]
+    #block(below: 4pt)[#link(make_url(norm_linkedin(c.linkedin)))[#clean_url_label(norm_linkedin(c.linkedin))]]
   ]
   #if c.at("github", default: none) != none and c.github != "" [
-    #block(below: 4pt)[#link("https://" + c.github)[#c.github]]
+    #block(below: 4pt)[#link(make_url(norm_github(c.github)))[#clean_url_label(norm_github(c.github))]]
   ]
   #if c.at("website", default: none) != none and c.website != "" [
-    #block(below: 4pt)[#link("https://" + c.website)[#c.website]]
+    #block(below: 4pt)[#link(make_url(c.website))[#clean_url_label(c.website)]]
   ]
 
   #if data.at("skills", default: ()).len() > 0 [
@@ -178,7 +197,7 @@
           align: (left, right),
           [
             #let proj = entry
-            *#proj.title*#if proj.at("role", default: none) != none and proj.role != "" and proj.role != proj.title [ — #proj.role]#if proj.at("org", default: none) != none and proj.org != "" and proj.org != proj.title [#text(fill: accent, weight: "medium")[ | #proj.org]]#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#text(fill: accent)[#proj.link]]]#if proj.at("technologies", default: none) != none and proj.technologies != "" [#text(fill: accent, size: font_size - 0.7pt)[ (#proj.technologies)]]
+            *#proj.title*#if proj.at("role", default: none) != none and proj.role != "" and proj.role != proj.title [ — #proj.role]#if proj.at("org", default: none) != none and proj.org != "" and proj.org != proj.title [#text(fill: accent, weight: "medium")[ | #proj.org]]#if proj.at("link", default: none) != none and proj.link != "" [ | #link(make_url(proj.link))[#text(fill: accent)[#clean_url_label(proj.link)]]]#if proj.at("technologies", default: none) != none and proj.technologies != "" [#text(fill: accent, size: font_size - 0.7pt)[ (#proj.technologies)]]
           ],
           [
             #text(size: font_size - 0.8pt, fill: luma(90))[
