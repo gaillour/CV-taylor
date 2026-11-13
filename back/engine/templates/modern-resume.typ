@@ -26,6 +26,7 @@
   font: (font_family, "Liberation Sans"),
   size: font_size,
   lang: lang,
+  hyphenate: false,
   fill: text_primary,
 )
 #set par(justify: true, leading: leading_val)

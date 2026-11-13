@@ -25,6 +25,7 @@
   font: (font_family, "Liberation Sans"),
   size: font_size,
   lang: lang,
+  hyphenate: false,
 )
 #set par(justify: true, leading: leading_val)
 #set list(spacing: bullet_space, marker: text(fill: accent)[•])

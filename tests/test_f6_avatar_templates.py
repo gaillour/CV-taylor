@@ -48,6 +48,14 @@ def test_theme_name_literal_contains_all_11_themes() -> None:
     assert set(ALL_THEMES) == literal_themes
 
 
+@pytest.mark.parametrize("theme", ALL_THEMES)
+def test_all_11_themes_disable_hyphenation(theme: ThemeName) -> None:
+    template_file = Path("back/engine/templates") / f"{theme}.typ"
+    assert template_file.is_file()
+    content = template_file.read_text(encoding="utf-8")
+    assert "hyphenate: false" in content
+
+
 def test_contact_info_photo_url() -> None:
     contact = ContactInfo(
         email="dev@example.com",

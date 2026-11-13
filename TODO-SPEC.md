@@ -25,7 +25,7 @@
 
 ---
 
-### [ ] T1 — Desactivar hyphenation (`hyphenate: false`) en todas las plantillas Typst
+### [x] T1 — Desactivar hyphenation (`hyphenate: false`) en todas las plantillas Typst
 - **Objetivo**: Evitar corte de palabras con guion al final de línea en las 11 plantillas Typst para lectura limpia ATS.
 - **Archivos a modificar**:
   - `back/engine/templates/basic.typ`
