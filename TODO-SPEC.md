@@ -71,7 +71,7 @@
 
 ---
 
-### [ ] T3 — Reglas compartidas de Prompts (`back/engine/prompts/rules.py`) e inyección en Ingesta y Adaptación
+### [x] T3 — Reglas compartidas de Prompts (`back/engine/prompts/rules.py`) e inyección en Ingesta y Adaptación
 - **Objetivo**: Centralizar las directivas invariantes de extracción y estructuración en `back/engine/prompts/rules.py` y usarlas tanto en `back/engine/importer/text_parser.py` como en `back/engine/tailor/llm_curator.py`.
 - **Archivos a crear/modificar**:
   - Crear `back/engine/prompts/__init__.py` y `back/engine/prompts/rules.py` con bloques claros:

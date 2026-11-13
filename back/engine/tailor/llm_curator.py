@@ -17,6 +17,10 @@ from ..models import (
     RenderEntry,
     RenderModel,
 )
+from ..prompts.rules import (
+    SHARED_BULLET_RULES,
+    SHARED_PROJECT_AND_ENTRY_RULES,
+)
 
 CURATE_PROFILE_SYSTEM_PROMPT: str = (
     "You are an elite technical recruiter and CV curator. Your goal is to curate the "
@@ -34,14 +38,51 @@ CURATE_PROFILE_SYSTEM_PROMPT: str = (
     "   - 'project': Maximum 3 entries.\n"
     "   - 'education': Maximum 2 entries (usually 1 university entry is ideal).\n"
     "4. FOR EACH SELECTED ENTRY: Select between `min_bullets` and `max_bullets` of the "
-    "most impactful `fact_ids`.\n"
-    "5. OUTPUT ONLY a JSON object mapping entry_id to a list of fact_ids:\n"
+    "most impactful `fact_ids` (never select 0 `fact_ids` for an experience or project).\n"
+    f"5. {SHARED_PROJECT_AND_ENTRY_RULES}\n"
+    f"6. {SHARED_BULLET_RULES}\n"
+    "7. OUTPUT ONLY a JSON object mapping entry_id to a list of fact_ids:\n"
     "{\n"
     '  "selected": [\n'
     '    {"entry_id": "...", "fact_ids": ["...", "..."]}\n'
     "  ]\n"
     "}"
 )
+
+
+def build_harmonize_system_prompt(lang_directive: str) -> str:
+    """Build the system prompt for resume harmonization including shared invariants."""
+    return (
+        "You are an elite executive CV editor performing a final editorial consistency pass. "
+        "The candidate's resume has already been physically fitted to 1 page A4.\n"
+        "Your task is to harmonize style, tone, and flow across the entire CV "
+        "so it reads as a unified, compelling technical narrative.\n"
+        f"LANGUAGE DIRECTIVE: {lang_directive}\n"
+        "STRICT INVARIANTS (ANY VIOLATION WILL BE REJECTED BY AUTOMATED LINTERS):\n"
+        "1. NEVER invent, alter, or round numbers, percentages, or scale. Every single number "
+        "must come verbatim from the original bullet.\n"
+        "2. NEVER introduce unauthorized tools, frameworks, or languages not present "
+        "in original bullets or skills.\n"
+        "3. Keep each bullet concise (16-24 words) in professional executive third-person or "
+        "action nominal style.\n"
+        "4. Translate or adapt entry titles to match the Target Language, but for `projects` "
+        "ALWAYS keep the project's proper name as `title` "
+        "(NEVER replace a project name with a job role).\n"
+        "5. Do NOT add or drop bullets, and NEVER leave any selected experience or project "
+        "with 0 bullets. Every output bullet must preserve the exact 'fact_ids' of its source.\n"
+        f"6. {SHARED_PROJECT_AND_ENTRY_RULES}\n"
+        f"7. {SHARED_BULLET_RULES}\n"
+        "Respond ONLY with a JSON object in this exact schema:\n"
+        "{\n"
+        '  "summary": "...",\n'
+        '  "experience": [{"entry_id": "...", "title": "...", "bullets": '
+        '[{"fact_ids": ["..."], "text": "...", "skill_ids": ["..."]}]}],\n'
+        '  "projects": [{"entry_id": "...", "title": "...", "bullets": '
+        '[{"fact_ids": ["..."], "text": "...", "skill_ids": ["..."]}]}],\n'
+        '  "education": [{"entry_id": "...", "title": "...", "bullets": '
+        '[{"fact_ids": ["..."], "text": "...", "skill_ids": ["..."]}]}]\n'
+        "}"
+    )
 
 
 def curate_profile_with_llm(
@@ -112,8 +153,12 @@ def curate_profile_with_llm(
                 entry_obj = valid_entry_ids[eid]
                 valid_fids = {f.id for f in entry_obj.facts if f.approved}
                 curated_fids = [fid for fid in fids if fid in valid_fids]
-                # Discard entire block if LLM selected 0 facts for an experience/project that has facts
-                if entry_obj.kind in {"experience", "project"} and entry_obj.facts and not curated_fids:
+                # Discard block if LLM selected 0 facts for an experience/project that has facts
+                if (
+                    entry_obj.kind in {"experience", "project"}
+                    and entry_obj.facts
+                    and not curated_fids
+                ):
                     continue
                 curated_map[eid] = curated_fids
 
@@ -284,33 +329,7 @@ def harmonize_resume(
         else "Ensure the entire resume (summary, titles, bullets) is strictly in Spanish."
     )
 
-    system_prompt = (
-        "You are an elite executive CV editor performing a final editorial consistency pass. "
-        "The candidate's resume has already been physically fitted to 1 page A4.\n"
-        "Your task is to harmonize style, tone, and flow across the entire CV "
-        "so it reads as a unified, compelling technical narrative.\n"
-        f"LANGUAGE DIRECTIVE: {lang_directive}\n"
-        "STRICT INVARIANTS (ANY VIOLATION WILL BE REJECTED BY AUTOMATED LINTERS):\n"
-        "1. NEVER invent, alter, or round numbers, percentages, or scale. Every single number "
-        "must come verbatim from the original bullet.\n"
-        "2. NEVER introduce unauthorized tools, frameworks, or languages not present "
-        "in original bullets or skills.\n"
-        "3. Keep each bullet concise (16-24 words) in professional executive third-person or "
-        "action nominal style.\n"
-        "4. Translate or adapt entry titles to match the Target Language.\n"
-        "5. Do NOT add or drop bullets. Every output bullet must preserve the exact "
-        "'fact_ids' of its source.\n"
-        "Respond ONLY with a JSON object in this exact schema:\n"
-        "{\n"
-        '  "summary": "...",\n'
-        '  "experience": [{"entry_id": "...", "title": "...", "bullets": '
-        '[{"fact_ids": ["..."], "text": "...", "skill_ids": ["..."]}]}],\n'
-        '  "projects": [{"entry_id": "...", "title": "...", "bullets": '
-        '[{"fact_ids": ["..."], "text": "...", "skill_ids": ["..."]}]}],\n'
-        '  "education": [{"entry_id": "...", "title": "...", "bullets": '
-        '[{"fact_ids": ["..."], "text": "...", "skill_ids": ["..."]}]}]\n'
-        "}"
-    )
+    system_prompt = build_harmonize_system_prompt(lang_directive)
 
     allowed_skills = sorted(validator.whitelist)
     allowed_skills_str = ", ".join(allowed_skills) if allowed_skills else "None specified"
@@ -319,7 +338,8 @@ def harmonize_resume(
         f"Target Role: {job_spec.role or 'Software Engineer'}\n"
         f"Target Language: {model.lang}\n"
         f"Target Keywords: {', '.join(job_spec.keywords)}\n"
-        f"Candidate Allowed Technologies (STRICT WHITELIST - DO NOT claim knowledge/specialization outside this list): {allowed_skills_str}\n"
+        "Candidate Allowed Technologies (STRICT WHITELIST - DO NOT claim "
+        f"knowledge/specialization outside this list): {allowed_skills_str}\n"
         f"Original Summary:\n{model.summary or ''}\n\n"
         f"Surviving Experience Entries:\n{experience_payload}\n\n"
         f"Surviving Project Entries:\n{projects_payload}\n\n"
@@ -428,3 +448,5 @@ def harmonize_resume(
         )
     except Exception:
         return model
+
+harmonize_resume_with_llm = harmonize_resume

@@ -18,6 +18,12 @@ from back.engine.models import (
     Profile,
     Skill,
 )
+from back.engine.prompts.rules import (
+    SHARED_BULLET_RULES,
+    SHARED_DATE_RULES,
+    SHARED_LINK_RULES,
+    SHARED_PROJECT_AND_ENTRY_RULES,
+)
 
 MONTH_MAP: dict[str, str] = {
     "enero": "01",
@@ -62,49 +68,65 @@ MONTH_MAP: dict[str, str] = {
     "dec": "12",
 }
 
-SYSTEM_PROMPT = """You are an expert ATS curriculum vitae parser.
-Extract the candidate's profile into structured JSON matching this exact schema:
-{
-  "full_name": "Full Name",
-  "base_lang": "es" or "en",
-  "summary": "Professional summary in original resume language or null",
-  "contact": {
-    "email": "candidate email",
-    "phone": "candidate phone",
-    "location": "City, Country",
-    "github": "github username or URL or null",
-    "linkedin": "linkedin username or URL or null",
-    "website": "portfolio or website URL or null"
-  },
-  "skills": [
-    {
-      "name": "Skill Name (canonical casing, e.g. PostgreSQL, React, Docker, Spring Boot)",
-      "category": "Category name (e.g. Lenguajes, Backend, Frontend, Cloud & DevOps, Herramientas)",
-      "level": "Avanzado / Intermedio / null"
-    }
-  ],
-  "entries": [
-    {
-      "kind": "experience" | "project" | "education",
-      "org": "Organization, Company, Institution, or Project name",
-      "title": "Role title or degree obtained in original language",
-      "location": "Location or Remote or null",
-      "start_date": "YYYY-MM or YYYY",
-      "end_date": "YYYY-MM or YYYY or Presente or null",
-      "bullets": [
-        "Measurable accomplishment or atomic fact in original language..."
-      ]
-    }
-  ]
-}
-PARSING & EXTRACTION DIRECTIVES:
-1. EXHAUSTIVE BULLET EXTRACTION:
-   - Extract 100% of all bullet points and accomplishments from EVERY entry (experiences, projects, education).
-   - NEVER truncate, summarize, merge, or omit older experiences or bullets. Even if an experience has 10+ bullets, extract all of them as separate atomic items in `bullets`. (The master profile is an exhaustive Single Source of Truth; bullet pruning happens downstream).
-2. SKILLS GRANULARITY & NORMALIZATION:
-   - Extract specific, recognized frameworks, libraries, tools, and platforms (e.g., if the CV lists Spring technologies, preserve distinct relevant frameworks like 'Spring Boot', 'Spring Security', 'Spring MVC' rather than just a generic 'Spring', but avoid noise for basic theoretical patterns like 'IOC' or 'AOP').
-   - Keep canonical naming (e.g. 'PostgreSQL', 'TypeScript', 'Node.js', 'Docker', 'Kubernetes').
-Return ONLY valid JSON without markdown wrapping or commentary."""
+SYSTEM_PROMPT = (
+    "You are an expert ATS curriculum vitae parser.\n"
+    "Extract the candidate's profile into structured JSON matching this exact schema:\n"
+    "{\n"
+    '  "full_name": "Full Name",\n'
+    '  "base_lang": "es" or "en",\n'
+    '  "summary": "Professional summary in original resume language or null",\n'
+    '  "contact": {\n'
+    '    "email": "candidate email",\n'
+    '    "phone": "candidate phone",\n'
+    '    "location": "City, Country",\n'
+    '    "github": "github.com/<username> or null",\n'
+    '    "linkedin": "linkedin.com/in/<handle> or null",\n'
+    '    "website": "clean domain/path without protocol or null"\n'
+    "  },\n"
+    '  "skills": [\n'
+    "    {\n"
+    '      "name": "Skill Name (canonical casing, e.g. PostgreSQL, React, Docker, Spring Boot)",\n'
+    '      "category": "Category name (e.g. Lenguajes, Backend, Frontend, Cloud & DevOps)",\n'
+    '      "level": "Avanzado / Intermedio / null"\n'
+    "    }\n"
+    "  ],\n"
+    '  "entries": [\n'
+    "    {\n"
+    '      "kind": "experience" | "project" | "education",\n'
+    '      "org": "Company or Institution (for projects: optional company/institution or \"\")",\n'
+    '      "title": "Project proper name (for project) or role/degree (experience/education)",\n'
+    '      "role": "Optional role in project or null",\n'
+    '      "location": "Location or Remote or null",\n'
+    '      "link": "Clean project URL without protocol or null",\n'
+    '      "start_date": "YYYY-MM or YYYY",\n'
+    '      "end_date": "YYYY-MM or YYYY or Presente or null",\n'
+    '      "bullets": [\n'
+    '        "Measurable accomplishment or atomic fact in original language..."\n'
+    "      ]\n"
+    "    }\n"
+    "  ]\n"
+    "}\n"
+    "PARSING & EXTRACTION DIRECTIVES:\n"
+    "1. EXHAUSTIVE BULLET EXTRACTION:\n"
+    "   - Extract 100% of all bullet points and accomplishments from EVERY entry "
+    "(experiences, projects, education).\n"
+    "   - NEVER truncate, summarize, merge, or omit older experiences or bullets. "
+    "Even if an experience has 10+ bullets, extract all of them as separate atomic items "
+    "in `bullets`. (The master profile is an exhaustive Single Source of Truth; "
+    "bullet pruning happens downstream).\n"
+    "2. SKILLS GRANULARITY & NORMALIZATION:\n"
+    "   - Extract specific, recognized frameworks, libraries, tools, and platforms "
+    "(e.g., if the CV lists Spring technologies, preserve distinct relevant frameworks "
+    "like 'Spring Boot', 'Spring Security', 'Spring MVC' rather than just a generic "
+    "'Spring', but avoid noise for basic theoretical patterns like 'IOC' or 'AOP').\n"
+    "   - Keep canonical naming (e.g. 'PostgreSQL', 'TypeScript', 'Node.js', "
+    "'Docker', 'Kubernetes').\n"
+    f"3. {SHARED_PROJECT_AND_ENTRY_RULES}\n"
+    f"4. {SHARED_DATE_RULES}\n"
+    f"5. {SHARED_LINK_RULES}\n"
+    f"6. {SHARED_BULLET_RULES}\n"
+    "Return ONLY valid JSON without markdown wrapping or commentary."
+)
 
 MAX_RESUME_CHARS: int = 60_000
 
