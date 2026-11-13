@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 LangCode = Literal["es", "en"]
 EntryKind = Literal["experience", "project", "education", "certification", "other"]
@@ -144,8 +144,14 @@ class Entry(BaseModel):
 
     id: str
     kind: EntryKind
-    org: str
+    org: str = ""
+    role: str | None = None
     location: str | None = None
+
+    @field_validator("org", mode="before")
+    @classmethod
+    def _coerce_org_none(cls, v: object) -> str:
+        return "" if v is None else str(v)
     start_date: str
     end_date: str | None = None
     date_precision: DatePrecision = "month"

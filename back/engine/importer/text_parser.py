@@ -251,10 +251,13 @@ def _build_profile_from_dict(
             continue
         try:
             kind = _normalize_entry_kind(raw_e.get("kind"))
-            org = str(raw_e.get("org") or "Institución").strip()
+            raw_org = raw_e.get("org")
+            org = str(raw_org or ("" if kind == "project" else "Institución")).strip()
+            raw_role = raw_e.get("role")
+            role = str(raw_role).strip() if raw_role else None
 
             prefix = prefix_map.get(kind, "entry")
-            base_id = _slugify(org, prefix=f"{prefix}_")
+            base_id = _slugify(org or str(raw_e.get("title") or "item"), prefix=f"{prefix}_")
             entry_id = base_id
             counter = 2
             while entry_id in used_entry_ids:
@@ -302,6 +305,7 @@ def _build_profile_from_dict(
                 id=entry_id,
                 kind=kind,
                 org=org,
+                role=role,
                 location=str(loc).strip() if loc else None,
                 start_date=start_date,
                 end_date=end_date,

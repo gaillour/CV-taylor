@@ -121,6 +121,7 @@ export interface Entry {
   id: string;
   kind: EntryKind;
   org: string;
+  role?: string | null;
   location?: string | null;
   start_date: string;
   end_date?: string | null;
@@ -199,6 +200,7 @@ export interface RenderEntry {
   title: string;
   title_id?: string | null;
   org: string;
+  role?: string | null;
   location?: string | null;
   date_label: string;
   link?: string | null;

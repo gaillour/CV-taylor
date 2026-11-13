@@ -108,8 +108,14 @@ export function EntryCardItem({
               <span className="text-xs font-medium text-text-ivory truncate">
                 {displayTitle}
               </span>
-              <span className="text-xs text-text-muted">·</span>
-              <span className="text-xs text-text-secondary truncate">{entry.org}</span>
+              {(entry.org || entry.role) && (
+                <>
+                  <span className="text-xs text-text-muted">·</span>
+                  <span className="text-xs text-text-secondary truncate">
+                    {[entry.role, entry.org].filter(Boolean).join(" · ")}
+                  </span>
+                </>
+              )}
             </div>
             <div className="text-[11px] text-text-muted flex items-center gap-2 mt-0.5">
               <span>
@@ -176,44 +182,82 @@ export function EntryCardItem({
       {isExpanded && (
         <div className="px-4 pb-4 pt-2 border-t border-hairline space-y-5 bg-surface-raised/30">
           {/* Título y Rol */}
-          <div className="pt-2">
-            <Field label="Título / Puesto">
+          <div className={entry.kind === "project" ? "grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2" : "pt-2"}>
+            <Field label={entry.kind === "project" ? "Nombre del Proyecto" : "Título / Puesto"}>
               <input
                 type="text"
                 value={primaryTitle}
                 readOnly={readOnly}
                 disabled={readOnly}
                 onChange={(e) => onUpsertEntryTitle?.(entry.id, e.target.value)}
-                placeholder="Desarrollador Backend"
+                placeholder={entry.kind === "project" ? "Nombre del proyecto" : "Desarrollador Backend"}
                 className="w-full bg-canvas border border-hairline rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring disabled:opacity-70 font-mono"
               />
             </Field>
+            {entry.kind === "project" && (
+              <Field label="Rol (opcional, ej: Backend Developer)">
+                <input
+                  type="text"
+                  value={entry.role || ""}
+                  readOnly={readOnly}
+                  disabled={readOnly}
+                  onChange={(e) => onUpdateEntry(entry.id, { role: e.target.value || null })}
+                  placeholder="Rol (opcional, ej: Backend Developer)"
+                  className="w-full bg-canvas border border-hairline rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring disabled:opacity-70 font-mono"
+                />
+              </Field>
+            )}
           </div>
 
           {/* Datos Principales */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2">
-            <Field label="Organización / Empresa">
+            <Field
+              label={
+                entry.kind === "project"
+                  ? "Empresa o Institución (opcional)"
+                  : "Organización / Empresa"
+              }
+            >
               <input
                 id={`entry-input-${entry.id}`}
                 type="text"
                 value={entry.org}
                 readOnly={readOnly}
                 disabled={readOnly}
+                placeholder={
+                  entry.kind === "project"
+                    ? "Empresa o Institución (opcional)"
+                    : undefined
+                }
                 onChange={(e) => onUpdateEntry(entry.id, { org: e.target.value })}
                 className="w-full bg-canvas border border-hairline rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring disabled:opacity-70 font-mono"
               />
             </Field>
-            <Field label="Ubicación">
-              <input
-                type="text"
-                value={entry.location || ""}
-                readOnly={readOnly}
-                disabled={readOnly}
-                onChange={(e) => onUpdateEntry(entry.id, { location: e.target.value })}
-                placeholder="Ciudad, País o Remoto"
-                className="w-full bg-canvas border border-hairline rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring disabled:opacity-70 font-mono"
-              />
-            </Field>
+            {entry.kind === "project" ? (
+              <Field label="Enlace / Repo">
+                <input
+                  type="text"
+                  value={entry.link || ""}
+                  readOnly={readOnly}
+                  disabled={readOnly}
+                  onChange={(e) => onUpdateEntry(entry.id, { link: e.target.value || null })}
+                  placeholder="github.com/usuario/repo"
+                  className="w-full bg-canvas border border-hairline rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring disabled:opacity-70 font-mono"
+                />
+              </Field>
+            ) : (
+              <Field label="Ubicación">
+                <input
+                  type="text"
+                  value={entry.location || ""}
+                  readOnly={readOnly}
+                  disabled={readOnly}
+                  onChange={(e) => onUpdateEntry(entry.id, { location: e.target.value })}
+                  placeholder="Ciudad, País o Remoto"
+                  className="w-full bg-canvas border border-hairline rounded-lg px-2.5 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus-ring disabled:opacity-70 font-mono"
+                />
+              </Field>
+            )}
             <Field label="Fecha Inicio">
               <input
                 type="text"

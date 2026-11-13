@@ -115,11 +115,12 @@ export const DEFAULT_ANONYMOUS_PROFILE: Profile = {
     {
       id: "proj_1",
       kind: "project",
-      org: "CloudMetrics Platform",
+      org: "",
+      role: "Creador & Desarrollador Principal",
       start_date: "2023",
       default_selected: true,
       titles: [
-        { id: "t_proj_1", title: "Creador & Desarrollador Principal", is_default: true, approved: true },
+        { id: "t_proj_1", title: "CloudMetrics Platform", is_default: true, approved: true },
       ],
       facts: [
         {
@@ -197,7 +198,8 @@ export function profileToRenderModel(profile: Profile, theme: ThemeName = "class
           entry_id: e.id,
           title: defaultTitle,
           title_id: defaultTitleId,
-          org: e.org,
+          org: e.org || "",
+          role: e.role || null,
           location: e.location || null,
           date_label: dateLabel,
           link: e.link || null,
@@ -289,7 +291,8 @@ export function renderModelToProfile(model: RenderModel, baseProfile?: Profile):
       const entry: Entry = {
         id: entryId,
         kind,
-        org: re.org,
+        org: re.org || "",
+        role: re.role || null,
         location: re.location || null,
         start_date: dates[0] || "",
         end_date: dates[1] || null,

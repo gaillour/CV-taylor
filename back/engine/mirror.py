@@ -69,6 +69,7 @@ def _slots(profile: Profile) -> dict[str, Slot]:
         add(f"skill:{sk.id}:level", sk, "level")
     for entry in profile.entries:
         add(f"entry:{entry.id}:location", entry, "location")
+        add(f"entry:{entry.id}:role", entry, "role")
         for t in entry.titles:
             add(f"title:{entry.id}:{t.id}", t, "title")
         for f in entry.facts:

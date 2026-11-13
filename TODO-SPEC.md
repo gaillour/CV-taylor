@@ -48,7 +48,7 @@
 
 ---
 
-### [ ] T2 — Modelo de Proyectos: `titles[]` como nombre, `org` y `role` opcionales en Backend, Templates y Frontend
+### [x] T2 — Modelo de Proyectos: `titles[]` como nombre, `org` y `role` opcionales en Backend, Templates y Frontend
 - **Objetivo**: Garantizar que en entradas `kind == "project"` el título (`titles[]` / `RenderEntry.title`) sea el nombre del proyecto, mientras que `org` (empresa/institución/contexto) y `role` (rol desempeñado) sean opcionales (`str | None = None`) y se rendericen sin guiones ni barras huérfanas.
 - **Archivos a modificar**:
   - `back/engine/models/profile.py`:

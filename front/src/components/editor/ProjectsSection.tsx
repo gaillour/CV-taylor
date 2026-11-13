@@ -75,7 +75,7 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
 
   const handleFieldChange = (
     index: number,
-    field: keyof Pick<RenderEntry, "title" | "org" | "date_label" | "link">,
+    field: keyof Pick<RenderEntry, "title" | "org" | "role" | "date_label" | "link">,
     value: string
   ) => {
     const updated = entries.map((e, i) => (i === index ? { ...e, [field]: value } : e));
@@ -136,7 +136,8 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
     const newEntry: RenderEntry = {
       entry_id: newId,
       title,
-      org: proj.org,
+      org: proj.org || "",
+      role: proj.role || null,
       date_label: dateLabel,
       link: proj.link || "",
       selected: true,
@@ -169,7 +170,8 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
     const newEntry: RenderEntry = {
       entry_id: newId,
       title: "Nuevo Proyecto",
-      org: "Personal / Open Source",
+      org: "",
+      role: null,
       date_label: "2024",
       link: "github.com/usuario/repo",
       selected: true,
@@ -443,7 +445,27 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-[10px] text-text-secondary mb-0.5">Rol (opcional, ej: Backend Developer)</label>
+                      <BufferedInput
+                        type="text"
+                        value={entry.role || ""}
+                        placeholder="Rol (opcional, ej: Backend Developer)"
+                        onCommit={(val) => handleFieldChange(idx, "role", val)}
+                        className="w-full bg-canvas border border-hairline rounded px-2 py-1 text-xs text-text-primary focus-ring"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-text-secondary mb-0.5">Empresa o Institución (opcional)</label>
+                      <BufferedInput
+                        type="text"
+                        value={entry.org}
+                        placeholder="Empresa o Institución (opcional)"
+                        onCommit={(val) => handleFieldChange(idx, "org", val)}
+                        className="w-full bg-canvas border border-hairline rounded px-2 py-1 text-xs text-text-primary focus-ring"
+                      />
+                    </div>
                     <div>
                       <label className="block text-[10px] text-text-secondary mb-0.5">Fechas</label>
                       <BufferedInput
@@ -451,15 +473,6 @@ export function ProjectsSection({ entries, onChange }: ProjectsSectionProps) {
                         value={entry.date_label}
                         onCommit={(val) => handleFieldChange(idx, "date_label", val)}
                         className="w-full bg-canvas border border-hairline rounded px-2 py-1 text-xs text-text-primary focus-ring font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-text-secondary mb-0.5">Contexto / Organización</label>
-                      <BufferedInput
-                        type="text"
-                        value={entry.org}
-                        onCommit={(val) => handleFieldChange(idx, "org", val)}
-                        className="w-full bg-canvas border border-hairline rounded px-2 py-1 text-xs text-text-primary focus-ring"
                       />
                     </div>
                   </div>

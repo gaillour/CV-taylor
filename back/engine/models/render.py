@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from back.engine.models.profile import ContactInfo, Entry, LangCode, Profile, Skill
 
@@ -162,8 +162,14 @@ class RenderEntry(BaseModel):
     entry_id: str
     title: str
     title_id: str | None = None
-    org: str
+    org: str = ""
+    role: str | None = None
     location: str | None = None
+
+    @field_validator("org", mode="before")
+    @classmethod
+    def _coerce_org_none(cls, v: object) -> str:
+        return "" if v is None else str(v)
     date_label: str
     link: str | None = None
     bullets: list[RenderBullet] = Field(default_factory=list)
@@ -318,7 +324,8 @@ class RenderModel(BaseModel):
                 entry_id=entry.id,
                 title=selected_title.title,
                 title_id=selected_title.id,
-                org=entry.org,
+                org=entry.org or "",
+                role=entry.role,
                 location=entry.location,
                 date_label=entry.format_date_range(target_lang),
                 link=entry.link,

@@ -100,7 +100,7 @@
       } else {
         exp.date_label
       }
-      #block(below: 4.5pt, sticky: true)[*#exp.title* — #exp.org | #text(size: font_size - 0.5pt, fill: luma(75))[#exp_meta]]
+      #block(below: 4.5pt, sticky: true)[*#exp.title*#if exp.at("org", default: none) != none and exp.org != "" [ — #exp.org] | #text(size: font_size - 0.5pt, fill: luma(75))[#exp_meta]]
       #for b in exp.bullets [
         #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
         - #b_text
@@ -114,7 +114,7 @@
   if data.at("projects", default: ()).len() > 0 [
     == #labels.projects
     #for proj in data.projects [
-      #block(below: 4.5pt, sticky: true)[*#proj.title*#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#proj.link]] | #text(size: font_size - 0.5pt, fill: luma(75))[#proj.date_label]]
+      #block(below: 4.5pt, sticky: true)[*#proj.title*#if proj.at("role", default: none) != none and proj.role != "" and proj.role != proj.title [ — #proj.role]#if proj.at("org", default: none) != none and proj.org != "" and proj.org != proj.title [ | #proj.org]#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#proj.link]]#if proj.at("date_label", default: none) != none and proj.date_label != "" [ | #text(size: font_size - 0.5pt, fill: luma(75))[#proj.date_label]]]
       #for b in proj.bullets [
         #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }
         - #b_text
@@ -133,7 +133,7 @@
       } else {
         edu.date_label
       }
-      #block(below: 4.5pt, sticky: true)[*#edu.title* — #edu.org | #text(size: font_size - 0.5pt, fill: luma(75))[#edu_meta]]
+      #block(below: 4.5pt, sticky: true)[*#edu.title*#if edu.at("org", default: none) != none and edu.org != "" [ — #edu.org] | #text(size: font_size - 0.5pt, fill: luma(75))[#edu_meta]]
       #if edu.at("bullets", default: ()).len() > 0 [
         #for b in edu.bullets [
           #let b_text = if type(b) == dictionary { b.at("text", default: "") } else { b }

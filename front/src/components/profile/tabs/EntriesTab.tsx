@@ -84,7 +84,7 @@ export function EntriesTab({
       kind === "experience"
         ? "Empresa u Organización"
         : kind === "project"
-          ? "Proyecto o Repositorio"
+          ? ""
           : "Universidad o Instituto";
 
     const newEntry: Entry = {

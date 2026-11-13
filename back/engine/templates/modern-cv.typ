@@ -134,17 +134,12 @@
           columns: (1fr, auto),
           align: (left, right),
           [
-            #text(weight: "bold", fill: rgb("#0f172a"))[#entry.at("title", default: "")]
-            #if entry.at("company", default: none) != none [
-              #text(fill: accent, weight: "medium")[ | #entry.company]
-            ]
-            #if entry.at("location", default: none) != none [
-              #text(fill: luma(100), size: font_size - 0.6pt)[ (#entry.location)]
-            ]
+            #let exp_org = entry.at("org", default: entry.at("company", default: none))
+            *#entry.at("title", default: "")*#if exp_org != none and exp_org != "" [#text(fill: accent, weight: "medium")[ — #exp_org]]#if entry.at("location", default: none) != none and entry.location != "" [#text(fill: luma(100), size: font_size - 0.6pt)[ (#entry.location)]]
           ],
           [
             #text(size: font_size - 0.6pt, fill: luma(90))[
-              #entry.at("date_range", default: "")
+              #entry.at("date_label", default: entry.at("date_range", default: ""))
             ]
           ],
         )
@@ -169,14 +164,12 @@
           columns: (1fr, auto),
           align: (left, right),
           [
-            #text(weight: "bold", fill: rgb("#0f172a"))[#entry.at("title", default: "")]
-            #if entry.at("technologies", default: none) != none [
-              #text(fill: accent, weight: "medium", size: font_size - 0.5pt)[ (#entry.technologies)]
-            ]
+            #let proj = entry
+            *#proj.title*#if proj.at("role", default: none) != none and proj.role != "" and proj.role != proj.title [ — #proj.role]#if proj.at("org", default: none) != none and proj.org != "" and proj.org != proj.title [#text(fill: accent, weight: "medium")[ | #proj.org]]#if proj.at("link", default: none) != none and proj.link != "" [ | #link("https://" + proj.link)[#text(fill: accent)[#proj.link]]]#if proj.at("technologies", default: none) != none and proj.technologies != "" [#text(fill: accent, weight: "medium", size: font_size - 0.5pt)[ (#proj.technologies)]]
           ],
           [
             #text(size: font_size - 0.6pt, fill: luma(90))[
-              #entry.at("date_range", default: "")
+              #entry.at("date_label", default: entry.at("date_range", default: ""))
             ]
           ],
         )
@@ -201,14 +194,12 @@
           columns: (1fr, auto),
           align: (left, right),
           [
-            #text(weight: "bold", fill: rgb("#0f172a"))[#entry.at("title", default: "")]
-            #if entry.at("institution", default: none) != none [
-              #text(fill: accent, weight: "medium")[ | #entry.institution]
-            ]
+            #let edu_org = entry.at("org", default: entry.at("institution", default: none))
+            *#entry.at("title", default: "")*#if edu_org != none and edu_org != "" [#text(fill: accent, weight: "medium")[ — #edu_org]]
           ],
           [
             #text(size: font_size - 0.6pt, fill: luma(90))[
-              #entry.at("date_range", default: "")
+              #entry.at("date_label", default: entry.at("date_range", default: ""))
             ]
           ],
         )

@@ -198,3 +198,82 @@ def test_api_avatar_rejects_oversized_file() -> None:
     )
     assert res.status_code == 400
     assert "excede el tamaño máximo" in res.json()["detail"]
+
+
+@pytest.mark.parametrize("theme", ALL_THEMES)
+def test_project_entries_optional_org_and_role_render_without_orphan_separators(
+    theme: ThemeName,
+    tmp_path: Path,
+) -> None:
+    import shutil
+    import subprocess
+
+    from back.engine.models import Entry, EntryTitle, Fact
+
+    profile = _sample_profile()
+    profile.contact.photo_url = None
+    profile.entries = [
+        Entry(
+            kind="project",
+            id="p1",
+            org="",
+            role=None,
+            start_date="2024",
+            titles=[
+                EntryTitle(id="t_p1", title="SoloProjectAlpha", is_default=True, approved=True)
+            ],
+            facts=[
+                Fact(
+                    id="f_p1",
+                    text="Arquitectura distribuida en Rust.",
+                    default_selected=True,
+                    approved=True,
+                )
+            ],
+        ),
+        Entry(
+            kind="project",
+            id="p2",
+            org="FIUBA",
+            role="Autor",
+            start_date="2025",
+            titles=[
+                EntryTitle(id="t_p2", title="AcademicCompilerBeta", is_default=True, approved=True)
+            ],
+            facts=[
+                Fact(
+                    id="f_p2",
+                    text="Compilador optimizado con LLVM.",
+                    default_selected=True,
+                    approved=True,
+                )
+            ],
+        ),
+    ]
+
+    model = RenderModel.from_profile(profile, theme=theme, include_all=True)
+    assert len(model.projects) == 2
+    assert model.projects[0].title == "SoloProjectAlpha"
+    assert model.projects[0].org == ""
+    assert model.projects[0].role is None
+    assert model.projects[1].title == "AcademicCompilerBeta"
+    assert model.projects[1].org == "FIUBA"
+    assert model.projects[1].role == "Autor"
+
+    out_pdf = tmp_path / f"proj_{theme}.pdf"
+    result = render_cv(model, output_pdf=out_pdf, enforce_fit=False)
+    assert result.pdf_sha256
+    assert out_pdf.is_file()
+
+    if shutil.which("pdftotext"):
+        proc = subprocess.run(
+            ["pdftotext", str(out_pdf), "-"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        extracted = proc.stdout
+        assert "SoloProjectAlpha" in extracted
+        assert "SoloProjectAlpha —" not in extracted
+        assert "SoloProjectAlpha |  |" not in extracted
+        assert "AcademicCompilerBeta — Autor | FIUBA" in extracted

@@ -254,6 +254,8 @@ def merge_profiles(base: Profile, incoming: Profile) -> Profile:
                 next_pos += 1
 
             # 3c. Fill missing metadata on target entry
+            if not target.role and inc_e.role:
+                target.role = inc_e.role
             if not target.location and inc_e.location:
                 target.location = inc_e.location
             if not target.link and inc_e.link:
