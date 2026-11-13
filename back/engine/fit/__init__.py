@@ -6,10 +6,12 @@ from .content_shaper import (
     _augment_from_profile,
     _enforce_section_entry_slots,
     _exceeds_section_slots,
+    _prune_lowest_priority_entry,
     _PrunedBulletRecord,
     _remove_bullet,
     _select_next_prune_candidate,
     _try_reinsert_bullet,
+    prune_lowest_priority_bullet,
 )
 from .density_search import (
     DEFAULT_DENSITY_STEPS,
@@ -42,7 +44,9 @@ __all__ = [
     "_exceeds_section_slots",
     "_enforce_section_entry_slots",
     "_binary_search_relaxed_underfill",
+    "_prune_lowest_priority_entry",
     "_select_next_prune_candidate",
+    "prune_lowest_priority_bullet",
     "_remove_bullet",
     "_try_reinsert_bullet",
     "_augment_from_profile",

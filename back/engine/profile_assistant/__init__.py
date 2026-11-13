@@ -10,6 +10,7 @@ from back.engine.profile_assistant.deterministic import (
     _suggest_titles_deterministic,
     _suggest_titles_for_experience,
     _suggest_titles_for_project,
+    normalize_contact_link,
 )
 from back.engine.profile_assistant.llm_enhancer import (
     _enhance_with_llm,
@@ -54,4 +55,5 @@ __all__ = [
     "_suggest_titles_for_project",
     "clean_and_deduplicate_profile",
     "enhance_profile",
+    "normalize_contact_link",
 ]

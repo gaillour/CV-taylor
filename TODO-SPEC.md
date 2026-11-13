@@ -89,7 +89,7 @@
 
 ---
 
-### [ ] T4 — Normalizador determinista Post-LLM (Links, Fechas, Proyectos, Viñetas y Poda >= 1 en Fit)
+### [x] T4 — Normalizador determinista Post-LLM (Links, Fechas, Proyectos, Viñetas y Poda >= 1 en Fit)
 - **Objetivo**: Garantizar por código determinista en Python que ningún error del LLM o del parser heurístico produzca links rotos, fechas `2026 - 2026`, proyectos con el nombre en `org` y el rol en `title`, o entradas con 0 viñetas en el CV generado.
 - **Archivos a modificar**:
   - `back/engine/importer/text_parser.py` y/o `back/engine/profile_assistant/deterministic.py`:

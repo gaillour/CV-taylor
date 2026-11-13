@@ -11,8 +11,10 @@ from ..models import (
 from ..renderer import UNDERFILL_THRESHOLD_PCT, measure_fit
 from .content_shaper import (
     _augment_from_profile,
+    _drop_zero_bullet_entries,
     _enforce_section_entry_slots,
     _exceeds_section_slots,
+    _prune_lowest_priority_entry,
     _PrunedBulletRecord,
     _remove_bullet,
     _select_next_prune_candidate,
@@ -46,7 +48,7 @@ def fit_render_model(
       (tie-break by position, respecting `pinned=True` and `min_bullets`), and bounded
       typographic micro-adjustment (`density`).
     """
-    current_model = render_model
+    current_model = _drop_zero_bullet_entries(render_model)
     initial_fit = measure_fit(current_model)
 
     pruned_fact_ids: list[str] = []
@@ -156,7 +158,7 @@ def fit_render_model(
             )
             current_fit = measure_fit(current_model)
 
-        # Step 3: Extreme overflow fallback (if entries at min_bullets still overflow 1 page)
+        # Step 3: Extreme overflow fallback (floor of 1 bullet per experience/project entry)
         while not current_fit.fits_one_page:
             candidate = _select_next_prune_candidate(
                 current_model,
@@ -184,7 +186,15 @@ def fit_render_model(
             )
             current_fit = measure_fit(current_model)
 
-        # Step 4: Relax density from MAX_COMFORTABLE_DENSITY down towards 0.0 to restore base typography
+        # Step 3b: If 1-bullet entries still overflow 1 page, prune lowest-priority entry
+        while not current_fit.fits_one_page:
+            next_model = _prune_lowest_priority_entry(current_model, pruned_fact_ids)
+            if next_model is None:
+                break
+            current_model = next_model
+            current_fit = measure_fit(current_model)
+
+        # Step 4: Relax density from MAX_COMFORTABLE_DENSITY down towards 0.0
         if current_fit.fill_pct <= MAX_SAFE_FILL_PCT:
             current_model, current_fit = binary_search_density_underfill(
                 current_model,
@@ -194,7 +204,7 @@ def fit_render_model(
                 steps=density_steps,
             )
 
-        # Step 5: Post-pruning compensation — re-add bullets bottom-up if underfilled or space permits
+        # Step 5: Post-pruning compensation — re-add bullets bottom-up if space permits
         if pruned_records:
             for rec in list(reversed(pruned_records)):
                 sec_entries = getattr(current_model, rec.section_name)
@@ -218,7 +228,7 @@ def fit_render_model(
                         if fid in pruned_fact_ids:
                             pruned_fact_ids.remove(fid)
 
-        # Step 5b: If still underfilled (< min_fill_pct) and candidate_pool is available, augment from profile
+        # Step 5b: If still underfilled (< min_fill_pct), augment from profile
         if current_fit.fill_pct < min_fill_pct and candidate_pool is not None:
             current_model, current_fit = _augment_from_profile(
                 current_model,
@@ -237,7 +247,7 @@ def fit_render_model(
                 steps=density_steps,
             )
 
-        # Step 5d: If still underfilled (< min_fill_pct) at density=0.0 after reincorporation,
+        # Step 5d: If still underfilled (< min_fill_pct) at density=0.0,
         # apply controlled relaxation of spacing to guarantee the 85% threshold without overflowing
         if current_fit.fill_pct < min_fill_pct and current_model.design.density == 0.0:
             current_model, current_fit = _binary_search_relaxed_underfill(
@@ -274,7 +284,7 @@ def fit_render_model(
             steps=density_steps,
         )
 
-    # Step 2c: Relax typographic knobs within DesignKnobs upper bounds if still underfilled at d=0.0
+    # Step 2c: Relax typographic knobs within DesignKnobs bounds if underfilled at d=0.0
     if current_fit.fill_pct < min_fill_pct and current_model.design.density == 0.0:
         current_model, current_fit = _binary_search_relaxed_underfill(
             current_model,

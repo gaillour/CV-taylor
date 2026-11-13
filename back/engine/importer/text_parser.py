@@ -18,6 +18,12 @@ from back.engine.models import (
     Profile,
     Skill,
 )
+from back.engine.profile_assistant.deterministic import (
+    normalize_contact_link,
+    normalize_entry_dates,
+    normalize_project_title_org_role,
+    split_paragraph_into_bullets,
+)
 from back.engine.prompts.rules import (
     SHARED_BULLET_RULES,
     SHARED_DATE_RULES,
@@ -218,9 +224,9 @@ def _build_profile_from_dict(
         email=email,
         phone=phone,
         location=location,
-        github=str(github).strip() if github else None,
-        linkedin=str(linkedin).strip() if linkedin else None,
-        website=str(website).strip() if website else None,
+        github=normalize_contact_link(str(github) if github else None, "github"),
+        linkedin=normalize_contact_link(str(linkedin) if linkedin else None, "linkedin"),
+        website=normalize_contact_link(str(website) if website else None, "website"),
     )
 
     # Skills normalization
@@ -277,9 +283,13 @@ def _build_profile_from_dict(
             org = str(raw_org or ("" if kind == "project" else "Institución")).strip()
             raw_role = raw_e.get("role")
             role = str(raw_role).strip() if raw_role else None
+            title_text = str(raw_e.get("title") or org).strip()
+
+            if kind == "project":
+                title_text, org, role = normalize_project_title_org_role(title_text, org, role)
 
             prefix = prefix_map.get(kind, "entry")
-            base_id = _slugify(org or str(raw_e.get("title") or "item"), prefix=f"{prefix}_")
+            base_id = _slugify(org or title_text or "item", prefix=f"{prefix}_")
             entry_id = base_id
             counter = 2
             while entry_id in used_entry_ids:
@@ -291,8 +301,8 @@ def _build_profile_from_dict(
             end_raw = raw_e.get("end_date")
             start_date, date_prec = _normalize_date_token(start_raw, lang=lang)
             end_date = _normalize_date_token(end_raw, lang=lang)[0] if end_raw else None
+            start_date, end_date = normalize_entry_dates(start_date, end_date, date_prec)
 
-            title_text = str(raw_e.get("title") or org).strip()
             title = EntryTitle(
                 id=f"title_{entry_id}_default",
                 entry_id=entry_id,
@@ -303,11 +313,34 @@ def _build_profile_from_dict(
             )
 
             raw_bullets = raw_e.get("bullets") or []
+            bullet_strings = [str(b).strip() for b in raw_bullets if str(b).strip()]
+            if not bullet_strings and kind in {"experience", "project"}:
+                fallback_desc = str(
+                    raw_e.get("context")
+                    or raw_e.get("description")
+                    or raw_e.get("summary")
+                    or ""
+                ).strip()
+                if fallback_desc:
+                    bullet_strings = split_paragraph_into_bullets(fallback_desc)
+            elif len(bullet_strings) == 1 and kind in {"experience", "project"}:
+                single_text = bullet_strings[0]
+                if (
+                    len(single_text) > 160
+                    or ". " in single_text
+                    or "; " in single_text
+                    or "\n" in single_text
+                ):
+                    candidate_splits = [
+                        s
+                        for s in split_paragraph_into_bullets(single_text)
+                        if len(s) >= 15 and len(s.split()) >= 3
+                    ]
+                    if len(candidate_splits) >= 2:
+                        bullet_strings = candidate_splits
+
             facts: list[Fact] = []
-            for b_idx, bullet in enumerate(raw_bullets):
-                bullet_str = str(bullet).strip()
-                if not bullet_str:
-                    continue
+            for b_idx, bullet_str in enumerate(bullet_strings):
                 facts.append(
                     Fact(
                         id=f"fact_{entry_id}_{b_idx + 1}",
@@ -320,8 +353,17 @@ def _build_profile_from_dict(
                     )
                 )
 
+            min_bullets = (
+                2
+                if len(facts) >= 2 and kind in {"experience", "project"}
+                else (1 if len(facts) == 1 else 0)
+            )
+
             loc = raw_e.get("location")
-            link = raw_e.get("link")
+            link = normalize_contact_link(
+                str(raw_e.get("link")) if raw_e.get("link") else None,
+                "website",
+            )
 
             entry = Entry(
                 id=entry_id,
@@ -332,11 +374,12 @@ def _build_profile_from_dict(
                 start_date=start_date,
                 end_date=end_date,
                 date_precision=date_prec,
-                link=str(link).strip() if link else None,
+                link=link,
                 context="",
                 position=0,
                 archived=False,
                 default_selected=True,
+                min_bullets=min_bullets,
                 titles=[title],
                 facts=facts,
             )
@@ -351,16 +394,16 @@ def _build_profile_from_dict(
         ongoing = [
             e
             for e in kind_entries
-            if not e.end_date or e.end_date.lower() in {"presente", "present"}
+            if e.end_date and e.end_date.lower() in {"presente", "present"}
         ]
         ended = [
             e
             for e in kind_entries
-            if e.end_date and e.end_date.lower() not in {"presente", "present"}
+            if not e.end_date or e.end_date.lower() not in {"presente", "present"}
         ]
 
         ongoing.sort(key=lambda e: e.start_date, reverse=True)
-        ended.sort(key=lambda e: (e.end_date or "", e.start_date), reverse=True)
+        ended.sort(key=lambda e: (e.end_date or e.start_date, e.start_date), reverse=True)
 
         ordered = ongoing + ended
         for idx, entry in enumerate(ordered):

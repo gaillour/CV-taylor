@@ -90,8 +90,16 @@ def _select_next_prune_candidate(
                 entry.max_bullets <= 0 or len(entry.bullets) <= entry.max_bullets
             ):
                 continue
-            min_keep = entry.min_bullets if respect_min_bullets else 0
-            if len(entry.bullets) <= min_keep:
+            active_bullets = entry.bullets
+            if section_name in {"projects", "experience"}:
+                min_keep = (
+                    max(1, entry.min_bullets)
+                    if respect_min_bullets
+                    else (1 if len(active_bullets) >= 1 else 0)
+                )
+            else:
+                min_keep = entry.min_bullets if respect_min_bullets else 0
+            if len(active_bullets) <= min_keep:
                 continue
             for bullet_idx, bullet in enumerate(entry.bullets):
                 if bullet.pinned:
@@ -132,6 +140,60 @@ def _remove_bullet(
         entries[entry_idx] = target_entry.model_copy(update={"bullets": new_bullets})
 
     return model.model_copy(update={section_name: entries})
+
+
+prune_lowest_priority_bullet = _select_next_prune_candidate
+
+
+def _drop_zero_bullet_entries(model: RenderModel) -> RenderModel:
+    """Ensure no project or experience entry with 0 bullets remains in the RenderModel."""
+    updates: dict[str, list[RenderEntry]] = {}
+    for sec_name in ("projects", "experience"):
+        entries: list[RenderEntry] = list(getattr(model, sec_name))
+        filtered = [e for e in entries if len(e.bullets) >= 1]
+        if len(filtered) != len(entries):
+            updates[sec_name] = filtered
+    if not updates:
+        return model
+    return model.model_copy(update=updates)
+
+
+def _prune_lowest_priority_entry(
+    model: RenderModel,
+    pruned_fact_ids: list[str],
+) -> RenderModel | None:
+    """Prune an entire non-pinned project or experience entry when 1-bullet entries overflow."""
+    cleaned = _drop_zero_bullet_entries(model)
+    if cleaned is not model:
+        return cleaned
+
+    total_entries = len(model.experience) + len(model.projects)
+    if total_entries <= 1:
+        return None
+
+    candidates: list[tuple[tuple[int, int, int], str, int]] = []
+    for section_name in ("projects", "experience"):
+        section_rank = SECTION_PRUNE_RANK.get(section_name, 99)
+        entries: list[RenderEntry] = getattr(model, section_name)
+        if section_name == "experience" and len(entries) <= 1 and len(model.projects) == 0:
+            continue
+        for entry_idx, entry in enumerate(entries):
+            if any(b.pinned for b in entry.bullets):
+                continue
+            max_prio = max((b.priority for b in entry.bullets), default=0)
+            key = (max_prio, section_rank, -entry_idx)
+            candidates.append((key, section_name, entry_idx))
+
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda item: item[0])
+    _, sec_name, e_idx = candidates[0]
+    sec_entries: list[RenderEntry] = list(getattr(model, sec_name))
+    dropped = sec_entries.pop(e_idx)
+    for b in dropped.bullets:
+        pruned_fact_ids.extend(b.fact_ids)
+    return model.model_copy(update={sec_name: sec_entries})
 
 
 def _try_reinsert_bullet(
@@ -183,7 +245,7 @@ def _augment_from_profile(
 
     profile_entries_by_id: dict[str, Entry] = {e.id: e for e in profile.entries if not e.archived}
 
-    # 2. Gather unselected facts belonging to already-active entries, sorted by (-weight, position)
+    # 2. Gather unselected facts belonging to active entries, sorted by (-weight, position)
     extra_candidates: list[tuple[tuple[int, int, int, int], str, str, Fact]] = []
     for sec_name, sec_rank in SECTION_NAMES:
         for entry_idx, r_entry in enumerate(getattr(current_model, sec_name)):

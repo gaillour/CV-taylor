@@ -10,9 +10,9 @@ from back.engine.profile_assistant.deterministic import (
     _is_forbidden_project_title,
     _polish_fact_deterministic,
     _suggest_titles_deterministic,
+    clean_and_deduplicate_profile,
 )
 from back.engine.profile_assistant.taxonomies import (
-    CANONICAL_SKILL_MAP,
     EnhanceProfileResponse,
     EnhanceStats,
     _allowed_tech_tokens,
@@ -273,43 +273,6 @@ def _enhance_with_llm(
                 stats.suggested_titles += 1
 
     return True
-
-
-def clean_and_deduplicate_profile(profile: Profile) -> Profile:
-    """Normalize canonical skills, merge duplicates, and deduplicate identical facts."""
-    canonical_skills: dict[str, Skill] = {}
-    for skill in profile.skills:
-        norm_name = skill.name.strip().lower()
-        canon_name = CANONICAL_SKILL_MAP.get(norm_name, skill.name.strip())
-        key = canon_name.lower().replace(" ", "").replace(".", "")
-
-        if key in canonical_skills:
-            target = canonical_skills[key]
-            if skill.name != target.name and skill.name not in target.aliases:
-                target.aliases.append(skill.name)
-            for a in skill.aliases:
-                if a not in target.aliases and a != target.name:
-                    target.aliases.append(a)
-            if skill.approved and not target.approved:
-                target.approved = True
-                target.source = skill.source
-        else:
-            updated_skill = skill.model_copy(deep=True, update={"name": canon_name})
-            canonical_skills[key] = updated_skill
-
-    profile.skills = list(canonical_skills.values())
-
-    for entry in profile.entries:
-        seen_facts: list[str] = []
-        unique_facts: list[Fact] = []
-        for fact in entry.facts:
-            norm_fact = fact.text.strip().lower()
-            if norm_fact not in seen_facts:
-                seen_facts.append(norm_fact)
-                unique_facts.append(fact)
-        entry.facts = unique_facts
-
-    return profile
 
 
 def enhance_profile(profile: Profile, llm: LLMClient | None = None) -> EnhanceProfileResponse:

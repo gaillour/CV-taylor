@@ -226,7 +226,9 @@ def test_parse_profile_from_text_llm_mock(monkeypatch: pytest.MonkeyPatch):
 
     assert profile.full_name == "Ana Clara Gomez"
     assert profile.contact.email == "ana.gomez@test.com"
-    assert profile.contact.website == "https://anagomez.dev"
+    assert profile.contact.website == "anagomez.dev"
+    assert profile.contact.github == "github.com/anagomez"
+    assert profile.contact.linkedin == "linkedin.com/in/anagomez-dev"
     assert profile.summary == "Desarrolladora Full Stack con foco en escalabilidad y cloud."
 
     # Verify normalized ISO dates
