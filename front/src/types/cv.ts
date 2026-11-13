@@ -359,6 +359,7 @@ export interface AnonymousParseResponse {
   profile: Profile;
   source_lang: string;
   detected_lang: LangCode;
+  render_model?: RenderModel;
 }
 
 export interface AnonymousPreviewRequest {

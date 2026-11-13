@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from back.engine.models.api_dtos import (
     AnonymousExportPdfRequest,
+    AnonymousFromProfileRequest,
     AnonymousParseResponse,
     AnonymousPreviewRequest,
     AnonymousPreviewResponse,
@@ -62,6 +63,7 @@ __all__ = [
     "PROFILE_SCHEMA_VERSION",
     "SECTION_MAX_ENTRIES",
     "AnonymousExportPdfRequest",
+    "AnonymousFromProfileRequest",
     "AnonymousParseResponse",
     "AnonymousPreviewRequest",
     "AnonymousPreviewResponse",

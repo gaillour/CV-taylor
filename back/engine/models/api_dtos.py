@@ -7,7 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from back.engine.models.profile import LangCode, Profile
-from back.engine.models.render import FitReport, RenderModel
+from back.engine.models.render import FitReport, RenderModel, ThemeName
 
 
 class AnonymousParseResponse(BaseModel):
@@ -18,6 +18,16 @@ class AnonymousParseResponse(BaseModel):
     profile: Profile
     source_lang: str = Field(default="auto", description="Source language option used")
     detected_lang: LangCode = Field(description="Language detected in source document")
+    render_model: RenderModel | None = None
+
+
+class AnonymousFromProfileRequest(BaseModel):
+    """Payload to build a canonical RenderModel from a Profile for anonymous sessions."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    profile: Profile
+    theme: ThemeName = "classic"
 
 
 class AnonymousPreviewRequest(BaseModel):

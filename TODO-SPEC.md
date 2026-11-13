@@ -115,7 +115,7 @@
 
 ---
 
-### [ ] T5 — SSOT de `RenderModel`: Endpoint Backend y Eliminación de Duplicación en `profileTransform.ts`
+### [x] T5 — SSOT de `RenderModel`: Endpoint Backend y Eliminación de Duplicación en `profileTransform.ts`
 - **Objetivo**: Evitar que el frontend construya `RenderModel` con lógica divergente (como `2026 – Presente` cuando no hay `end_date` o `2026 – 2026`).
 - **Archivos a modificar**:
   - `back/engine/models/api_dtos.py` y `back/api/routes/anonymous.py`:

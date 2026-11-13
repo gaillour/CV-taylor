@@ -7,6 +7,7 @@ import { isProfileEmpty, useProfileStore } from "@/store/useProfileStore";
 import { getStoredSession } from "@/lib/supabase";
 import { clearDraft, clearPendingAction, getPendingAction, loadDraft, saveDraft } from "@/lib/draft";
 import { DEFAULT_ANONYMOUS_PROFILE, profileToRenderModel } from "@/lib/profileTransform";
+import { buildRenderModelFromProfile } from "@/lib/api";
 import { confirmDialog } from "@/store/useConfirmStore";
 import { toast } from "@/store/useToastStore";
 import { EditorView } from "@/components/editor/EditorView";
@@ -48,12 +49,12 @@ function AnonymousOrCloudEditor() {
         // MODO ANÓNIMO
         // ====================================================================
         if (localDraft && localDraft.profile) {
-          const model = profileToRenderModel(localDraft.profile, localDraft.theme || "classic");
+          const model = await buildRenderModelFromProfile(localDraft.profile, localDraft.theme || "classic");
           loadAnonymousModel(model);
         } else {
           // Inicializar perfil base anónimo por defecto y persistirlo
           saveDraft(DEFAULT_ANONYMOUS_PROFILE, "classic");
-          const model = profileToRenderModel(DEFAULT_ANONYMOUS_PROFILE, "classic");
+          const model = await buildRenderModelFromProfile(DEFAULT_ANONYMOUS_PROFILE, "classic");
           loadAnonymousModel(model);
         }
         setIsInitializing(false);
@@ -76,7 +77,7 @@ function AnonymousOrCloudEditor() {
             clearDraft();
             toast.success("Borrador local migrado exitosamente a tu cuenta.");
 
-            const model = profileToRenderModel(localDraft.profile, localDraft.theme || "classic");
+            const model = await buildRenderModelFromProfile(localDraft.profile, localDraft.theme || "classic");
             loadAnonymousModel(model);
           } else {
             // Caso 2: Usuario CON perfil en la nube -> Modal amigable
@@ -95,13 +96,13 @@ function AnonymousOrCloudEditor() {
               clearDraft();
               toast.success("Perfil actualizado con el borrador local.");
 
-              const model = profileToRenderModel(localDraft.profile, localDraft.theme || "classic");
+              const model = await buildRenderModelFromProfile(localDraft.profile, localDraft.theme || "classic");
               loadAnonymousModel(model);
             } else {
               clearDraft();
               toast.info("Borrador descartado. Cargando tu perfil existente.");
               if (cloudProfile && !cloudEmpty) {
-                const model = profileToRenderModel(cloudProfile, "classic");
+                const model = await buildRenderModelFromProfile(cloudProfile, "classic");
                 loadAnonymousModel(model);
               } else {
                 await startBaseDraft();
@@ -113,7 +114,7 @@ function AnonymousOrCloudEditor() {
           const currentModel = useCvStore.getState().renderModel;
           if (!currentModel) {
             if (cloudProfile && !cloudEmpty) {
-              const model = profileToRenderModel(cloudProfile, "classic");
+              const model = await buildRenderModelFromProfile(cloudProfile, "classic");
               loadAnonymousModel(model);
             } else {
               await startBaseDraft();

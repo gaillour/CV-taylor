@@ -49,9 +49,12 @@ import {
   AnonymousPreviewResponse,
   GitHubImportResponse,
   LangCode,
+  Profile,
   RenderModel,
   TailorQuotaResponse,
+  ThemeName,
 } from "@/types/cv";
+import { profileToRenderModel } from "@/lib/profileTransform";
 
 /**
  * Parsea un CV (PDF/TXT) subido por un usuario anónimo sin requerir sesión.
@@ -60,7 +63,7 @@ import {
 export async function parseAnonymousCv(
   file: File,
   sourceLang: string = "auto"
-): Promise<AnonymousParseResponse> {
+): Promise<AnonymousParseResponse & { render_model?: RenderModel }> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("source_lang", sourceLang);
@@ -159,3 +162,27 @@ export async function importGitHubProject(
   return res.json();
 }
 
+/**
+ * Construye un RenderModel canónico en backend a partir de un Profile (SSOT),
+ * usando `profileToRenderModel` como fallback local si la red falla.
+ */
+export async function buildRenderModelFromProfile(
+  profile: Profile,
+  theme: ThemeName = "classic"
+): Promise<RenderModel> {
+  try {
+    const res = await apiFetch("/api/anonymous/from-profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profile, theme }),
+    });
+    if (!res.ok) {
+      return profileToRenderModel(profile, theme);
+    }
+    return await res.json();
+  } catch {
+    return profileToRenderModel(profile, theme);
+  }
+}
+
+export const convertProfileToRenderModel = buildRenderModelFromProfile;

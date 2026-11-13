@@ -17,11 +17,13 @@ from back.engine.profile_assistant import clean_and_deduplicate_profile
 from back.engine.llm import LLMClient
 from back.engine.models import (
     AnonymousExportPdfRequest,
+    AnonymousFromProfileRequest,
     AnonymousParseResponse,
     AnonymousPreviewRequest,
     AnonymousPreviewResponse,
     DesignKnobs,
     LangCode,
+    RenderModel,
 )
 from back.engine.renderer import render_cv
 
@@ -160,12 +162,25 @@ async def parse_anonymous(
             profile=extracted,
             source_lang=source_lang,
             detected_lang=detected_lang,
+            render_model=RenderModel.from_profile(extracted),
         )
     except Exception as exc:
         raise HTTPException(
             status_code=500,
             detail=f"Error al estructurar el perfil: {exc}",
         ) from exc
+
+
+@router.post("/from-profile", response_model=RenderModel)
+def build_render_model_from_profile(payload: AnonymousFromProfileRequest) -> RenderModel:
+    """Build a canonical RenderModel from a Profile without consuming PDF parse rate-limit."""
+    try:
+        cleaned = clean_and_deduplicate_profile(payload.profile)
+        return RenderModel.from_profile(cleaned, theme=payload.theme)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.post("/preview", response_model=AnonymousPreviewResponse)
