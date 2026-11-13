@@ -164,7 +164,7 @@
 
 ---
 
-### [ ] T8 — Modal de Borrador Local con Merge Aditivo ("Sumar a mi perfil" vs "Descartar") (2A)
+### [x] T8 — Modal de Borrador Local con Merge Aditivo ("Sumar a mi perfil" vs "Descartar") (2A)
 - **Objetivo**: Reemplazar el confuso modal de "Borrador local no guardado" por un diálogo claro que permita fusionar aditivamente el borrador local con el perfil en la nube (usando la lógica determinista de merge) o descartarlo.
 - **Archivos a modificar**:
   - `back/api/routes/profile.py` y `back/engine/models/api_dtos.py`:

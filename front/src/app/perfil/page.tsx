@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
@@ -23,10 +23,11 @@ import {
   isProfileEmpty,
   useProfileStore,
 } from "@/store/useProfileStore";
-import { buildRenderModelFromProfile } from "@/lib/api";
-import { loadDraft, saveDraft } from "@/lib/draft";
+import { buildRenderModelFromProfile, mergeProfileWithDraft } from "@/lib/api";
+import { clearDraft, loadDraft, saveDraft } from "@/lib/draft";
 import { getStoredSession } from "@/lib/supabase";
 import { useCvStore } from "@/store/useCvStore";
+import { confirmDialog } from "@/store/useConfirmStore";
 import { Entry, EntryKind, Skill } from "@/types/cv";
 import { toast } from "@/store/useToastStore";
 
@@ -89,8 +90,57 @@ export default function ProfilePage() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [generatingCv, setGeneratingCv] = useState(false);
 
+  const draftCheckHandledRef = useRef(false);
+
   useEffect(() => {
-    fetchProfile();
+    const initProfile = async () => {
+      await fetchProfile();
+
+      const hasAuth = Boolean(getStoredSession()?.access_token);
+      if (!hasAuth || draftCheckHandledRef.current) return;
+      draftCheckHandledRef.current = true;
+
+      const localDraft = loadDraft();
+      if (localDraft && localDraft.profile) {
+        const cloudProfile = useProfileStore.getState().profile;
+        const cloudEmpty = isProfileEmpty(cloudProfile);
+
+        if (cloudEmpty) {
+          useProfileStore.setState({
+            profile: localDraft.profile,
+            isManualMode: !isProfileEmpty(localDraft.profile),
+          });
+          await useProfileStore.getState().saveProfile().catch(() => false);
+          clearDraft();
+          toast.success("Borrador local migrado exitosamente a tu cuenta.");
+        } else {
+          const shouldMerge = await confirmDialog({
+            title: "Encontramos un CV cargado en este navegador",
+            message:
+              "Ya tenés un perfil guardado en tu cuenta. ¿Querés sumar los datos nuevos de este borrador a tu perfil actual (sin perder lo que ya tenías) o descartar el borrador?",
+            confirmText: "Sumar a mi perfil",
+            cancelText: "Descartar borrador",
+            variant: "default",
+          });
+
+          if (shouldMerge) {
+            const merged = await mergeProfileWithDraft(localDraft.profile);
+            useProfileStore.setState({
+              profile: merged,
+              dirty: false,
+              isManualMode: !isProfileEmpty(merged),
+            });
+            clearDraft();
+            toast.success("Datos del borrador sumados a tu perfil.");
+          } else {
+            clearDraft();
+            toast.info("Borrador descartado. Cargando tu perfil existente.");
+          }
+        }
+      }
+    };
+
+    initProfile();
     return () => {
       // Al salir de la vista de perfil sin guardar, descartar sugerencias y prompts efímeros
       useProfileStore.getState().dismissImportPrompt();

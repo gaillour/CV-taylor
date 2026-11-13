@@ -106,6 +106,43 @@ def update_master_profile(
         ) from exc
 
 
+@router.post("/merge", response_model=Profile)
+def merge_master_profile(
+    incoming: Profile,
+    repo: Annotated[StorageRepository, Depends(get_repo_for_user)],
+) -> Profile:
+    """Deterministically merge an incoming draft Profile into the existing Master Profile."""
+    try:
+        try:
+            existing = (
+                repo.load_profile()
+                if hasattr(repo, "load_profile")
+                else repo.get_profile()
+            )
+        except Exception:
+            existing = None
+
+        if existing is None:
+            merged = incoming
+        else:
+            merged_res = merge_profiles(existing, incoming)
+            merged = merged_res[0] if isinstance(merged_res, tuple) else merged_res
+
+        cleaned = clean_and_deduplicate_profile(merged)
+        saved = repo.save_profile(cleaned)
+        result = saved if isinstance(saved, Profile) else cleaned
+        try:
+            sync_mirror(repo, result)
+        except Exception:
+            pass
+        return result
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al fusionar el perfil maestro: {exc}",
+        ) from exc
+
+
 @router.get("/mirror", response_model=MirrorResponse)
 def get_mirror_profile(
     repo: Annotated[StorageRepository, Depends(get_repo_for_user)],

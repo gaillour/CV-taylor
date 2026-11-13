@@ -7,7 +7,7 @@ import { isProfileEmpty, useProfileStore } from "@/store/useProfileStore";
 import { getStoredSession } from "@/lib/supabase";
 import { clearDraft, clearPendingAction, getPendingAction, loadDraft, saveDraft } from "@/lib/draft";
 import { DEFAULT_ANONYMOUS_PROFILE, profileToRenderModel } from "@/lib/profileTransform";
-import { buildRenderModelFromProfile } from "@/lib/api";
+import { buildRenderModelFromProfile, mergeProfileWithDraft } from "@/lib/api";
 import { confirmDialog } from "@/store/useConfirmStore";
 import { toast } from "@/store/useToastStore";
 import { EditorView } from "@/components/editor/EditorView";
@@ -80,23 +80,23 @@ function AnonymousOrCloudEditor() {
             const model = await buildRenderModelFromProfile(localDraft.profile, localDraft.theme || "classic");
             loadAnonymousModel(model);
           } else {
-            // Caso 2: Usuario CON perfil en la nube -> Modal amigable
-            const replace = await confirmDialog({
-              title: "Borrador local no guardado",
+            // Caso 2: Usuario CON perfil en la nube -> Modal de fusión aditiva
+            const shouldMerge = await confirmDialog({
+              title: "Encontramos un CV cargado en este navegador",
               message:
-                "Tenés un borrador local no guardado. ¿Deseás reemplazar tu perfil actual en la nube con este borrador o descartarlo?",
-              confirmText: "Reemplazar mi perfil",
+                "Ya tenés un perfil guardado en tu cuenta. ¿Querés sumar los datos nuevos de este borrador a tu perfil actual (sin perder lo que ya tenías) o descartar el borrador?",
+              confirmText: "Sumar a mi perfil",
               cancelText: "Descartar borrador",
               variant: "default",
             });
 
-            if (replace) {
-              useProfileStore.setState({ profile: localDraft.profile });
-              await useProfileStore.getState().saveProfile().catch(() => false);
+            if (shouldMerge) {
+              const merged = await mergeProfileWithDraft(localDraft.profile);
+              useProfileStore.setState({ profile: merged, dirty: false });
               clearDraft();
-              toast.success("Perfil actualizado con el borrador local.");
+              toast.success("Datos del borrador sumados a tu perfil.");
 
-              const model = await buildRenderModelFromProfile(localDraft.profile, localDraft.theme || "classic");
+              const model = await buildRenderModelFromProfile(merged, localDraft.theme || "classic");
               loadAnonymousModel(model);
             } else {
               clearDraft();

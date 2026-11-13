@@ -186,3 +186,23 @@ export async function buildRenderModelFromProfile(
 }
 
 export const convertProfileToRenderModel = buildRenderModelFromProfile;
+
+/**
+ * Fusiona aditivamente un borrador local en el perfil maestro del usuario autenticado.
+ */
+export async function mergeProfileWithDraft(draftProfile: Profile): Promise<Profile> {
+  const res = await apiFetch("/api/profile/merge", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(draftProfile),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({
+      detail: "Error al fusionar el borrador con tu perfil",
+    }));
+    throw new Error(errorBody.detail || "Error en el servidor al fusionar el perfil");
+  }
+
+  return res.json();
+}
