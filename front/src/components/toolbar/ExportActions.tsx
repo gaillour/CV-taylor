@@ -3,10 +3,13 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCvStore } from "@/store/useCvStore";
+import { useProfileStore } from "@/store/useProfileStore";
 import { Download, Save, CheckCircle2, AlertCircle, X, RotateCcw, Loader2 } from "lucide-react";
 import { confirmDialog } from "@/store/useConfirmStore";
 import { getStoredSession } from "@/lib/supabase";
 import { savePendingAction } from "@/lib/draft";
+import { detectNewProfileItems, applySelectedItemsToProfile, ProfileDiffResult } from "@/lib/profileDiff";
+import { ProfileSyncModal } from "@/components/editor/ProfileSyncModal";
 
 interface ToastNotification {
   type: "success" | "error";
@@ -27,6 +30,11 @@ export function ExportActions() {
     draftParentId,
   } = useCvStore();
   const [toast, setToast] = useState<ToastNotification | null>(null);
+
+  // Sync modal state
+  const [pendingDiff, setPendingDiff] = useState<ProfileDiffResult | null>(null);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncSaving, setSyncSaving] = useState(false);
 
   const handleDiscard = async () => {
     if (!dirty) return;
@@ -74,17 +82,7 @@ export function ExportActions() {
     }
   };
 
-  const handleSaveSnapshot = async () => {
-    if (!renderModel) return;
-
-    // Si el usuario no está autenticado, gatear guardado a la nube
-    const hasAuth = Boolean(getStoredSession()?.access_token);
-    if (!hasAuth) {
-      savePendingAction("save");
-      router.push("/login?next=/editor&action=save");
-      return;
-    }
-
+  const performSaveSnapshot = async () => {
     try {
       const result = await saveSnapshot();
       router.replace(`/editor/${result.id}`);
@@ -99,6 +97,79 @@ export function ExportActions() {
         title: err instanceof Error ? err.message : "Error al guardar versión",
       });
     }
+  };
+
+  const handleSaveSnapshot = async () => {
+    if (!renderModel) return;
+
+    // Si el usuario no está autenticado, gatear guardado a la nube
+    const hasAuth = Boolean(getStoredSession()?.access_token);
+    if (!hasAuth) {
+      savePendingAction("save");
+      router.push("/login?next=/editor&action=save");
+      return;
+    }
+
+    try {
+      const profileStore = useProfileStore.getState();
+      if (!profileStore.initialized) {
+        await profileStore.fetchProfile();
+      }
+
+      const currentProfile = useProfileStore.getState().profile;
+      const diff = detectNewProfileItems(renderModel, currentProfile);
+
+      if (diff.hasNewItems) {
+        setPendingDiff(diff);
+        setIsSyncModalOpen(true);
+        return;
+      }
+
+      await performSaveSnapshot();
+    } catch (err: unknown) {
+      showToast({
+        type: "error",
+        title: err instanceof Error ? err.message : "Error al verificar cambios de perfil",
+      });
+    }
+  };
+
+  const handleConfirmSync = async (selectedIds: Set<string>) => {
+    setSyncSaving(true);
+    try {
+      const profileStore = useProfileStore.getState();
+      const currentProfile = profileStore.profile;
+      if (currentProfile && pendingDiff) {
+        const updatedProfile = applySelectedItemsToProfile(currentProfile, pendingDiff, selectedIds);
+        useProfileStore.setState({ profile: updatedProfile, dirty: true });
+        const savedOk = await profileStore.saveProfile();
+        if (!savedOk) {
+          throw new Error("No se pudo actualizar el Perfil Base en la nube");
+        }
+      }
+      setIsSyncModalOpen(false);
+      setPendingDiff(null);
+      await performSaveSnapshot();
+    } catch (err: unknown) {
+      showToast({
+        type: "error",
+        title: err instanceof Error ? err.message : "Error al sincronizar con el perfil",
+      });
+    } finally {
+      setSyncSaving(false);
+    }
+  };
+
+  const handleSaveCvOnly = async () => {
+    setIsSyncModalOpen(false);
+    setPendingDiff(null);
+    await performSaveSnapshot();
+  };
+
+  const handleCancelSync = () => {
+    if (syncSaving) return;
+    setIsSyncModalOpen(false);
+    setPendingDiff(null);
   };
 
   return (
@@ -150,6 +221,16 @@ export function ExportActions() {
           <span>{exportingPdf ? "Generando..." : "Descargar PDF"}</span>
         </button>
       </div>
+
+      {/* Profile Sync Modal */}
+      <ProfileSyncModal
+        open={isSyncModalOpen}
+        diff={pendingDiff}
+        saving={syncSaving}
+        onConfirmSync={handleConfirmSync}
+        onSaveCvOnly={handleSaveCvOnly}
+        onCancel={handleCancelSync}
+      />
 
       {/* Floating Toast */}
       {toast && (

@@ -24,10 +24,17 @@ import {
   useProfileStore,
 } from "@/store/useProfileStore";
 import { buildRenderModelFromProfile, mergeProfileWithDraft } from "@/lib/api";
-import { clearDraft, loadDraft, saveDraft } from "@/lib/draft";
+import {
+  clearDraft,
+  clearPendingAction,
+  getPendingAction,
+  loadDraft,
+  saveDraft,
+  savePendingAction,
+} from "@/lib/draft";
 import { getStoredSession } from "@/lib/supabase";
 import { useCvStore } from "@/store/useCvStore";
-import { confirmDialog } from "@/store/useConfirmStore";
+import { confirmChoice } from "@/store/useConfirmStore";
 import { Entry, EntryKind, Skill } from "@/types/cv";
 import { toast } from "@/store/useToastStore";
 
@@ -36,6 +43,7 @@ type SectionTab = "general" | "skills" | "experience" | "project" | "education";
 export default function ProfilePage() {
   const {
     profile,
+    initialized,
     mirror,
     mirrorLoading,
     swappingBase,
@@ -89,18 +97,29 @@ export default function ProfilePage() {
   const [manualMode, setManualMode] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [generatingCv, setGeneratingCv] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(true);
 
   const draftCheckHandledRef = useRef(false);
 
   useEffect(() => {
     const initProfile = async () => {
+      const hasAuth = Boolean(getStoredSession()?.access_token);
+      setIsAnonymous(!hasAuth);
+
       await fetchProfile();
 
-      const hasAuth = Boolean(getStoredSession()?.access_token);
       if (!hasAuth || draftCheckHandledRef.current) return;
       draftCheckHandledRef.current = true;
 
       const localDraft = loadDraft();
+      const pending = getPendingAction();
+
+      if (localDraft?.profile && isProfileEmpty(localDraft.profile)) {
+        clearDraft();
+        if (pending?.action === "save") clearPendingAction();
+        return;
+      }
+
       if (localDraft && localDraft.profile) {
         const cloudProfile = useProfileStore.getState().profile;
         const cloudEmpty = isProfileEmpty(cloudProfile);
@@ -112,18 +131,36 @@ export default function ProfilePage() {
           });
           await useProfileStore.getState().saveProfile().catch(() => false);
           clearDraft();
-          toast.success("Borrador local migrado exitosamente a tu cuenta.");
+          if (pending?.action === "save") clearPendingAction();
+          toast.success("Tu perfil fue guardado en tu cuenta.");
         } else {
-          const shouldMerge = await confirmDialog({
-            title: "Encontramos un CV cargado en este navegador",
-            message:
-              "Ya tenés un perfil guardado en tu cuenta. ¿Querés sumar los datos nuevos de este borrador a tu perfil actual (sin perder lo que ya tenías) o descartar el borrador?",
-            confirmText: "Sumar a mi perfil",
-            cancelText: "Descartar borrador",
+          // Mostrar temporalmente el CV recién cargado mientras decide
+          useProfileStore.setState({
+            profile: localDraft.profile,
+            isManualMode: true,
+          });
+
+          const draftName = localDraft.profile.full_name?.trim();
+          const choice = await confirmChoice({
+            title: "Ya tenés un perfil guardado en tu cuenta",
+            message: `Subiste un CV nuevo${draftName ? ` (${draftName})` : ""}, pero tu cuenta ya tiene un perfil anterior. ¿Qué querés hacer con los datos que acabás de cargar?`,
+            confirmText: "Reemplazar con el CV nuevo",
+            secondaryText: "Sumar a mi perfil actual",
+            cancelText: "Conservar perfil anterior",
             variant: "default",
           });
 
-          if (shouldMerge) {
+          if (choice === "confirm") {
+            useProfileStore.setState({
+              profile: localDraft.profile,
+              dirty: false,
+              isManualMode: true,
+            });
+            await useProfileStore.getState().saveProfile().catch(() => false);
+            clearDraft();
+            if (pending?.action === "save") clearPendingAction();
+            toast.success("Tu perfil fue actualizado con el CV recién cargado.");
+          } else if (choice === "secondary") {
             const merged = await mergeProfileWithDraft(localDraft.profile);
             useProfileStore.setState({
               profile: merged,
@@ -131,12 +168,21 @@ export default function ProfilePage() {
               isManualMode: !isProfileEmpty(merged),
             });
             clearDraft();
-            toast.success("Datos del borrador sumados a tu perfil.");
+            if (pending?.action === "save") clearPendingAction();
+            toast.success("Se sumaron los datos nuevos a tu perfil existente.");
           } else {
+            useProfileStore.setState({
+              profile: cloudProfile,
+              dirty: false,
+              isManualMode: !isProfileEmpty(cloudProfile),
+            });
             clearDraft();
-            toast.info("Borrador descartado. Cargando tu perfil existente.");
+            if (pending?.action === "save") clearPendingAction();
+            toast.info("Se conservó tu perfil guardado anterior.");
           }
         }
+      } else if (pending?.action === "save") {
+        clearPendingAction();
       }
     };
 
@@ -149,15 +195,19 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     const isAnon = !getStoredSession()?.access_token;
+    if (isAnon) {
+      if (profile) {
+        const existingDraft = loadDraft();
+        saveDraft(profile, existingDraft?.theme || "classic");
+      }
+      savePendingAction("save");
+      router.push("/login?next=/perfil&action=save");
+      return;
+    }
+
     const ok = await saveProfile();
     if (ok) {
-      const msg = isAnon
-        ? "Borrador guardado localmente"
-        : "Perfil guardado exitosamente";
-      setSaveToast(msg);
-      if (isAnon) {
-        toast.success(msg);
-      }
+      setSaveToast("Perfil guardado exitosamente");
       setTimeout(() => setSaveToast(null), 3000);
     }
   };
@@ -230,7 +280,7 @@ export default function ProfilePage() {
     toast.success("Proyecto importado exitosamente desde GitHub.");
   };
 
-  if (loading && !profile) {
+  if ((!initialized || loading) && !profile) {
     return (
       <div className="flex-1 min-h-0 overflow-y-auto bg-canvas text-text-primary flex flex-col">
         <div className="flex-1 flex items-center justify-center">
@@ -323,6 +373,8 @@ export default function ProfilePage() {
         viewLang={viewLang}
         dirty={dirty}
         saving={saving}
+        isAnonymous={isAnonymous}
+        canSave={isAnonymous ? !isProfileEmpty(profile) : dirty}
         generatingCv={generatingCv}
         saveToast={saveToast}
         error={error}

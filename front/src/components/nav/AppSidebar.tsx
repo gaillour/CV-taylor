@@ -80,15 +80,16 @@ export function AppSidebar() {
     useCvStore.persist.rehydrate();
     ensureSupabaseConfigLoaded().then((enabled) => {
       setCloudEnabled(enabled);
-      // Permitir /editor a usuarios no autenticados (Modo Anónimo)
+      // Permitir /editor y /perfil a usuarios no autenticados (Modo Anónimo)
       if (
         enabled &&
         !getStoredSession() &&
         !pathname.startsWith("/login") &&
         pathname !== "/" &&
-        !pathname.startsWith("/editor")
+        !pathname.startsWith("/editor") &&
+        !pathname.startsWith("/perfil")
       ) {
-        router.replace("/login");
+        router.replace(`/login?next=${encodeURIComponent(pathname)}`);
       }
     });
 
@@ -454,7 +455,7 @@ export function AppSidebar() {
 
               {cloudEnabled && !session?.user && (
                 <Link
-                  href="/login"
+                  href={`/login?next=${encodeURIComponent(pathname)}`}
                   className="btn-secondary w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors"
                 >
                   <LogIn className="w-3.5 h-3.5" />

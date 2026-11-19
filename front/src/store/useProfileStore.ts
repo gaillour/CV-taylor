@@ -183,9 +183,6 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     if (!getStoredSession()?.access_token) {
       const draft = loadDraft();
       const data = draft?.profile ?? DEFAULT_ANONYMOUS_PROFILE;
-      if (!draft?.profile) {
-        saveDraft(data, "classic");
-      }
       const hasData = !reducers.isProfileEmpty(data);
       set({
         profile: data,

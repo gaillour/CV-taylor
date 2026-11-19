@@ -159,7 +159,7 @@ export function HeroDropzone() {
                 CV listo.
               </p>
               <p className="text-xs text-[var(--text-secondary)] font-mono">
-                Abriendo el editor…
+                Abriendo tu perfil…
               </p>
             </div>
           </div>
@@ -210,7 +210,7 @@ export function HeroDropzone() {
               <p className="text-[11px] text-[var(--text-secondary)]">
                 ¿Querés seguir probando?{" "}
                 <Link
-                  href="/login"
+                  href="/login?next=/perfil"
                   className="text-[var(--accent)] underline hover:text-[var(--accent-hover)] font-sans font-medium"
                 >
                   Iniciá sesión gratis

@@ -15,6 +15,8 @@ export interface ProfileTopBarProps {
   viewLang: LangCode;
   dirty: boolean;
   saving: boolean;
+  isAnonymous?: boolean;
+  canSave?: boolean;
   saveToast: string | null;
   error: string | null;
   swappingBase?: boolean;
@@ -31,6 +33,8 @@ export function ProfileTopBar({
   viewLang,
   dirty,
   saving,
+  isAnonymous = false,
+  canSave,
   saveToast,
   error,
   swappingBase = false,
@@ -41,6 +45,8 @@ export function ProfileTopBar({
   onSave,
   onGenerateCv,
 }: ProfileTopBarProps) {
+  const saveEnabled = canSave !== undefined ? canSave : dirty;
+
   return (
     <div className="sticky top-0 z-20 bg-canvas/90 backdrop-blur-md border-b border-hairline px-6 py-3 flex items-center justify-between">
       <div>
@@ -51,7 +57,12 @@ export function ProfileTopBar({
           <span className="text-[11px] font-mono text-text-muted uppercase">
             · base: {baseLang}
           </span>
-          {dirty ? (
+          {isAnonymous ? (
+            <span className="flex items-center gap-1.5 text-[10px] font-mono text-warning">
+              <span className="w-1.5 h-1.5 rounded-full bg-warning" />
+              borrador sin guardar
+            </span>
+          ) : dirty ? (
             <span className="flex items-center gap-1.5 text-[10px] font-mono text-warning">
               <span className="w-1.5 h-1.5 rounded-full bg-warning" />
               cambios sin guardar
@@ -157,7 +168,7 @@ export function ProfileTopBar({
         </button>
         <button
           onClick={onSave}
-          disabled={saving || !dirty}
+          disabled={saving || !saveEnabled}
           className="btn-secondary flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saving ? (
@@ -165,7 +176,7 @@ export function ProfileTopBar({
           ) : (
             <Save className="w-3 h-3 text-text-muted" />
           )}
-          Guardar cambios
+          {isAnonymous ? "Guardar perfil" : "Guardar cambios"}
         </button>
         {onGenerateCv && (
           <button

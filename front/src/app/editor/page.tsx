@@ -5,10 +5,10 @@ import { Loader2 } from "lucide-react";
 import { useCvStore } from "@/store/useCvStore";
 import { isProfileEmpty, useProfileStore } from "@/store/useProfileStore";
 import { getStoredSession } from "@/lib/supabase";
-import { clearDraft, clearPendingAction, getPendingAction, loadDraft, saveDraft } from "@/lib/draft";
+import { clearDraft, clearPendingAction, getPendingAction, loadDraft } from "@/lib/draft";
 import { DEFAULT_ANONYMOUS_PROFILE, profileToRenderModel } from "@/lib/profileTransform";
 import { buildRenderModelFromProfile, mergeProfileWithDraft } from "@/lib/api";
-import { confirmDialog } from "@/store/useConfirmStore";
+import { confirmChoice } from "@/store/useConfirmStore";
 import { toast } from "@/store/useToastStore";
 import { EditorView } from "@/components/editor/EditorView";
 
@@ -45,19 +45,20 @@ function AnonymousOrCloudEditor() {
       const localDraft = loadDraft();
 
       if (!hasAuth) {
-        // ====================================================================
-        // MODO ANÓNIMO
-        // ====================================================================
-        if (localDraft && localDraft.profile) {
-          const model = await buildRenderModelFromProfile(localDraft.profile, localDraft.theme || "classic");
+        const targetProfile =
+          localDraft && localDraft.profile && !isProfileEmpty(localDraft.profile)
+            ? localDraft.profile
+            : DEFAULT_ANONYMOUS_PROFILE;
+        const targetTheme = localDraft?.theme || "classic";
+        try {
+          const model = await buildRenderModelFromProfile(targetProfile, targetTheme);
           loadAnonymousModel(model);
-        } else {
-          // Inicializar perfil base anónimo por defecto y persistirlo
-          saveDraft(DEFAULT_ANONYMOUS_PROFILE, "classic");
-          const model = await buildRenderModelFromProfile(DEFAULT_ANONYMOUS_PROFILE, "classic");
-          loadAnonymousModel(model);
+        } catch {
+          const fallbackModel = profileToRenderModel(targetProfile, targetTheme);
+          loadAnonymousModel(fallbackModel);
+        } finally {
+          setIsInitializing(false);
         }
-        setIsInitializing(false);
         return;
       }
 
@@ -69,38 +70,52 @@ function AnonymousOrCloudEditor() {
         const cloudProfile = useProfileStore.getState().profile;
         const cloudEmpty = isProfileEmpty(cloudProfile);
 
-        if (localDraft && localDraft.profile) {
+        const hasValidDraft = Boolean(localDraft?.profile && !isProfileEmpty(localDraft.profile));
+        if (localDraft?.profile && !hasValidDraft) {
+          clearDraft();
+        }
+
+        if (hasValidDraft && localDraft) {
           if (cloudEmpty) {
             // Caso 1: Usuario SIN perfil en la nube -> Migración silenciosa
             useProfileStore.setState({ profile: localDraft.profile });
             await useProfileStore.getState().saveProfile().catch(() => false);
             clearDraft();
-            toast.success("Borrador local migrado exitosamente a tu cuenta.");
+            toast.success("Tu perfil fue guardado en tu cuenta.");
 
             const model = await buildRenderModelFromProfile(localDraft.profile, localDraft.theme || "classic");
             loadAnonymousModel(model);
           } else {
-            // Caso 2: Usuario CON perfil en la nube -> Modal de fusión aditiva
-            const shouldMerge = await confirmDialog({
-              title: "Encontramos un CV cargado en este navegador",
-              message:
-                "Ya tenés un perfil guardado en tu cuenta. ¿Querés sumar los datos nuevos de este borrador a tu perfil actual (sin perder lo que ya tenías) o descartar el borrador?",
-              confirmText: "Sumar a mi perfil",
-              cancelText: "Descartar borrador",
+            // Caso 2: Usuario CON perfil en la nube -> Modal claro de 3 opciones
+            const draftName = localDraft.profile.full_name?.trim();
+            const choice = await confirmChoice({
+              title: "Ya tenés un perfil guardado en tu cuenta",
+              message: `Subiste un CV nuevo${draftName ? ` (${draftName})` : ""}, pero tu cuenta ya tiene un perfil anterior. ¿Qué querés hacer con los datos que acabás de cargar?`,
+              confirmText: "Reemplazar con el CV nuevo",
+              secondaryText: "Sumar a mi perfil actual",
+              cancelText: "Conservar perfil anterior",
               variant: "default",
             });
 
-            if (shouldMerge) {
+            if (choice === "confirm") {
+              useProfileStore.setState({ profile: localDraft.profile, dirty: false });
+              await useProfileStore.getState().saveProfile().catch(() => false);
+              clearDraft();
+              toast.success("Tu perfil fue actualizado con el CV recién cargado.");
+
+              const model = await buildRenderModelFromProfile(localDraft.profile, localDraft.theme || "classic");
+              loadAnonymousModel(model);
+            } else if (choice === "secondary") {
               const merged = await mergeProfileWithDraft(localDraft.profile);
               useProfileStore.setState({ profile: merged, dirty: false });
               clearDraft();
-              toast.success("Datos del borrador sumados a tu perfil.");
+              toast.success("Se sumaron los datos nuevos a tu perfil existente.");
 
               const model = await buildRenderModelFromProfile(merged, localDraft.theme || "classic");
               loadAnonymousModel(model);
             } else {
               clearDraft();
-              toast.info("Borrador descartado. Cargando tu perfil existente.");
+              toast.info("Se conservó tu perfil guardado anterior.");
               if (cloudProfile && !cloudEmpty) {
                 const model = await buildRenderModelFromProfile(cloudProfile, "classic");
                 loadAnonymousModel(model);

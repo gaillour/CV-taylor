@@ -111,7 +111,7 @@ export function LandingNav() {
           </a>
 
           <Link
-            href="/cvs"
+            href="/editor"
             className="btn-accent inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded text-xs uppercase tracking-wider shadow-sm"
           >
             <span>Abrir Editor</span>

@@ -5,7 +5,7 @@ import { AlertTriangle, Trash2, HelpCircle, X } from "lucide-react";
 import { useConfirmStore } from "@/store/useConfirmStore";
 
 export function ConfirmModal() {
-  const { isOpen, options, handleConfirm, handleCancel } = useConfirmStore();
+  const { isOpen, options, handleConfirm, handleSecondary, handleCancel } = useConfirmStore();
 
   if (!isOpen) return null;
 
@@ -13,6 +13,7 @@ export function ConfirmModal() {
     title,
     message,
     confirmText = "Aceptar",
+    secondaryText,
     cancelText = "Cancelar",
     variant = "default",
   } = options;
@@ -60,7 +61,7 @@ export function ConfirmModal() {
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-hairline/60">
+        <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-hairline/60">
           <button
             type="button"
             onClick={handleCancel}
@@ -68,6 +69,15 @@ export function ConfirmModal() {
           >
             {cancelText}
           </button>
+          {secondaryText && (
+            <button
+              type="button"
+              onClick={handleSecondary}
+              className="btn-secondary px-3.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors"
+            >
+              {secondaryText}
+            </button>
+          )}
           <button
             type="button"
             onClick={handleConfirm}

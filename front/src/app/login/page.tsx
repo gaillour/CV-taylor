@@ -32,7 +32,8 @@ function LoginContent() {
 
   const nextParam = searchParams.get("next");
   const actionParam = searchParams.get("action");
-  const targetPath = nextParam && nextParam.startsWith("/") ? nextParam : "/editor";
+  const targetPath = nextParam && nextParam.startsWith("/") ? nextParam : "/perfil";
+  const anonymousFallbackPath = targetPath.startsWith("/perfil") ? "/perfil" : "/editor";
 
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -181,7 +182,7 @@ function LoginContent() {
             <Sparkles className="w-4 h-4 shrink-0" />
             <span className="leading-snug">
               {actionParam === "save"
-                ? "Iniciá sesión para guardar tu CV en la nube y conservarlo para siempre."
+                ? "Iniciá sesión para guardar tu perfil y conservar tus CVs en la nube."
                 : actionParam === "tailor"
                 ? "Iniciá sesión para adaptar tu CV a la oferta laboral con IA."
                 : "Iniciá sesión para continuar con tu acción pendiente."}
@@ -327,10 +328,12 @@ function LoginContent() {
           </p>
           <div>
             <Link
-              href={targetPath}
+              href={anonymousFallbackPath}
               className="text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors inline-block font-sans"
             >
-              ← Continuar en el editor sin cuenta
+              {targetPath.startsWith("/perfil")
+                ? "← Volver a mi perfil sin cuenta"
+                : "← Continuar en el editor sin cuenta"}
             </Link>
           </div>
         </div>

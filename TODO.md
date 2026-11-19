@@ -1,6 +1,41 @@
 # TODO.md — Roadmap Operativo (`cv-tailor`)
 
-## Errores en el onboarding:
+## P0 — Bugs de Onboarding y Flujo de Borrador (Feedback)
+
+- [x] **Onboarding de cuenta existente redirige a `/editor` en lugar de `/perfil`:**
+  - Investigar el flujo post-onboarding cuando el usuario ya tiene una cuenta existente; debe abrir `/perfil` y no saltar directo a `/editor`.
+- [x] **Pedir login recién al intentar guardar el perfil:**
+  - El onboarding no debe exigir autenticación antes de tiempo; permitir completar/editar el perfil en modo borrador y solicitar login únicamente al momento de guardar.
+- [x] **Clarificar aviso y copy del borrador local:**
+  - Reformular el mensaje y las acciones del aviso/modal de borrador pendiente para que se entienda claramente qué pasó con los datos cargados y qué implica cada opción.
+
+
+## P1 — Refinamiento de Datos y Modelo de Proyectos
+
+- [x] **Modal de sincronización selectiva al guardar CV (Editor ➔ Perfil Base SSOT):**
+  - Al hacer click en "Guardar CV", presentar la opción de elegir qué cambios puntuales (nuevos proyectos agregados, viñetas modificadas) se desean impactar y persistir también en el perfil base.
+
+
+## P2 — E2E Onboarding, Checkout y Dashboard
+
+- [ ] **Reacomodación del Dashboard (`/cvs`):**
+  - Definir y diseñar UX para estado vacío y flujo de creación (botón unificado con prompt vs botón doble base/adaptado).
+- [ ] **Test E2E del flujo de conversión completo:**
+  - Validar el pipeline integral: landing → dropzone parsing → editor anónimo (`draft.ts`) → login → migración de borrador a Supabase → disparo de paywall al superar cuota.
+- [ ] **Checkout y monetización:**
+  - Definir e integrar pasarela/proveedor de checkout para la compra del Pase.
+
+
+## P3 — Plantillas Typst & Compatibilidad ATS
+
+- [ ] **Auditoría de orden de lectura y jerarquía ATS:**
+  - Validar flujo de lectura lineal y jerarquía semántica del texto extraído contra parsers reales (Lever, Greenhouse, Workday, `pdftotext`), especialmente en plantillas de dos columnas.
+- [ ] **Calibración / Decisión template `vercanard`:**
+  - Evaluar rendimiento de layout a dos columnas (bajo porcentaje de llenado) y definir si se redistribuyen bloques o se retira del catálogo activo.
+
+
+## Completados Recientes (`feat/todo-autonomo`)
+
 - [x] **Borrador local no guardado (modal ambiguo):** Reemplazado por modal claro con merge aditivo determinista (`POST /profile/merge`, *"Sumar a mi perfil"* vs *"Descartar borrador"*).
 - [x] **Proyectos/experiencias con 0 viñetas:** Ingesta y curador extraen al menos 2 viñetas por defecto (o 1 si el CV original tenía 1, partiendo párrafos descriptivos si no había bullets), el fitter nunca poda por debajo de 1 viñeta (`len(entry.bullets) > 1`) y la UI advierte si una entrada manual queda sin viñetas.
 - [x] **Flujo de onboarding (`Carga ➔ Perfil ➔ Generar CV`):** Dropzone redirige a `/perfil` soportando modo borrador anónimo editable (`draft.ts`) con CTA destacado *"Generar CV →"* hacia `/editor`.
@@ -8,49 +43,13 @@
 - [x] **Detección y formato de links (`github`, `linkedin`, `website`, `link`):** Normalizados determinísticamente (`github.com/<user>`, `linkedin.com/in/<user>`, dominio limpio sin `https://` duplicado) con enlaces `#link("https://...")[url_limpia]` clickeables y compatibles con ATS/`pdftotext`.
 - [x] **Fechas duplicadas (`2026 - 2026`) o `"Presente"` inventado:** Si `start_date == end_date` o `end_date` está vacío, se colapsa a una única fecha (`2026`), preservando `"Presente"` únicamente si figura explícitamente en el CV.
 - [x] **Diagnóstico e instrucciones compartidas (Ingesta vs Adaptación):** Centralizadas las directivas en `back/engine/prompts/rules.py` (`SHARED_DATA_HYGIENE_RULES`), inyectadas tanto en `text_parser.py` como en `llm_curator.py`, y unificado `RenderModel.from_profile` en backend (`POST /anonymous/render-model`) como única fuente de verdad.
-
-
-
-## P0 — Bugs Críticos de Persistencia y Editor
-
-- [x] **Fix guardado de CV (error 404 snapshot not found):**
-  - Investigar y resolver error 404 al persistir o actualizar el snapshot en backend/Supabase.
-- [x] **Fix ordenamiento de proyectos en editor:**
-  - Corregir las flechas de reordenamiento por prioridad en la lista de proyectos que actualmente no responden.
-- [x] **Fix detección de avatar en recomendación de template:**
-  - Corregir la condición en el editor que sigue sugiriendo "se debería usar con foto" aunque el perfil ya cuente con un avatar cargado (evitando requerir un guardado manual forzado).
-
-
-## P1 — Refinamiento de Datos y Modelo de Proyectos
-
-- [x] **Empresa y rol opcionales en proyectos:**
-  - Permitir que los campos de empresa/institución y rol sean completamente opcionales en el formulario y asegurar que los templates de Typst rendericen sin guiones o espacios huérfanos si faltan.
-- [ ] **Modal de sincronización selectiva al guardar CV (Editor ➔ Perfil Base SSOT):**
-  - Al hacer click en "Guardar CV", presentar la opción de elegir qué cambios puntuales (nuevos proyectos agregados, viñetas modificadas) se desean impactar y persistir también en el perfil base.
-
-
-## P2 — E2E Onboarding, Checkout y Dashboard
-
-- [ ] **Test E2E del flujo de conversión completo:**
-  - Validar el pipeline integral: landing → dropzone parsing → editor anónimo (`draft.ts`) → login → migración de borrador a Supabase → disparo de paywall al superar cuota.
-- [ ] **Checkout y monetización:**
-  - Definir e integrar pasarela/proveedor de checkout para la compra del Pase.
-- [ ] **Reacomodación del Dashboard (`/cvs`):**
-  - Definir y diseñar UX para estado vacío y flujo de creación (botón unificado con prompt vs botón doble base/adaptado).
-
-
-## P3 — Plantillas Typst & Compatibilidad ATS
-
-- [x] **Desactivar hyphenation (guionado automático) en Typst:**
-  - Configurar `#set text(hyphenate: false)` en las plantillas Typst para evitar que las palabras se corten con guión al final de línea (`ejem- \n plo`), garantizando lectura limpia para parsers ATS.
-- [ ] **Auditoría de orden de lectura y jerarquía ATS:**
-  - Validar flujo de lectura lineal y jerarquía semántica del texto extraído contra parsers reales (Lever, Greenhouse, Workday, `pdftotext`), especialmente en plantillas de dos columnas.
-- [ ] **Calibración / Decisión template `vercanard`:**
-  - Evaluar rendimiento de layout a dos columnas (bajo porcentaje de llenado) y definir si se redistribuyen bloques o se retira del catálogo activo.
-- [x] **Polish visual en plantillas Typst:**
-  - Corregir inconsistencias de espaciado, márgenes y pesos tipográficos reportados en plantillas visuales.
-- [x] **Auditoría de licencias:**
-  - Documentar licencias (MIT, Apache 2.0, etc.) de las plantillas integradas en `back/engine/templates/`.
+- [x] **Fix guardado de CV (error 404 snapshot not found):** Investigar y resolver error 404 al persistir o actualizar el snapshot en backend/Supabase.
+- [x] **Fix ordenamiento de proyectos en editor:** Corregir las flechas de reordenamiento por prioridad en la lista de proyectos que actualmente no responden.
+- [x] **Fix detección de avatar en recomendación de template:** Corregir la condición en el editor que sigue sugiriendo "se debería usar con foto" aunque el perfil ya cuente con un avatar cargado (evitando requerir un guardado manual forzado).
+- [x] **Empresa y rol opcionales en proyectos:** Permitir que los campos de empresa/institución y rol sean completamente opcionales en el formulario y asegurar que los templates de Typst rendericen sin guiones o espacios huérfanos si faltan.
+- [x] **Desactivar hyphenation (guionado automático) en Typst:** Configurar `#set text(hyphenate: false)` en las plantillas Typst para evitar que las palabras se corten con guión al final de línea (`ejem- \n plo`), garantizando lectura limpia para parsers ATS.
+- [x] **Polish visual en plantillas Typst:** Corregir inconsistencias de espaciado, márgenes y pesos tipográficos reportados en plantillas visuales.
+- [x] **Auditoría de licencias:** Documentar licencias (MIT, Apache 2.0, etc.) de las plantillas integradas en `back/engine/templates/`.
 
 
 ## Historial de Fases Concluidas
