@@ -2,37 +2,42 @@
 
 import React from "react";
 import { Globe2, CheckCircle2 } from "lucide-react";
+import { motion, useMotionTemplate, useTransform, type MotionValue } from "motion/react";
 import type { MirrorCvData } from "./types";
 
 interface MirrorCvCardProps {
-  progress: number; // 0 (ES) -> 1 (EN)
+  progress: MotionValue<number>; // 0 (ES) -> 1 (EN)
   esCv: MirrorCvData;
   enCv: MirrorCvData;
 }
 
 export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
-  // Rotación 3D continua de 0° a 180° sincronizada con el scroll
-  const rotationY = progress * 180;
+  const rotateY = useTransform(progress, [0, 1], [0, 180]);
+  const rotateZ = useTransform(progress, [0, 0.5, 1], [0, -2.2, 0]);
 
-  // Sombra dinámica según el giro
-  const shadowX = (Math.sin(progress * Math.PI) * 24).toFixed(1);
-  const shadowBlur = (30 + Math.sin(progress * Math.PI) * 20).toFixed(0);
+  const shadowX = useTransform(progress, (p) => Number((Math.sin(p * Math.PI) * 24).toFixed(1)));
+  const shadowBlur = useTransform(progress, (p) => Math.round(30 + Math.sin(p * Math.PI) * 20));
+  const boxShadow = useMotionTemplate`${shadowX}px 18px ${shadowBlur}px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08)`;
 
-  // Brillo especular dinámico que viaja horizontalmente por la hoja durante el giro
-  const lightPosition = (progress * 100).toFixed(0);
+  const lightPos = useTransform(progress, [0, 1], [0, 100]);
+  const lightPosInv = useTransform(progress, [0, 1], [100, 0]);
+
+  const frontSpecularBg = useMotionTemplate`radial-gradient(circle 350px at ${lightPos}% 30%, rgba(255, 255, 255, 0.7), rgba(212, 151, 59, 0.08) 45%, transparent 75%)`;
+  const frontSpecularOpacity = useTransform(progress, (p) => Math.max(0, 0.7 - Math.abs(p - 0.25) * 1.2));
+
+  const backSpecularBg = useMotionTemplate`radial-gradient(circle 350px at ${lightPosInv}% 30%, rgba(255, 255, 255, 0.7), rgba(212, 151, 59, 0.1) 45%, transparent 75%)`;
+  const backSpecularOpacity = useTransform(progress, (p) => Math.max(0, 0.7 - Math.abs(p - 0.75) * 1.2));
 
   return (
-    <div
-      className="relative w-full h-full select-none"
-      style={{ perspective: "1400px" }}
-    >
+    <div className="relative w-full h-full select-none" style={{ perspective: "1400px" }}>
       {/* Contenedor Giratorio 3D */}
-      <div
+      <motion.div
         className="w-full h-full relative"
         style={{
           transformStyle: "preserve-3d",
-          transform: `rotateY(${rotationY}deg)`,
-          boxShadow: `${shadowX}px 18px ${shadowBlur}px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08)`,
+          rotateY,
+          rotateZ,
+          boxShadow,
         }}
       >
         {/* CARA FRONTAL: ESPAÑOL (BASE) */}
@@ -44,11 +49,11 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
           }}
         >
           {/* Luz especular frontal */}
-          <div
-            className="absolute inset-0 pointer-events-none transition-opacity duration-150 z-20"
+          <motion.div
+            className="absolute inset-0 pointer-events-none z-20"
             style={{
-              background: `radial-gradient(circle 350px at ${lightPosition}% 30%, rgba(255, 255, 255, 0.7), rgba(212, 151, 59, 0.08) 45%, transparent 75%)`,
-              opacity: Math.max(0, 0.7 - Math.abs(progress - 0.25) * 1.2),
+              background: frontSpecularBg,
+              opacity: frontSpecularOpacity,
             }}
           />
 
@@ -99,7 +104,9 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
             {esCv.experience.map((exp, idx) => (
               <div key={idx} className="space-y-0.5 mb-1.5">
                 <div className="flex justify-between items-baseline text-[8.5px]">
-                  <span className="font-bold text-zinc-900">{exp.role} — <span className="font-normal text-zinc-700">{exp.company}</span></span>
+                  <span className="font-bold text-zinc-900">
+                    {exp.role} — <span className="font-normal text-zinc-700">{exp.company}</span>
+                  </span>
                   <span className="font-mono text-zinc-500 text-[7.5px]">{exp.period}</span>
                 </div>
                 <ul className="list-disc list-outside ml-3 space-y-0.5 text-[8px] leading-tight text-zinc-600">
@@ -146,11 +153,11 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
           }}
         >
           {/* Luz especular reverso */}
-          <div
-            className="absolute inset-0 pointer-events-none transition-opacity duration-150 z-20"
+          <motion.div
+            className="absolute inset-0 pointer-events-none z-20"
             style={{
-              background: `radial-gradient(circle 350px at ${100 - Number(lightPosition)}% 30%, rgba(255, 255, 255, 0.7), rgba(212, 151, 59, 0.1) 45%, transparent 75%)`,
-              opacity: Math.max(0, 0.7 - Math.abs(progress - 0.75) * 1.2),
+              background: backSpecularBg,
+              opacity: backSpecularOpacity,
             }}
           />
 
@@ -201,7 +208,9 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
             {enCv.experience.map((exp, idx) => (
               <div key={idx} className="space-y-0.5 mb-1.5">
                 <div className="flex justify-between items-baseline text-[8.5px]">
-                  <span className="font-bold text-zinc-900">{exp.role} — <span className="font-normal text-zinc-700">{exp.company}</span></span>
+                  <span className="font-bold text-zinc-900">
+                    {exp.role} — <span className="font-normal text-zinc-700">{exp.company}</span>
+                  </span>
                   <span className="font-mono text-zinc-500 text-[7.5px]">{exp.period}</span>
                 </div>
                 <ul className="list-disc list-outside ml-3 space-y-0.5 text-[8px] leading-tight text-zinc-600">
@@ -236,9 +245,8 @@ export function MirrorCvCard({ progress, esCv, enCv }: MirrorCvCardProps) {
             </span>
             <span>Typst v0.14 Engine</span>
           </div>
-
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

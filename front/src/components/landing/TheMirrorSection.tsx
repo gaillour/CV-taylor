@@ -2,9 +2,20 @@
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { CheckCircle2 } from "lucide-react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionTemplate,
+  useMotionValueEvent,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import { MirrorCvCard } from "./MirrorCvCard";
 import type { MirrorCvData } from "./types";
 import { ScrollReveal } from "./ScrollReveal";
+import { TextMaskReveal } from "./motion/TextMaskReveal";
+import { useMainScrollRef } from "./useMainScrollRef";
 
 const ES_SAMPLE_CV: MirrorCvData = {
   lang: "es",
@@ -92,40 +103,47 @@ export function TheMirrorSection() {
   const containerRef = useRef<HTMLElement>(null);
   const slotEsRef = useRef<HTMLButtonElement>(null);
   const slotEnRef = useRef<HTMLButtonElement>(null);
-  const [progress, setProgress] = useState(0);
+  const scrollRef = useMainScrollRef();
+
   const [deltaX, setDeltaX] = useState(420);
+  const [manualOverride, setManualOverride] = useState<"es" | "en" | null>(null);
+  const [isEnglish, setIsEnglish] = useState(false);
+  const [isLanded, setIsLanded] = useState(false);
 
-  // Manejo de cálculo de scroll continuo en container o main-scroll
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const containerHeight = containerRef.current.offsetHeight;
-    const viewportHeight = window.innerHeight;
+  const { scrollYProgress } = useScroll({
+    container: scrollRef,
+    target: containerRef,
+    offset: ["start 0.82", "center 0.50"],
+  });
 
-    const totalScrollable = containerHeight - viewportHeight;
-    if (totalScrollable <= 0) return;
+  const smoothScrollProgress = useSpring(scrollYProgress, {
+    stiffness: 150,
+    damping: 26,
+    mass: 0.3,
+  });
 
-    // Distancia scrolleada desde que el tope del contenedor toca el tope del viewport
-    const scrolled = -rect.top;
-    const rawRatio = scrolled / totalScrollable;
-    const clamped = Math.min(Math.max(rawRatio, 0), 1);
-    setProgress(clamped);
-  }, []);
+  const manualTarget = useSpring(0, { stiffness: 160, damping: 24 });
 
-  // Medición de la distancia horizontal entre el Slot ES y el Slot EN
+  useEffect(() => {
+    if (manualOverride === "es") manualTarget.set(0);
+    if (manualOverride === "en") manualTarget.set(1);
+  }, [manualOverride, manualTarget]);
+
+  const activeProgress = manualOverride !== null ? manualTarget : smoothScrollProgress;
+
+  useMotionValueEvent(activeProgress, "change", (latest) => {
+    const nextEn = latest >= 0.5;
+    const nextLanded = latest >= 0.88;
+    if (nextEn !== isEnglish) setIsEnglish(nextEn);
+    if (nextLanded !== isLanded) setIsLanded(nextLanded);
+  });
+
   const measureDistance = useCallback(() => {
     if (!slotEsRef.current || !slotEnRef.current) return;
     const esRect = slotEsRef.current.getBoundingClientRect();
     const enRect = slotEnRef.current.getBoundingClientRect();
-
-    // Obtenemos el ancho sin escala del elemento
     const offsetWidth = slotEsRef.current.offsetWidth || esRect.width;
-
-    // Si el contenedor padre tiene escala CSS (scale-[0.8] o similar),
-    // la escala real computada es esRect.width / offsetWidth
     const currentScale = offsetWidth > 0 ? esRect.width / offsetWidth : 1;
-
-    // Distancia exacta requerida en coordenadas locales del contenedor
     const exactLocalDistance = (enRect.left - esRect.left) / (currentScale || 1);
 
     if (exactLocalDistance > 0) {
@@ -134,13 +152,8 @@ export function TheMirrorSection() {
   }, []);
 
   useEffect(() => {
-    const scrollParent = document.getElementById("main-scroll") || window;
-
-    // Disparar en frame inicial
-    handleScroll();
     measureDistance();
 
-    // ResizeObserver para recalcular dinámicamente si cambia cualquier tamaño o escala
     let resizeObserver: ResizeObserver | null = null;
     if (typeof ResizeObserver !== "undefined") {
       resizeObserver = new ResizeObserver(() => {
@@ -151,55 +164,31 @@ export function TheMirrorSection() {
       if (containerRef.current) resizeObserver.observe(containerRef.current);
     }
 
-    let ticking = false;
-    const onScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          handleScroll();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    const onResize = () => {
-      handleScroll();
-      measureDistance();
-    };
-
-    scrollParent.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize, { passive: true });
-
-    // Timers escalonados para atrapar cualquier transición o carga de fuentes tardía
+    window.addEventListener("resize", measureDistance, { passive: true });
     const timer1 = setTimeout(measureDistance, 60);
     const timer2 = setTimeout(measureDistance, 250);
-    const timer3 = setTimeout(measureDistance, 600);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
-      clearTimeout(timer3);
       if (resizeObserver) resizeObserver.disconnect();
-      scrollParent.removeEventListener("scroll", onScroll);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
+      window.removeEventListener("resize", measureDistance);
     };
-  }, [handleScroll, measureDistance]);
+  }, [measureDistance]);
 
-  // Función para forzar toggle manual suave
+  const cardX = useTransform(activeProgress, [0, 1], [0, deltaX]);
+  const cardY = useTransform(activeProgress, (p) => -Math.sin(p * Math.PI) * 12);
+  const cardScale = useTransform(activeProgress, (p) => 1 + Math.sin(p * Math.PI) * 0.02);
+
+  const haloLeft = useTransform(activeProgress, (p) => `${25 + p * 50}%`);
+  const haloScale = useTransform(activeProgress, (p) => 1 + Math.sin(p * Math.PI) * 0.2);
+  const haloBg = useMotionTemplate`radial-gradient(circle, ${
+    isEnglish ? "var(--green-halo)" : "var(--halo-color)"
+  } 0%, transparent 70%)`;
+
   const toggleLanguage = (target: "es" | "en") => {
-    if (!containerRef.current) return;
-    const scrollParent = document.getElementById("main-scroll") || window;
-    const scrollTop = scrollParent === window ? window.scrollY : (scrollParent as HTMLElement).scrollTop;
-    const sectionTop = containerRef.current.getBoundingClientRect().top + scrollTop;
-    const totalScrollable = containerRef.current.offsetHeight - window.innerHeight;
-    const targetScroll = sectionTop + (target === "en" ? totalScrollable : 0);
-
-    scrollParent.scrollTo({
-      top: targetScroll,
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-    });
+    setManualOverride(target);
+    manualTarget.set(target === "en" ? 1 : 0);
   };
 
   return (
@@ -207,44 +196,48 @@ export function TheMirrorSection() {
       id="the-mirror"
       ref={containerRef}
       aria-labelledby="mirror-title"
-      className="scroll-story relative min-h-[220vh] border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]"
+      className="relative overflow-hidden border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)] px-4 py-24 sm:px-6 sm:py-32 lg:px-8"
     >
-      {/* Contenedor Sticky que se clava en la pantalla durante el recorrido de scroll */}
-      <div className="scroll-story-sticky sticky top-0 flex h-screen w-full flex-col items-center justify-between overflow-hidden px-4 pb-6 pt-5 sm:px-6 sm:pt-8 lg:px-8">
-        
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-12 sm:gap-14">
         {/* Cabecera Editorial Compacta */}
         <ScrollReveal direction="up" className="w-full shrink-0">
-        <div className="text-center max-w-2xl mx-auto shrink-0 z-10">
-          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--green-text)]">
-            02 / The Mirror
-          </span>
-          <h2 id="mirror-title" className="mt-2 font-display text-3xl font-medium tracking-[-0.04em] text-[var(--text-ivory)] sm:text-5xl lg:text-6xl">
-            Dos idiomas. <span className="italic text-[var(--text-secondary)]">Una historia.</span>
-          </h2>
-          <p className="mx-auto mt-2 max-w-lg text-sm text-[var(--text-secondary)]">
-            El CV cruza el idioma, no los hechos.
-          </p>
-        </div>
+          <div className="text-center max-w-2xl mx-auto shrink-0 z-10">
+            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--green-text)]">
+              02 / The Mirror
+            </span>
+            <h2
+              id="mirror-title"
+              className="mt-2 font-display text-3xl font-medium tracking-[-0.04em] text-[var(--text-ivory)] sm:text-5xl lg:text-6xl"
+            >
+              <TextMaskReveal>Dos idiomas.</TextMaskReveal>{" "}
+              <span className="italic text-[var(--text-secondary)]">
+                <TextMaskReveal delay={0.08}>Una historia.</TextMaskReveal>
+              </span>
+            </h2>
+            <p className="mx-auto mt-2 max-w-lg text-sm text-[var(--text-secondary)]">
+              El CV cruza el idioma, no los hechos.
+            </p>
+          </div>
         </ScrollReveal>
 
         {/* Escenario Central: Dos Docks y CV 3D en Vuelo Horizontal */}
-        <div className="w-full flex-1 flex flex-col items-center justify-center relative my-auto">
-          
+        <div className="w-full flex flex-col items-center justify-center relative">
           {/* Halos de luz rasante que acompañan el viaje del documento */}
-          <div
-            className="absolute w-72 h-72 sm:w-[480px] sm:h-[480px] rounded-full pointer-events-none transition-all duration-500 -z-10"
+          <motion.div
+            className="absolute w-72 h-72 sm:w-[480px] sm:h-[480px] rounded-full pointer-events-none -z-10"
             style={{
-              background: `radial-gradient(circle, ${progress >= 0.55 ? "var(--green-halo)" : "var(--halo-color)"} 0%, transparent 70%)`,
-              left: `calc(25% + ${progress * 50}%)`,
+              background: haloBg,
+              left: haloLeft,
               top: "50%",
-              transform: `translate(-50%, -50%) scale(${1 + Math.sin(progress * Math.PI) * 0.25})`,
+              x: "-50%",
+              y: "-50%",
+              scale: haloScale,
               filter: "blur(60px)",
             }}
           />
 
           {/* Grid de Dos Docks: Izquierda (ES) y Derecha (EN) */}
           <div className="relative grid w-full max-w-[820px] grid-cols-2 items-center justify-items-center gap-3 sm:gap-8 md:gap-12 lg:max-w-[900px] lg:gap-16 mx-auto">
-            
             {/* DOCK IZQUIERDO: ES (ORIGEN BASE) */}
             <button
               ref={slotEsRef}
@@ -253,17 +246,13 @@ export function TheMirrorSection() {
               onClick={() => toggleLanguage("es")}
               className="relative flex w-full max-w-[320px] aspect-[210/297] select-none flex-col justify-between rounded-sm border-2 border-dashed border-[var(--accent-border)] bg-[var(--bg-surface)]/65 p-4 text-left transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] sm:max-w-[350px] sm:p-5 lg:max-w-[380px]"
             >
-              {/* Header del Dock ES */}
               <div className="flex items-center justify-between pb-1.5 border-b border-[var(--border-hairline)]">
                 <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                   ES · ORIGEN
                 </span>
-                <span className="text-[9px] font-mono text-[var(--text-muted)]">
-                  01
-                </span>
+                <span className="text-[9px] font-mono text-[var(--text-muted)]">01</span>
               </div>
 
-              {/* Centro del Dock ES */}
               <div className="flex flex-col items-center justify-center my-auto text-center py-4">
                 <div className="flex size-16 flex-col items-center justify-center rounded-full border border-dashed border-[var(--accent-border)] bg-[var(--accent-subtle)] sm:size-20">
                   <span className="font-display text-3xl font-medium tracking-tight text-[var(--accent)] sm:text-4xl">
@@ -274,7 +263,6 @@ export function TheMirrorSection() {
                   CV maestro
                 </span>
 
-                {/* Wireframe lines simulando el documento base */}
                 <div className="w-full max-w-[170px] space-y-1.5 mt-3 opacity-30">
                   <div className="h-1.5 bg-[var(--text-muted)] rounded-full w-full" />
                   <div className="h-1.5 bg-[var(--text-muted)] rounded-full w-4/5 mx-auto" />
@@ -282,51 +270,50 @@ export function TheMirrorSection() {
                 </div>
               </div>
 
-              {/* Pie del Dock ES */}
               <div className="pt-2 border-t border-[var(--border-hairline)] flex items-center justify-between text-[8px] sm:text-[9px] font-mono text-[var(--text-muted)]">
-                  <span>Fuente editable</span>
-                  <span>A4</span>
+                <span>Fuente editable</span>
+                <span>A4</span>
               </div>
 
               {/* LA TARJETA FLOTANTE QUE VIAJA AL DOCK EN */}
-              <div
+              <motion.div
                 className="absolute inset-0 w-full h-full z-20 pointer-events-auto"
                 style={{
-                  transform: `translate3d(${progress * deltaX}px, ${-Math.sin(progress * Math.PI) * 22}px, 0) scale(${1 + Math.sin(progress * Math.PI) * 0.04})`,
+                  x: cardX,
+                  y: cardY,
+                  scale: cardScale,
                   transformOrigin: "center center",
                 }}
               >
                 <MirrorCvCard
-                  progress={progress}
+                  progress={activeProgress}
                   esCv={ES_SAMPLE_CV}
                   enCv={EN_SAMPLE_CV}
                 />
-              </div>
+              </motion.div>
             </button>
 
             {/* DOCK DERECHO: EN (CUADRO DE DESTINO) */}
-            <button
+            <motion.button
               ref={slotEnRef}
               type="button"
               aria-label="Ir a la adaptación en inglés"
               onClick={() => toggleLanguage("en")}
+              animate={isLanded ? { scale: [1, 1.015, 1] } : { scale: 1 }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
               className={`relative flex w-full max-w-[320px] aspect-[210/297] select-none flex-col justify-between rounded-sm p-4 text-left transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--green-text)] sm:max-w-[350px] sm:p-5 lg:max-w-[380px] ${
-                progress >= 0.85
+                isLanded
                   ? "border-2 border-[var(--green-text)] bg-[var(--green-subtle)] shadow-[0_0_48px_-18px_var(--green-text)]"
                   : "border-2 border-dashed border-[var(--green-border)]/70 bg-[var(--green-subtle)]/25 hover:border-[var(--green-text)]"
               }`}
             >
-              {/* Header del Dock EN */}
               <div className="flex items-center justify-between pb-1.5 border-b border-[var(--border-hairline)]">
                 <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-[var(--green-text)] uppercase tracking-wider">
                   EN · DESTINO
                 </span>
-                <span className="text-[9px] font-mono text-[var(--green-text)] font-semibold">
-                  02
-                </span>
+                <span className="text-[9px] font-mono text-[var(--green-text)] font-semibold">02</span>
               </div>
 
-              {/* Centro del Dock EN: El cuadro destacado que dice EN */}
               <div className="flex flex-col items-center justify-center my-auto text-center py-4">
                 <div className="flex size-16 flex-col items-center justify-center rounded-full border border-dashed border-[var(--green-border)] bg-[var(--green-accent)]/30 sm:size-20">
                   <span className="font-display text-3xl font-medium tracking-tight text-[var(--green-text)] sm:text-4xl">
@@ -337,7 +324,6 @@ export function TheMirrorSection() {
                   CV adaptado
                 </span>
 
-                {/* Wireframe lines simulando la plantilla de destino */}
                 <div className="w-full max-w-[170px] space-y-1.5 mt-3 opacity-40">
                   <div className="h-1.5 bg-[var(--green-text)] rounded-full w-full" />
                   <div className="h-1.5 bg-[var(--green-text)] rounded-full w-4/5 mx-auto" />
@@ -345,31 +331,44 @@ export function TheMirrorSection() {
                 </div>
               </div>
 
-              {/* Pie del Dock EN */}
               <div className="pt-2 border-t border-[var(--border-hairline)] flex items-center justify-between text-[8px] sm:text-[9px] font-mono">
-                {progress >= 0.85 ? (
-                  <span className="flex items-center gap-1 font-semibold text-[var(--green-text)]">
-                    <CheckCircle2 aria-hidden="true" className="size-3" /> Adaptado
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-[var(--text-muted)]">
-                    <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--green-text)] motion-safe:animate-pulse" />
-                    Adaptando…
-                  </span>
-                )}
+                <AnimatePresence mode="wait">
+                  {isLanded ? (
+                    <motion.span
+                      key="adapted"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.22 }}
+                      className="flex items-center gap-1 font-semibold text-[var(--green-text)]"
+                    >
+                      <CheckCircle2 aria-hidden="true" className="size-3" /> Adaptado
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="adapting"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.22 }}
+                      className="text-[var(--text-muted)]"
+                    >
+                      En espera
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </div>
-            </button>
-
+            </motion.button>
           </div>
         </div>
 
-        {/* Controles limpios sin barra de progreso */}
+        {/* Controles limpios con barra de progreso */}
         <div className="flex items-center justify-center gap-2 sm:gap-4 text-[10px] sm:text-xs font-mono text-[var(--text-muted)] shrink-0 z-10">
           <button
             type="button"
             onClick={() => toggleLanguage("es")}
             className={`px-3 py-1 rounded transition-colors cursor-pointer ${
-              progress < 0.5
+              !isEnglish
                 ? "text-[var(--text-primary)] font-bold bg-[var(--bg-surface-raised)] border border-[var(--border-hairline)] shadow-xs"
                 : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
@@ -377,15 +376,25 @@ export function TheMirrorSection() {
             ← ES
           </button>
           <span className="text-[var(--border-hairline)]">•</span>
-          <span role="progressbar" aria-label="Progreso de adaptación" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} className="h-px w-16 overflow-hidden bg-[var(--border-hairline)] sm:w-32">
-            <span className="mirror-progress-fill block h-full bg-gradient-to-r from-[var(--accent)] to-[var(--green-text)] transition-[width] duration-150" style={{ width: `${progress * 100}%` }} />
+          <span
+            role="progressbar"
+            aria-label="Progreso de adaptación"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={isLanded ? 100 : isEnglish ? 55 : 0}
+            className="h-px w-16 overflow-hidden bg-[var(--border-hairline)] sm:w-32"
+          >
+            <motion.span
+              className="mirror-progress-fill block h-full origin-left bg-gradient-to-r from-[var(--accent)] to-[var(--green-text)]"
+              style={{ scaleX: activeProgress }}
+            />
           </span>
           <span className="text-[var(--border-hairline)]">•</span>
           <button
             type="button"
             onClick={() => toggleLanguage("en")}
             className={`px-3 py-1 rounded transition-colors cursor-pointer ${
-              progress >= 0.5
+              isEnglish
                 ? "text-[var(--green-text)] font-bold bg-[var(--green-subtle)] border border-[var(--green-border)] shadow-xs"
                 : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             }`}
@@ -393,7 +402,6 @@ export function TheMirrorSection() {
             EN →
           </button>
         </div>
-
       </div>
     </section>
   );

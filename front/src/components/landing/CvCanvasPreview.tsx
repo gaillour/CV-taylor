@@ -1,35 +1,53 @@
 "use client";
 
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useCallback } from "react";
 import { Check, FileCode } from "lucide-react";
+import {
+  motion,
+  useMotionTemplate,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "motion/react";
+
+const SPRING_CONFIG = { stiffness: 220, damping: 26, mass: 0.5 };
 
 export function CvCanvasPreview() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [coords, setCoords] = useState<{ x: number; y: number; active: boolean }>({
-    x: 50,
-    y: 35,
-    active: false,
-  });
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setCoords({ x, y, active: true });
-  }, []);
+  const rawX = useMotionValue(50);
+  const rawY = useMotionValue(35);
+  const isHovered = useMotionValue(0);
+
+  const smoothX = useSpring(rawX, SPRING_CONFIG);
+  const smoothY = useSpring(rawY, SPRING_CONFIG);
+  const smoothHover = useSpring(isHovered, { stiffness: 200, damping: 28 });
+
+  const rotateX = useTransform(smoothY, [0, 100], [9, -9]);
+  const rotateY = useTransform(smoothX, [0, 100], [-9, 9]);
+  const shadowX = useTransform(smoothX, [0, 100], [20, -20]);
+  const shadowY = useTransform(smoothY, [0, 100], [5, 35]);
+
+  const boxShadow = useMotionTemplate`${shadowX}px ${shadowY}px 50px -15px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08)`;
+  const specularBg = useMotionTemplate`radial-gradient(circle 320px at ${smoothX}% ${smoothY}%, rgba(255, 255, 255, 0.55), rgba(212, 151, 59, 0.08) 40%, transparent 80%)`;
+  const specularOpacity = useTransform(smoothHover, [0, 1], [0.4, 0.85]);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      rawX.set(((e.clientX - rect.left) / rect.width) * 100);
+      rawY.set(((e.clientY - rect.top) / rect.height) * 100);
+      isHovered.set(1);
+    },
+    [rawX, rawY, isHovered]
+  );
 
   const handleMouseLeave = useCallback(() => {
-    setCoords({ x: 50, y: 35, active: false });
-  }, []);
-
-  // Cálculo de rotación 3D sutil y dinámica
-  const rotateX = coords.active ? ((50 - coords.y) * 0.18).toFixed(2) : "1.5";
-  const rotateY = coords.active ? ((coords.x - 50) * 0.18).toFixed(2) : "-2";
-
-  // Sombra dinámica proyectada según la inclinación
-  const shadowX = coords.active ? ((50 - coords.x) * 0.4).toFixed(1) : "0";
-  const shadowY = coords.active ? ((coords.y - 30) * 0.5 + 20).toFixed(1) : "25";
+    rawX.set(50);
+    rawY.set(35);
+    isHovered.set(0);
+  }, [rawX, rawY, isHovered]);
 
   return (
     <div
@@ -39,28 +57,22 @@ export function CvCanvasPreview() {
       className="relative w-full max-w-[350px] sm:max-w-[370px] mx-auto select-none py-2 cursor-default"
       style={{ perspective: "1200px" }}
     >
-      {/* Sello de Cera Flotante (Bespoke Stamp) */}
-      <div className="absolute -top-2.5 -right-2 sm:right-1 z-30 w-12 h-12 rounded-full bg-[#181512] border border-[var(--accent)] flex flex-col items-center justify-center shadow-xl rotate-6 pointer-events-none px-1">
-        <span className="font-display italic text-[11px] leading-tight text-[var(--accent)] tracking-normal">Bespoke</span>
-        <span className="text-[6px] font-mono tracking-wider text-zinc-400 uppercase mt-0.5">Typst A4</span>
-      </div>
-
       {/* Hoja A4 ATS Rectangular con inclinación física 3D y brillo especular */}
-      <div
+      <motion.div
         className="ats-sheet-canvas relative rounded-sm aspect-[210/297] p-5 sm:p-6 text-left font-sans text-gray-900 border border-gray-200 overflow-hidden flex flex-col justify-between shadow-2xl"
         style={{
-          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
-          transition: coords.active ? "transform 0.1s ease-out" : "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease",
-          boxShadow: `${shadowX}px ${shadowY}px 50px -15px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08)`,
+          rotateX,
+          rotateY,
+          boxShadow,
           transformStyle: "preserve-3d",
         }}
       >
         {/* Capa de brillo especular / reflejo de luz rasante */}
-        <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-300 z-20"
+        <motion.div
+          className="absolute inset-0 pointer-events-none z-20"
           style={{
-            opacity: coords.active ? 0.85 : 0.4,
-            background: `radial-gradient(circle 320px at ${coords.x}% ${coords.y}%, rgba(255, 255, 255, 0.55), rgba(212, 151, 59, 0.08) 40%, transparent 80%)`,
+            opacity: specularOpacity,
+            background: specularBg,
           }}
         />
 
@@ -69,8 +81,8 @@ export function CvCanvasPreview() {
           <h2 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight leading-none mb-1">
             Juan Carlos Pérez
           </h2>
-          <p className="text-[9px] text-gray-600 font-mono">
-            juan.perez@dev.io • Buenos Aires, AR • github.com/juan-perez
+          <p className="text-[8px] sm:text-[8.5px] text-gray-600 font-mono whitespace-nowrap">
+            juan.perez@dev.io · Buenos Aires, AR · github.com/jperez
           </p>
         </div>
 
@@ -132,28 +144,19 @@ export function CvCanvasPreview() {
           </p>
         </div>
 
-        {/* Footer interno con sello en bajo relieve dorado (Blind deboss) */}
+        {/* Footer interno sobrio */}
         <div className="mt-auto pt-2 border-t border-gray-200 flex items-center justify-between text-[7.5px] text-gray-500 font-mono relative z-10">
           <span className="flex items-center gap-1 text-emerald-700 font-semibold">
             <Check className="w-2.5 h-2.5 text-emerald-600 stroke-[3]" />
             100% Parsing ATS
           </span>
 
-          {/* Sello de relieve de sastre */}
-          <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded border border-amber-900/15 bg-amber-50/50">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-            <span className="font-display italic text-[11px] text-amber-950 font-bold leading-none">
-              Bespoke Press
-            </span>
-          </div>
-
           <span className="flex items-center gap-1 text-gray-600">
             <FileCode className="w-2.5 h-2.5" />
-            Typst Vectorial
+            1 página A4 · Typst
           </span>
         </div>
-
-      </div>
+      </motion.div>
     </div>
   );
 }

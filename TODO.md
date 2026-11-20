@@ -24,6 +24,8 @@
   - Validar el pipeline integral: landing → dropzone parsing → editor anónimo (`draft.ts`) → login → migración de borrador a Supabase → disparo de paywall al superar cuota.
 - [ ] **Checkout y monetización:**
   - Definir e integrar pasarela/proveedor de checkout para la compra del Pase.
+- [x] **Perfeccionar cursor fantasma en Landing Sección 04 (`ProfileFlyDemo.tsx`):**
+  - Pulir trayectoria y timing del cursor; al agregar el último bloque desbordado (`extra`), hacer que el cursor se corra hacia la derecha (como evaluando/"pensando" frente a la hoja A4) y luego vuelva sobre la tarjeta para hacer click y quitarlo.
 
 
 ## P3 — Plantillas Typst & Compatibilidad ATS

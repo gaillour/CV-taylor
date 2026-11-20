@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useRef, useState, useEffect, useCallback } from "react";
-import { CheckCircle2 } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useInView } from "motion/react";
 import { ScrollReveal } from "./ScrollReveal";
-import { TailorButton } from "./TailoringIcons";
+import { TextMaskReveal } from "./motion/TextMaskReveal";
+import { useMainScrollRef } from "./useMainScrollRef";
 
 interface VersionLevel {
   id: string;
@@ -11,11 +12,10 @@ interface VersionLevel {
   label: string;
   kicker: string;
   summary: string;
-  cvTitle: string;
-  cvFocus: string;
-  bullets: string[];
-  skills: string[];
-  docBadge: string;
+  milestoneTitle: string;
+  milestoneOrg: string;
+  milestonePeriod: string;
+  milestoneDetail: string;
 }
 
 const levels: VersionLevel[] = [
@@ -23,260 +23,306 @@ const levels: VersionLevel[] = [
     id: "v1",
     tag: "V1",
     label: "Base",
-    kicker: "Tu Archivo Maestro",
-    summary: "Toda tu experiencia, lista para adaptarse.",
-    cvTitle: "Desarrollador de Software",
-    cvFocus: "Historial completo",
-    bullets: [
-      "Experiencia, proyectos y logros, sin recortes.",
-      "Todas tus habilidades en una sola base.",
-    ],
-    skills: ["JavaScript", "Python", "SQL", "Git", "React", "Docker", "Linux"],
-    docBadge: "Perfil base",
+    kicker: "Archivo maestro",
+    summary: "Tu punto de partida: formación, fundamentos y proyectos iniciales.",
+    milestoneTitle: "Ingeniería en Informática & Fundamentos",
+    milestoneOrg: "Perfil base estructurado",
+    milestonePeriod: "Inicio",
+    milestoneDetail: "Algoritmos, estructuras de datos, SQL y primeras APIs en Python.",
   },
   {
     id: "v2",
     tag: "V2",
     label: "Junior",
-    kicker: "Primeros Pasos",
-    summary: "Proyectos, fundamentos y capacidad de aprender.",
-    cvTitle: "Junior Software Developer",
-    cvFocus: "Proyectos y stack técnico",
-    bullets: [
-      "Features full-stack con React, Node.js y SQL.",
-      "Tests, resolución de bugs y deploy independiente.",
-    ],
-    skills: ["TypeScript", "React", "Node.js", "PostgreSQL", "Git", "REST APIs"],
-    docBadge: "Junior",
+    kicker: "Primeros pasos",
+    summary: "Sumás tus primeros proyectos en producción y stack aplicado.",
+    milestoneTitle: "Desarrollador Full-Stack",
+    milestoneOrg: "Proyecto en producción",
+    milestonePeriod: "+1 año",
+    milestoneDetail: "App web en React + FastAPI con autenticación, tests y deploy continuo.",
   },
   {
     id: "v3",
     tag: "V3",
     label: "Semi Senior",
-    kicker: "Impacto & Autonomía",
-    summary: "Resultados, métricas y autonomía técnica.",
-    cvTitle: "Semi Senior Software Engineer",
-    cvFocus: "Resultados y ownership",
-    bullets: [
-      "Rediseño del flujo de pagos: 35% menos tiempo de respuesta.",
-      "Ownership de servicios con despliegue continuo.",
-    ],
-    skills: ["Go", "TypeScript", "PostgreSQL", "Docker", "AWS", "Microservicios"],
-    docBadge: "Semi senior",
+    kicker: "Impacto & autonomía",
+    summary: "Agregás ownership de servicios, métricas reales y mejora de latencia.",
+    milestoneTitle: "Backend Engineer — Aura Pay",
+    milestoneOrg: "Servicios críticos",
+    milestonePeriod: "+3 años",
+    milestoneDetail: "Rediseño del flujo de pagos en Go bajando latencia p99 en un 35%.",
   },
   {
     id: "v4",
     tag: "V4",
     label: "Senior",
-    kicker: "Liderazgo & Arquitectura",
-    summary: "Arquitectura, decisiones y liderazgo técnico.",
-    cvTitle: "Senior Engineer & Tech Lead",
-    cvFocus: "Arquitectura y liderazgo",
-    bullets: [
-      "Arquitectura y estándares para un equipo de 8 personas.",
-      "25% menos en costos cloud. Mentoría técnica.",
-    ],
-    skills: ["System Design", "Cloud Architecture", "Go / Python", "Kubernetes", "Liderazgo"],
-    docBadge: "Senior",
+    kicker: "Liderazgo & arquitectura",
+    summary: "Sumás decisiones de arquitectura, equipo a cargo y ahorro en escala.",
+    milestoneTitle: "Tech Lead — Prisma Logistics",
+    milestoneOrg: "Arquitectura & equipo",
+    milestonePeriod: "+6 años",
+    milestoneDetail: "Liderazgo técnico de 8 devs y reducción del 25% en costos cloud anuales.",
   },
 ];
 
-export function VersionTimelineSection() {
-  const containerRef = useRef<HTMLElement>(null);
-  const [progress, setProgress] = useState(0);
-
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const containerHeight = containerRef.current.offsetHeight;
-    const viewportHeight = window.innerHeight;
-    const totalScrollable = containerHeight - viewportHeight;
-    if (totalScrollable <= 0) return;
-
-    const scrolled = -rect.top;
-    const clamped = Math.min(Math.max(scrolled / totalScrollable, 0), 1);
-    setProgress(clamped);
-  }, []);
+function VersionChapterItem({
+  level,
+  index,
+  isActive,
+  onActivate,
+  onSelect,
+}: {
+  level: VersionLevel;
+  index: number;
+  isActive: boolean;
+  onActivate: (idx: number) => void;
+  onSelect: (idx: number) => void;
+}) {
+  const itemRef = useRef<HTMLButtonElement>(null);
+  const scrollRef = useMainScrollRef();
+  const isInCenter = useInView(itemRef, {
+    root: scrollRef,
+    margin: "-44% 0px -44% 0px",
+  });
 
   useEffect(() => {
-    const scrollParent = document.getElementById("main-scroll") || window;
-    handleScroll();
-    scrollParent.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll, { passive: true });
-    return () => {
-      scrollParent.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
-    };
-  }, [handleScroll]);
+    if (isInCenter) {
+      onActivate(index);
+    }
+  }, [isInCenter, index, onActivate]);
 
-  // Selección del nivel según scroll (0, 1, 2 o 3)
-  const activeIdx = Math.min(3, Math.floor(progress * 4));
+  return (
+    <button
+      ref={itemRef}
+      type="button"
+      onClick={() => onSelect(index)}
+      aria-pressed={isActive}
+      className={`group relative flex min-h-[34vh] w-full flex-col justify-center py-12 pl-7 text-left transition-opacity duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+        isActive ? "opacity-100" : "opacity-40 hover:opacity-75"
+      }`}
+    >
+      {isActive ? (
+        <motion.span
+          layoutId="version-active-rail"
+          transition={{ type: "spring", stiffness: 280, damping: 30 }}
+          aria-hidden="true"
+          className="absolute bottom-8 left-0 top-8 w-0.5 bg-[var(--accent)]"
+        />
+      ) : null}
+
+      <div className="flex items-baseline gap-3.5">
+        <span
+          className={`font-display text-4xl font-medium leading-none tracking-tight transition-colors sm:text-5xl ${
+            isActive ? "text-[var(--accent)]" : "text-[var(--text-muted)]"
+          }`}
+        >
+          {level.tag}
+        </span>
+        <div>
+          <span className="block font-display text-2xl font-medium text-[var(--text-primary)]">
+            {level.label}
+          </span>
+          <span className="font-mono text-[11px] text-[var(--text-muted)]">
+            {level.kicker}
+          </span>
+        </div>
+      </div>
+
+      <p className="mt-3 max-w-md text-sm leading-relaxed text-[var(--text-secondary)]">
+        {level.summary}
+      </p>
+    </button>
+  );
+}
+
+export function VersionTimelineSection() {
+  const [activeIdx, setActiveIdx] = useState(0);
   const current = levels[activeIdx];
-
-  const jumpToLevel = (index: number) => {
-    if (!containerRef.current) return;
-    const scrollParent = document.getElementById("main-scroll") || window;
-    const scrollTop = scrollParent === window ? window.scrollY : (scrollParent as HTMLElement).scrollTop;
-    const sectionTop = containerRef.current.getBoundingClientRect().top + scrollTop;
-    const totalScrollable = containerRef.current.offsetHeight - window.innerHeight;
-    const targetScroll = sectionTop + ((index + 0.5) / levels.length) * totalScrollable;
-    scrollParent.scrollTo({ top: targetScroll, behavior: "smooth" });
-  };
+  const accumulated = levels.slice(0, activeIdx + 1).reverse();
 
   return (
     <section
       id="versiones"
-      ref={containerRef}
       aria-labelledby="versions-title"
-      className="scroll-story relative min-h-[250vh] border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)]"
+      className="relative border-b border-[var(--border-hairline)] bg-[var(--bg-canvas)] px-4 py-24 sm:px-6 sm:py-32 lg:px-8"
     >
-      {/* Contenedor Sticky: la pantalla se fija mientras scrolleás */}
-      <div className="scroll-story-sticky sticky top-0 flex h-screen w-full flex-col items-center justify-between overflow-hidden px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        
-        {/* Luz difusa ambiental cálida */}
-        <div className="ambient-glow top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-40" />
-
+      <div className="relative z-10 mx-auto max-w-6xl">
         {/* Cabecera Concisa */}
-        <ScrollReveal direction="up" className="w-full shrink-0">
-        <div className="text-center max-w-xl mx-auto shrink-0 z-10">
-          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[var(--accent)]">
+        <ScrollReveal direction="up" className="mb-14 text-center sm:mb-20">
+          <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--accent)]">
             03 / Evolución
           </span>
-          <h2 id="versions-title" className="mt-2 font-display text-3xl font-medium tracking-[-0.04em] text-[var(--text-ivory)] sm:text-5xl lg:text-6xl">
-            Distintas versiones <span className="italic text-[var(--text-secondary)]">para cada etapa.</span>
+          <h2
+            id="versions-title"
+            className="mt-2 font-display text-3xl font-medium tracking-[-0.04em] text-[var(--text-ivory)] sm:text-5xl lg:text-6xl"
+          >
+            <TextMaskReveal>Distintas versiones</TextMaskReveal>{" "}
+            <span className="italic text-[var(--text-secondary)]">
+              <TextMaskReveal delay={0.08}>para cada etapa.</TextMaskReveal>
+            </span>
           </h2>
-        </div>
         </ScrollReveal>
 
-        {/* Centro: Panel de Versionado con V1 Gigante + Hoja de CV interactiva */}
-        <div className="w-full max-w-5xl mx-auto my-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
-          
-          {/* Columna Izquierda: Nivel Actual con V1/V2/V3/V4 Gigante */}
-          <div className="lg:col-span-5 flex flex-col justify-center text-center lg:text-left space-y-4">
-            
-            <nav aria-label="Etapas de carrera" className="relative flex items-center justify-center gap-5 lg:justify-start">
-              <span aria-hidden="true" className="absolute left-4 right-4 top-1/2 h-px -translate-y-1/2 bg-[var(--border-hairline)]" />
-              {levels.map((lvl, idx) => (
-                <button
-                  key={lvl.id}
-                  type="button"
-                  aria-label={`${lvl.tag}: ${lvl.label}`}
-                  aria-pressed={activeIdx === idx}
-                  onClick={() => jumpToLevel(idx)}
-                  className={`relative z-10 size-9 rounded-full border font-mono text-[10px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                    activeIdx === idx
-                      ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-contrast)]"
-                      : activeIdx > idx
-                      ? "border-[var(--green-border)] bg-[var(--bg-canvas)] text-[var(--green-text)]"
-                      : "border-[var(--border-hairline)] bg-[var(--bg-canvas)] text-[var(--text-muted)] hover:border-[var(--border-subtle)]"
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
-            </nav>
-
-            {/* Número de Versión GIGANTE */}
-            <div className="flex items-baseline justify-center lg:justify-start gap-3">
-              <span className="font-display text-4xl sm:text-6xl lg:text-7xl font-black text-[var(--accent)] leading-none tracking-tighter select-none">
-                {current.tag}
-              </span>
-              <div className="text-left">
-                <span className="text-xl sm:text-2xl font-display font-bold text-[var(--text-primary)] block">
-                  {current.label}
-                </span>
-                <span className={`text-xs font-mono uppercase tracking-wider font-semibold ${activeIdx >= 2 ? "text-[var(--green-text)]" : "text-[var(--accent)]"}`}>
-                  {current.kicker}
-                </span>
-              </div>
-            </div>
-
-            {/* Bajada simple */}
-            <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed max-w-md mx-auto lg:mx-0">
-              {current.summary}
-            </p>
-
-            {/* Barra de progreso de scroll específica del versionado */}
-            <div className="flex items-center justify-center gap-3 pt-2 lg:justify-start">
-              <div role="progressbar" aria-label="Progreso de versiones" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} className="h-px w-28 overflow-hidden bg-[var(--border-hairline)]">
-                <div className="story-progress-fill h-full bg-gradient-to-r from-[var(--accent)] to-[var(--green-text)] transition-[width] duration-150" style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }} />
-              </div>
-              <span className="font-mono text-[10px] text-[var(--text-muted)]">{current.tag} / 04</span>
-            </div>
-
-          </div>
-
-          {/* Columna Derecha: Hoja de CV que cambia de forma visible */}
-          <div className="lg:col-span-7 flex justify-center">
-            <div className="w-full max-w-[420px] rounded-xl bg-white text-zinc-900 p-6 sm:p-7 shadow-2xl border border-zinc-200 transition-all duration-500 relative flex flex-col justify-between">
-              
-              {/* Sello de versión en la hoja */}
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-200">
-                <span
-                  className={`font-mono text-[10.5px] font-semibold uppercase tracking-wider ${
-                    activeIdx === 0 ? "text-[#935f18]" : "text-emerald-800"
-                  }`}
-                >
-                  {current.docBadge}
-                </span>
-              </div>
-
-              {/* Encabezado del CV */}
-              <div className="mb-4">
-                <span className="text-lg sm:text-xl font-display font-bold text-zinc-900 block">
-                  Juan Carlos Pérez
-                </span>
-                <span className="text-xs font-mono font-semibold text-[#935f18] block mt-0.5">
-                  {current.cvTitle}
-                </span>
-                <p className="text-[11px] text-zinc-500 mt-1 leading-snug">
-                  {current.cvFocus}
-                </p>
-              </div>
-
-              {/* Viñetas adaptadas al nivel */}
-              <div className="space-y-2 mb-4">
-                <span className="text-[9px] font-mono uppercase tracking-wider text-zinc-400 font-bold block">
-                  Experiencia
-                </span>
-                {current.bullets.map((b, bIdx) => (
-                  <div key={bIdx} className="flex items-start gap-2 text-xs text-zinc-700 leading-snug">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>{b}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Skills calibradas para esta versión */}
-              <div className="pt-3 border-t border-zinc-200">
-                <span className="text-[9px] font-mono uppercase tracking-wider text-zinc-400 font-bold block mb-1.5">
-                  Habilidades
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {current.skills.map((s, sIdx) => (
-                    <span
-                      key={sIdx}
-                      className="px-2 py-0.5 rounded bg-zinc-100 text-zinc-800 text-[10px] font-mono border border-zinc-200"
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Pie de la hoja */}
-              <div className="mt-4 pt-2 border-t border-zinc-100 flex items-center justify-between text-[9px] font-mono text-zinc-400">
-                <span>A4 · ATS</span>
-                <TailorButton size={14} strokeWidth={1.3} className="text-[#935f18] opacity-70" />
-              </div>
-
-            </div>
-          </div>
-
+        {/* Selector Mobile */}
+        <div
+          className="mb-8 flex items-center justify-center gap-2 lg:hidden"
+          role="tablist"
+          aria-label="Etapas de carrera"
+        >
+          {levels.map((lvl, idx) => {
+            const isActive = activeIdx === idx;
+            return (
+              <button
+                key={lvl.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setActiveIdx(idx)}
+                className={`relative rounded-full px-3.5 py-1.5 font-mono text-xs transition-colors ${
+                  isActive
+                    ? "font-medium text-[var(--accent-contrast)]"
+                    : "border border-[var(--border-hairline)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                {isActive ? (
+                  <motion.span
+                    layoutId="version-mobile-pill"
+                    transition={{ type: "spring", stiffness: 320, damping: 30 }}
+                    className="absolute inset-0 rounded-full bg-[var(--accent)]"
+                  />
+                ) : null}
+                <span className="relative z-10">{lvl.tag}</span>
+              </button>
+            );
+          })}
         </div>
 
-        <p className="sr-only" aria-live="polite">{current.tag}: {current.label}</p>
+        {/* Grid Editorial: Capítulos espaciados (izq) + Trayectoria acumulativa (der) */}
+        <div className="grid grid-cols-1 items-start gap-12 lg:grid-cols-12 lg:gap-14">
+          {/* Columna Izquierda */}
+          <div className="relative hidden border-l border-[var(--border-hairline)] lg:col-span-5 lg:block lg:space-y-4">
+            {levels.map((lvl, idx) => (
+              <VersionChapterItem
+                key={lvl.id}
+                level={lvl}
+                index={idx}
+                isActive={activeIdx === idx}
+                onActivate={setActiveIdx}
+                onSelect={setActiveIdx}
+              />
+            ))}
+          </div>
 
+          {/* Resumen activo en mobile */}
+          <div className="text-center lg:hidden">
+            <span className="font-display text-2xl font-medium text-[var(--text-primary)]">
+              {current.label}
+            </span>
+            <span className="ml-2 font-mono text-xs text-[var(--accent)]">
+              {current.kicker}
+            </span>
+            <p className="mx-auto mt-1 max-w-md text-sm text-[var(--text-secondary)]">
+              {current.summary}
+            </p>
+          </div>
+
+          {/* Columna Derecha fija: Experiencia que se acumula y pisa fuerte */}
+          <div className="lg:col-span-7 lg:sticky lg:top-28 lg:self-start">
+            <div className="border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 sm:p-8">
+              <div className="mb-6 flex items-center justify-between border-b border-[var(--border-hairline)] pb-4">
+                <span className="font-mono text-[11px] text-[var(--text-secondary)]">
+                  Experiencia acumulada en tu perfil
+                </span>
+                <span className="font-mono text-[11px] tabular-nums text-[var(--accent)]">
+                  {accumulated.length} / {levels.length} etapas
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                <AnimatePresence initial={false} mode="popLayout">
+                  {accumulated.map((item) => {
+                    const isNewest = item.id === current.id;
+
+                    return (
+                      <motion.article
+                        key={item.id}
+                        layout="position"
+                        initial={{
+                          opacity: 0,
+                          y: -24,
+                          scale: 0.98,
+                        }}
+                        animate={{
+                          opacity: isNewest ? 1 : 0.48,
+                          y: 0,
+                          scale: isNewest ? 1 : 0.985,
+                        }}
+                        exit={{
+                          opacity: 0,
+                          y: -16,
+                          scale: 0.96,
+                        }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 260,
+                          damping: 24,
+                          mass: 0.85,
+                        }}
+                        className={`relative border p-4 transition-colors duration-300 ${
+                          isNewest
+                            ? "border-[var(--accent-border)] bg-[var(--bg-surface-raised)] shadow-[0_18px_36px_-22px_rgba(0,0,0,0.9)]"
+                            : "border-[var(--border-hairline)] bg-[var(--bg-canvas)]"
+                        }`}
+                      >
+                        {isNewest ? (
+                          <span
+                            aria-hidden="true"
+                            className="absolute bottom-0 left-0 top-0 w-0.5 bg-[var(--accent)]"
+                          />
+                        ) : null}
+
+                        <div className="mb-1 flex items-baseline justify-between gap-3">
+                          <div className="flex items-baseline gap-2.5">
+                            <span
+                              className={`font-mono text-[11px] font-medium ${
+                                isNewest ? "text-[var(--accent)]" : "text-[var(--text-muted)]"
+                              }`}
+                            >
+                              {item.tag}
+                            </span>
+                            <h3
+                              className={`text-sm font-medium ${
+                                isNewest ? "text-[var(--text-ivory)]" : "text-[var(--text-secondary)]"
+                              }`}
+                            >
+                              {item.milestoneTitle}
+                            </h3>
+                          </div>
+
+                          <span className="shrink-0 font-mono text-[10px] text-[var(--text-muted)]">
+                            {item.milestonePeriod}
+                          </span>
+                        </div>
+
+                        <p
+                          className={`text-xs leading-relaxed ${
+                            isNewest ? "text-[var(--text-secondary)]" : "text-[var(--text-muted)]"
+                          }`}
+                        >
+                          {item.milestoneDetail}
+                        </p>
+                      </motion.article>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p className="sr-only" aria-live="polite">
+          {current.tag}: {current.label}
+        </p>
       </div>
     </section>
   );

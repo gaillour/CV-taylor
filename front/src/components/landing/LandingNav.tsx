@@ -3,10 +3,20 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { motion } from "motion/react";
 import { TailorScissors } from "./TailoringIcons";
+
+const NAV_ITEMS = [
+  { id: "metodo", label: "Método" },
+  { id: "the-mirror", label: "The Mirror" },
+  { id: "versiones", label: "Versiones" },
+  { id: "composicion", label: "Armado" },
+  { id: "pricing", label: "Precios" },
+] as const;
 
 export function LandingNav() {
   const [isVisible, setIsVisible] = React.useState(true);
+  const [activeId, setActiveId] = React.useState<string | null>(null);
   const lastScrollY = React.useRef(0);
 
   React.useEffect(() => {
@@ -14,19 +24,15 @@ export function LandingNav() {
     const target = scrollContainer || window;
 
     const onScroll = () => {
-      let current = 0;
-      if (scrollContainer) {
-        current = scrollContainer.scrollTop;
-      } else {
-        current = window.scrollY;
-      }
-
-      // Auto-hide al scrollear hacia abajo, reaparece suave al subir
+      const current = scrollContainer ? scrollContainer.scrollTop : window.scrollY;
       const diff = current - lastScrollY.current;
       if (current > 60 && diff > 4) {
         setIsVisible(false);
       } else if (diff < -4 || current <= 60) {
         setIsVisible(true);
+      }
+      if (current < 160) {
+        setActiveId(null);
       }
       lastScrollY.current = current;
     };
@@ -36,13 +42,38 @@ export function LandingNav() {
     return () => target.removeEventListener("scroll", onScroll);
   }, []);
 
+  React.useEffect(() => {
+    const scrollContainer = document.getElementById("main-scroll");
+    const elements = NAV_ITEMS.map((item) => document.getElementById(item.id)).filter(
+      (el): el is HTMLElement => el !== null
+    );
+    if (elements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible.length > 0) {
+          setActiveId(visible[0].target.id);
+        }
+      },
+      {
+        root: scrollContainer || null,
+        rootMargin: "-25% 0px -45% 0px",
+        threshold: [0.05, 0.25, 0.5],
+      }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
-    } else {
-      window.location.hash = id;
     }
   };
 
@@ -53,7 +84,6 @@ export function LandingNav() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        
         {/* Monograma & Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="w-7 h-7 rounded-md border border-[var(--accent-border)] bg-[var(--accent-subtle)] flex items-center justify-center text-[var(--accent)] transition-all duration-200 group-hover:border-[var(--accent)] shadow-sm">
@@ -66,34 +96,30 @@ export function LandingNav() {
 
         {/* Enlaces de navegación */}
         <nav className="hidden md:flex items-center gap-8 text-xs font-medium tracking-wider uppercase text-[var(--text-secondary)]">
-          <a
-            href="#metodo"
-            onClick={(e) => scrollToSection(e, "metodo")}
-            className="hover:text-[var(--text-primary)] transition-colors"
-          >
-            Método
-          </a>
-          <a
-            href="#the-mirror"
-            onClick={(e) => scrollToSection(e, "the-mirror")}
-            className="hover:text-[var(--text-primary)] transition-colors"
-          >
-            The Mirror
-          </a>
-          <a
-            href="#versiones"
-            onClick={(e) => scrollToSection(e, "versiones")}
-            className="hover:text-[var(--text-primary)] transition-colors"
-          >
-            Versiones
-          </a>
-          <a
-            href="#pricing"
-            onClick={(e) => scrollToSection(e, "pricing")}
-            className="hover:text-[var(--text-primary)] transition-colors"
-          >
-            Pricing
-          </a>
+          {NAV_ITEMS.map((item) => {
+            const isActive = activeId === item.id;
+            return (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                onClick={(e) => scrollToSection(e, item.id)}
+                className={`relative py-1.5 transition-colors ${
+                  isActive
+                    ? "text-[var(--text-ivory)]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                {item.label}
+                {isActive ? (
+                  <motion.span
+                    layoutId="landing-nav-indicator"
+                    transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                    className="absolute inset-x-0 -bottom-0.5 h-px bg-gradient-to-r from-[var(--accent)] to-[var(--green-text)]"
+                  />
+                ) : null}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Acciones principales */}
@@ -105,7 +131,11 @@ export function LandingNav() {
             className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-hairline)] hover:border-[var(--border-subtle)] transition-colors"
           >
             <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-              <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+              />
             </svg>
             <span className="font-mono text-[11px]">GitHub</span>
           </a>
@@ -118,7 +148,6 @@ export function LandingNav() {
             <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
-
       </div>
     </header>
   );

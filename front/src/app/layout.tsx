@@ -37,7 +37,7 @@ export default function RootLayout({
         <Suspense fallback={<div className="w-0 md:w-60 shrink-0 bg-surface border-r border-hairline" />}>
           <AppSidebar />
         </Suspense>
-        <main id="main-scroll" className="flex-1 min-w-0 min-h-0 flex flex-col overflow-y-auto scroll-smooth">
+        <main id="main-scroll" className="relative flex-1 min-w-0 min-h-0 flex flex-col overflow-y-auto">
           {children}
         </main>
         <ConfirmModal />
